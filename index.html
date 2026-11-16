@@ -60194,14 +60194,43 @@ console.info('[NPCFIX] ready r1');
 </script>
 
 <script>
-/* ---- REAL v3l4c (16 Nov 2026) = REAL v3l4b + r111 (mobrefill: no idle despawn on any map + refill sites/home return + 13 extra Map 2 spawn sites, npcsize ~1.0x hero, npcfix NPC placement/overlap, no falling leaves staff skills no longer greyed by a transient error, staff Auto casts unlocked staff skills, skill tooltip) (staff Auto attacks, monsters no longer stop at the NPC pocket wall, special-skill tab guard). REAL v3k + TEST r98..r100 (dagger skills hide the hero, keepweapon: picked starter weapon kept across maps/reload, sword combo reach matches dagger -50%) + ALL dev/test UI hidden unless ?gm=on. REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r111.
+/* ---- r112 townnpc (DeaRz, Map 3 market): (1) every click on a villager wrote a NEW random line into the chat log (spam, same line 4x); (2) the vendors (tk 'shop') stood at random spots, away from their stalls; (3) F near a villager showed "คุยกับ Spirit Merchant" (old blocked shop default). Now: one talk per villager per 5 s (repeat clicks inside it do nothing), a line is never repeated twice in a row and never logged twice in a row, bubbles stay; vendors stand fixed behind their stall (fruit lady = teal produce stall, baker = bread stall, Emma = cloth/blue stall, caravan merchant = pottery stall) and the fish seller + knife smith at fixed spots; F near a vendor opens the new shop window (__SHOPWIN) with the stall's goods (existing items only: Spirit Tonic / Mana Draught; "ยังไม่มีสินค้า" where nothing is defined); F prompt = "คุยกับ <name>". Non-vendor villagers keep their behaviour. ?townnpc=off = old. Debug: window.__TOWNNPC ---- */
+(function(){'use strict';
+const Q=String(location.search),TN=window.__TOWNNPC={ver:'townnpc-r1',on:!/[?&]townnpc=off\b/.test(Q),err:null,placed:0,shops:0,sayBlocked:0,logSkipped:0,opened:0};
+if(!TN.on)return;
+const T=window.__TOWN;if(!T){TN.err='no __TOWN';return}
+const SPOT={ast_fruit:[537,2216],ast_baker:[709,2216],ast_emma:[881,2216],ast_cat_stall:[1053,2216],ast_fish:[1190,2330],ast_demon_knife:[1262,2250]};
+const GOODS={ast_fruit:['hpPot','mpPot'],ast_baker:['hpPot'],ast_emma:[],ast_cat_stall:[],ast_fish:[],ast_demon_knife:[]};
+TN.goods=GOODS;
+/* 1) talk throttle + no duplicate log lines */
+T.say=function(n){try{const now=time;if(now<(n._tnT||0)){TN.sayBlocked++;return n.bubble?n.bubble.s:null}n._tnT=now+5;
+  let s=T.line(n);if(!s)return null;if(n._tnLast===s&&n.lines&&n.lines.length>1){for(let k=0;k<6&&s===n._tnLast;k++){const s2=T.line(n);if(s2)s=s2}}
+  n._tnLast=s;T.stats.talks++;n.bubble={s,t:now+4.2};T.last={id:n.id,say:s};
+  const key=n.id+'|'+s;if(T._tnLog!==key){try{log('['+n.n+'] '+s,'v')}catch(_){}T._tnLog=key}else TN.logSkipped++;return s}catch(e){TN.err='say '+e.message;return null}};
+/* 2) vendors fixed at their stalls */
+function place(){try{if(G.zone!=='astoria_capital'||!T.npcs||!T.npcs.length)return;for(const n of T.npcs){const s=SPOT[n.id];if(!s)continue;
+  if(Math.abs(n.x-s[0])>.5||Math.abs(n.y-s[1])>.5){n.x=s[0];n.y=s[1];if(n.home){if(Array.isArray(n.home)){n.home[0]=s[0];n.home[1]=s[1]}else{n.home.x=s[0];n.home.y=s[1]}}n.moving=false;n.tgt=null;n.wait=999;TN.placed++}
+  n.stall=1}}catch(e){TN.err='place '+e.message}}
+setInterval(place,400);
+/* 3) F prompt */
+try{const _np=npcPrompt;npcPrompt=function(n){try{if(n&&n.town)return 'คุยกับ '+n.n+(n.tk==='shop'?' · ซื้อของ':'')}catch(_){}return _np.apply(this,arguments)}}catch(e){TN.err='prompt '+e.message}
+/* 4) F at a vendor opens the shop window */
+function openShop(n){const SW=window.__SHOPWIN;if(!SW||!SW.openNpc)return false;const ids=GOODS[n.id]||[];const list=[];for(const id of ids){const d=ITEMS[id];if(d)list.push({id,p:d.price||d.sell||30})}
+  return SW.openNpc({name:n.n,list,buy:(id,price,qty)=>{let done=0;for(let i=0;i<qty;i++){if((P.gold|0)<price)break;if(P.inv.length>=P.invSize&&!(typeof countItem==='function'&&countItem(id)))break;P.gold-=price;try{addItem({id,q:1})}catch(_){break}done++}try{saveGame()}catch(_){}return done}})}
+try{const _i=interact;interact=function(){try{const it=G.interact;if(it&&it.k==='npc'&&it.n&&it.n.town&&it.n.tk==='shop'&&GOODS[it.n.id]!==undefined){if(openShop(it.n)){TN.opened++;return true}}}catch(e){TN.err='interact '+e.message}return _i.apply(this,arguments)}}catch(e){TN.err='hook '+e.message}
+})();
+
+</script>
+
+<script>
+/* ---- REAL v3l4d (16 Nov 2026) = REAL v3l4c + r112 (town villagers: one talk per click, no log spam, vendors fixed at their stalls with the shop window, F prompt fixed; mobrefill: no idle despawn on any map + refill sites/home return + 13 extra Map 2 spawn sites, npcsize ~1.0x hero, npcfix NPC placement/overlap, no falling leaves staff skills no longer greyed by a transient error, staff Auto casts unlocked staff skills, skill tooltip) (staff Auto attacks, monsters no longer stop at the NPC pocket wall, special-skill tab guard). REAL v3k + TEST r98..r100 (dagger skills hide the hero, keepweapon: picked starter weapon kept across maps/reload, sword combo reach matches dagger -50%) + ALL dev/test UI hidden unless ?gm=on. REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r112.
    * labels the build, strips the word "TEST" from zone names / gate hints / item names; ?testlabels=on keeps them;
    * the floating gate button is replaced by a menu-bar button (glue_v3f); the 🕯 test button stays hidden unless ?gm=on;
    * starter weapons: "Test Bow (TEST)" / "Test Staff (TEST)" / "Test Dagger (TEST)" become their real names (Gale String / Starlight Staff / Spirit Fang);
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3l4c',base:'TEST allin_r111 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l4d',base:'TEST allin_r112 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -60218,7 +60247,7 @@ setInterval(hide,800);
 if(!GM){try{const st=document.createElement('style');st.id='realNoDev';st.textContent='#atk19Btn,#atk19SizeBtn,#atk19PerBtn,#atk19WaveBtn,#atk19RangeBtn,#bowTestChip,#p210diag,#atk19Chip,#fpsBox,#fpsOverlay{display:none!important}';(document.head||document.documentElement).appendChild(st);
  const DEVRX=/ATK19|r7[a-z]\b|คอมโบ ATK|ขนาดมีด|จังหวะมีด|คลื่นดาบ:|ระยะฟัน|ทดสอบให้เห็น|\bTEST\b|dgvis|bow3|edgehit|FPS:/i;
  setInterval(()=>{try{for(const e of document.querySelectorAll('body *')){if(e.children.length>0||e.id==='realNoDev')continue;const cs=e.style;if(!cs||cs.position!=='fixed'&&getComputedStyle(e).position!=='fixed')continue;const tx=(e.textContent||'').trim();if(tx&&tx.length<140&&DEVRX.test(tx)&&!e.closest('#dlgBox,#chat,#bag')){e.style.setProperty('display','none','important');R.hidden++}}}catch(_){}},1200)}catch(e){R.err=e.message}}
-console.info('[REAL] v3l4c');
+console.info('[REAL] v3l4d');
 })();
 </script>
 <script>
@@ -60226,6 +60255,6 @@ console.info('[REAL] v3l4c');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l4c';console.info('[REAL] v3l4c')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l4d';console.info('[REAL] v3l4d')}catch(e){}
 })();
 </script>
