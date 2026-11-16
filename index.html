@@ -59939,14 +59939,53 @@ window.__KEEPW={ver:'keepweapon-r1',on:!/[?&]keepweapon=off\b/.test(Q),kept:0,
 </script>
 
 <script>
-/* ---- REAL v3l (16 Nov 2026): REAL v3k + TEST r98..r100 (dagger skills hide the hero, keepweapon: picked starter weapon kept across maps/reload, sword combo reach matches dagger -50%) + ALL dev/test UI hidden unless ?gm=on. REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r100.
+/* ---- r101 staffauto: staff Autoplay used no basic attack (original autoPlay skips basicAttack for staff and the starter staff has only firstAid slotted) -> hero stood still. Now: staff on Auto basic-attacks in range (0.9 x range), slotted skills still cast first. ?staffauto=off = old behaviour. ---- */
+(function(){'use strict';
+const Q=String(location.search),SA=window.__STAFFAUTO={ver:'staffauto-r1',on:!/[?&]staffauto=off\b/.test(Q),n:0,err:null};
+try{const _a=autoPlay;autoPlay=function(dt){const v=_a.apply(this,arguments);
+ try{if(SA.on&&G.auto&&P&&!P.dead&&P.weapon&&P.weapon.t==='staff'){const t=G.autoT;if(t&&!t.dead){const W_=WEAPONS.staff,dT=d2(t.x,t.y,P.x,P.y);if(dT<=W_.range*.9){P.face=Math.atan2(t.y-P.y,t.x-P.x);basicAttack();SA.n++}}}}catch(e){SA.err=e.message}
+ return v};}catch(e){SA.err=e.message}
+})();
+
+</script>
+
+<script>
+/* ---- r101 chasefix: monsters stopped as if at an invisible wall (DeaRz, Map 2). Cause: npcsafe-r1 keeps a 350 px "no-monster pocket" around each moved NPC (Pip at 120,600 on Map 2; Reo / Pell on Map 4) and EVERY frame pushed any monster inside it out to 358 px AND set aggro=false -> chasers lined up on an arc 358 px from the NPC and dropped the hero. Now the pocket only repels monsters that are NOT chasing (idle / wandering / newly spawned); a chasing monster is never pushed and keeps its target. ?chasefix=off = old behaviour. Debug: window.__CHASEFIX ---- */
+(function(){'use strict';
+const Q=String(location.search),CF=window.__CHASEFIX={ver:'chasefix-r1',on:!/[?&]chasefix=off\b/.test(Q),err:null,pushed:0,spared:0};
+try{const NS=window.NPC_SAFE;if(!CF.on||!NS||!NS.cfg)return;const R=NS.cfg.CLEAR_R||350;NS.cfg.CLEAR_R=0;CF.R=R;
+ const _u=update;update=function(){const r=_u.apply(this,arguments);
+  try{if(G.zone!=null&&typeof enemies!=='undefined'){const Z=ZONES[G.zone];for(const id in NS.cfg.NPCS){const c=NS.cfg.NPCS[id];if(G.zone!==c.zone)continue;
+    for(const e of enemies){if(!e||e.dead||e.hp<=0)continue;let dx=e.x-c.x,dy=e.y-c.y,d=Math.hypot(dx,dy);if(d>=R)continue;
+      if(e.aggro){CF.spared++;continue}
+      if(d<1){dx=1;dy=0;d=1}const k=(R+8)/d;e.x=Math.max(30,Math.min(Z.w-30,c.x+dx*k));e.y=Math.max(30,Math.min(Z.h-30,c.y+dy*k));e.vx=0;e.vy=0;CF.pushed++}}}}catch(er){CF.err=er.message}
+  return r}}catch(e){CF.err=e.message}
+})();
+
+</script>
+
+<script>
+/* ---- r101 sktabfix (defensive): "★ สกิลพิเศษ" tab -> back to the weapon page reported to freeze the game (DeaRz). NOT reproduced in headless Chrome (staff / sword / bow / dagger, 20 toggles each, 3 viewport sizes, 0 console errors, no frame stall), so this only hardens the toggle: clicks closer than 250 ms are ignored (no double toggle), the page switch runs inside try/catch, and leaving the special page forces one clean render of the weapon page. ?sktabfix=off = old. Debug: window.__SKTABFIX ---- */
+(function(){'use strict';
+const Q=String(location.search),T=window.__SKTABFIX={ver:'sktabfix-r1',on:!/[?&]sktabfix=off\b/.test(Q),blocked:0,err:null};
+if(!T.on)return;let tries=0,last=0;
+const iv=setInterval(()=>{try{const win=document.getElementById('wWpnSk');if(!win){if(++tries>200)clearInterval(iv);return}
+ if(win._skfix)return;win._skfix=1;clearInterval(iv);
+ win.addEventListener('click',e=>{try{const t=e.target&&e.target.closest&&e.target.closest('#spTog');if(!t)return;const n=performance.now();if(n-last<250){e.stopImmediatePropagation();e.preventDefault();T.blocked++;return}last=n}catch(er){T.err=er.message}},true);
+}catch(e){T.err=e.message}},300);
+})();
+
+</script>
+
+<script>
+/* ---- REAL v3l3 (16 Nov 2026) = REAL v3l2 + r101 fixes (staff Auto attacks, monsters no longer stop at the NPC pocket wall, special-skill tab guard). REAL v3k + TEST r98..r100 (dagger skills hide the hero, keepweapon: picked starter weapon kept across maps/reload, sword combo reach matches dagger -50%) + ALL dev/test UI hidden unless ?gm=on. REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r101.
    * labels the build, strips the word "TEST" from zone names / gate hints / item names; ?testlabels=on keeps them;
    * the floating gate button is replaced by a menu-bar button (glue_v3f); the 🕯 test button stays hidden unless ?gm=on;
    * starter weapons: "Test Bow (TEST)" / "Test Staff (TEST)" / "Test Dagger (TEST)" become their real names (Gale String / Starlight Staff / Spirit Fang);
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3l',base:'TEST allin_r100 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l3',base:'TEST allin_r101 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -59963,7 +60002,7 @@ setInterval(hide,800);
 if(!GM){try{const st=document.createElement('style');st.id='realNoDev';st.textContent='#atk19Btn,#atk19SizeBtn,#atk19PerBtn,#atk19WaveBtn,#atk19RangeBtn,#bowTestChip,#p210diag,#atk19Chip,#fpsBox,#fpsOverlay{display:none!important}';(document.head||document.documentElement).appendChild(st);
  const DEVRX=/ATK19|r7[a-z]\b|คอมโบ ATK|ขนาดมีด|จังหวะมีด|คลื่นดาบ:|ระยะฟัน|ทดสอบให้เห็น|\bTEST\b|dgvis|bow3|edgehit|FPS:/i;
  setInterval(()=>{try{for(const e of document.querySelectorAll('body *')){if(e.children.length>0||e.id==='realNoDev')continue;const cs=e.style;if(!cs||cs.position!=='fixed'&&getComputedStyle(e).position!=='fixed')continue;const tx=(e.textContent||'').trim();if(tx&&tx.length<140&&DEVRX.test(tx)&&!e.closest('#dlgBox,#chat,#bag')){e.style.setProperty('display','none','important');R.hidden++}}}catch(_){}},1200)}catch(e){R.err=e.message}}
-console.info('[REAL] v3l');
+console.info('[REAL] v3l3');
 })();
 </script>
 <script>
@@ -59971,6 +60010,6 @@ console.info('[REAL] v3l');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l2';console.info('[REAL] v3l2')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l3';console.info('[REAL] v3l3')}catch(e){}
 })();
 </script>
