@@ -58806,7 +58806,7 @@ function autoPre(dt,k){try{const hx=SW.x,hy=SW.y;robotHurtAt(P.x,P.y,dt);
   if(R.hpR<=R.hpMax*0.1&&!R.sub){beginEject('skill');return}      /* auto self-destruct only at <= 10 % HP */
   if(R.sub)return;
   const LIM=200,kn=!!R.kn,sweepReady=(P.cds[IDS.sweep]||0)<=0,coneR=kn?KC.GAT_CONE:C.CONE,pr=kn?KC.PUNCH_R:RPR;
-  let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||!(e.hp>0))continue;const d=Math.hypot(e.x-P.x,e.y-P.y);if(d<bd){bd=d;tgt=e}}
+  let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||!(e.hp>0))continue;const d=Math.hypot(e.x-P.x,e.y-P.y);if(d<bd){bd=d;tgt=e}};try{const AS_=window.__AUTOSTICK;if(AS_&&AS_.on&&AS_.pickRobot){tgt=AS_.pickRobot(tgt);bd=tgt?Math.hypot(tgt.x-P.x,tgt.y-P.y):1e9}}catch(_){}
   let acted=false;
   if(tgt){const d=bd,dx=tgt.x-P.x;if(Math.abs(dx)>8)R.face=dx>0?1:-1;P.face=R.face>0?0:Math.PI;
     if(sweepReady&&d<=coneR*0.92){const A=Math.atan2(tgt.y-P.y,tgt.x-P.x);P.cds[IDS.sweep]=kn?KC.GAT_CD:C.SW_CD;R.sub={k:'sweep',t0:time,x0:P.x,y0:P.y,n:0,ang:A,cur:A,auto:1,ou:[P.x/k,P.y/k]};return}
@@ -60064,14 +60064,61 @@ setInterval(()=>{try{if(cur&&!document.body.contains(cur))hide()}catch(_){}},500
 </script>
 
 <script>
-/* ---- REAL v3l4 (16 Nov 2026) = REAL v3l3 + r102 (staff skills no longer greyed by a transient error, staff Auto casts unlocked staff skills, skill tooltip) (staff Auto attacks, monsters no longer stop at the NPC pocket wall, special-skill tab guard). REAL v3k + TEST r98..r100 (dagger skills hide the hero, keepweapon: picked starter weapon kept across maps/reload, sword combo reach matches dagger -50%) + ALL dev/test UI hidden unless ?gm=on. REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r102.
+/* ---- r102b thunder icon: Thunder Sword God (th / spThunder / sp_04_thunder) icon from Motion (icon_thunder_sword_god_r1.png 512x512, MD5 38c6c1c8) scaled to 128x128 like the other special-skill icons; registered in window.SCYICONS.th (bar slot via the skillIcon hook, special-skill window card via SPSK.setIcon, round button if one exists). ---- */
+(function(){'use strict';
+const URI='assets/ce0a4caebe69bc6f.png';
+const T=window.__THICON={ver:'thicon-r1',ok:false,err:null};
+try{if(!window.SCYICONS)window.SCYICONS={};SCYICONS.th=URI;
+ const tick=()=>{try{if(window.SPSK&&SPSK.setIcon&&!T.ok){SPSK.setIcon('th',URI);T.ok=true}
+  for(const id of ['thBtn','thunderBtn','spThunderBtn']){const b=document.getElementById(id);if(b&&!b.querySelector('img.scyIc')){const im=document.createElement('img');im.className='scyIc';im.alt='';im.src=URI;im.style.cssText='position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);border-radius:50%;object-fit:cover;pointer-events:none;z-index:0';b.insertBefore(im,b.firstChild)}}}catch(e){T.err=e.message}};
+ tick();setInterval(tick,700)}catch(e){T.err=e.message}
+})();
+</script>
+
+<script>
+/* ---- r104 autostick (REAL bug, DeaRz): on Auto the hero hit a monster but switched to another target before it died, leaving it half dead. Causes found in the auto brain: (1) navTo failing while the target moves sets target.unreach=time+6 and clears the target, (2) the autoplay watchdog sets unreach=time+8 + clears the target after 1.6 s without moving 26 px, (3) it also drops the target after 4 s without HP change, (4) every drop re-picks the NEAREST monster, which is usually a different one. The robot AUTO companion re-picked the nearest monster every tick. Fix: keep the current target until it dies / leaves 950 px / has taken no damage for 3 s (then unreach 8 s); the unreach / clear flags set by the old logic while the target is still valid are undone. Exception: when the hero is hit by another monster within 1.5 s and the current target is farther than 350 px, switch to that attacker. ?autostick=off = old. Debug: window.__AUTOSTICK ---- */
+(function(){'use strict';
+const Q=String(location.search),AS=window.__AUTOSTICK={ver:'autostick-r1',on:!/[?&]autostick=off\b/.test(Q),picks:0,vetoes:0,stuckDrops:0,attackerSwitch:0,err:null,rs:null};
+if(!AS.on)return;
+let cur=null,hp0=0,noDmg=0,atk={e:null,t:0};
+const alive=e=>!!(e&&!e.dead&&e.hp>0);
+try{const _h=hurtPlayer;hurtPlayer=function(raw,src){try{if(src&&alive(src)){atk.e=src;atk.t=time}}catch(_){}return _h.apply(this,arguments)}}catch(e){AS.err='hurt '+e.message}
+try{const _a=autoPlay;autoPlay=function(dt){
+  if(!G.auto||P.dead){cur=null;return _a.apply(this,arguments)}
+  try{
+   if(cur&&(!alive(cur)||d2(cur.x,cur.y,P.x,P.y)>950))cur=null;
+   if(cur){if(cur.hp<hp0-.5)noDmg=0;else noDmg+=dt;hp0=cur.hp;
+     if(noDmg>3){cur.unreach=time+8;cur=null;noDmg=0;AS.stuckDrops++}}
+   if(cur&&atk.e&&time-atk.t<1.5&&atk.e!==cur&&alive(atk.e)&&d2(cur.x,cur.y,P.x,P.y)>350&&d2(atk.e.x,atk.e.y,P.x,P.y)<420){cur=atk.e;hp0=cur.hp;noDmg=0;AS.attackerSwitch++}
+   if(cur){cur.unreach=0;G.autoT=cur}
+  }catch(e){AS.err='pre '+e.message}
+  const v=_a.apply(this,arguments);
+  try{
+   if(cur){if(G.autoT!==cur){G.autoT=cur;cur.unreach=0;AS.vetoes++}else if((cur.unreach||0)>time){cur.unreach=0;AS.vetoes++}}
+   else if(G.autoT&&alive(G.autoT)){cur=G.autoT;hp0=cur.hp;noDmg=0;AS.picks++}
+  }catch(e){AS.err='post '+e.message}
+  return v}}catch(e){AS.err='hook '+e.message}
+/* robot AUTO companion: keep the same target (called from autoPre with the nearest monster) */
+let rs=null;
+AS.pickRobot=function(nearest){try{const t=nearest;
+  if(rs&&alive(rs.e)&&Math.hypot(rs.e.x-P.x,rs.e.y-P.y)<700&&!((rs.e.unreach||0)>time)){
+    if(rs.e.hp<rs.hp-.5){rs.hp=rs.e.hp;rs.t0=time}else if(time-rs.t0>4){rs.e.unreach=time+8;rs=null}
+    if(rs)return rs.e}
+  rs=t?{e:t,hp:t.hp,t0:time}:null;if(t)AS.picks++;return t}catch(e){AS.err='robot '+e.message;return nearest}};
+AS.rs=()=>rs;
+})();
+
+</script>
+
+<script>
+/* ---- REAL v3l4b (16 Nov 2026) = REAL v3l4 + r104 (Auto target-sticky, Thunder Sword God icon, staff skills no longer greyed by a transient error, staff Auto casts unlocked staff skills, skill tooltip) (staff Auto attacks, monsters no longer stop at the NPC pocket wall, special-skill tab guard). REAL v3k + TEST r98..r100 (dagger skills hide the hero, keepweapon: picked starter weapon kept across maps/reload, sword combo reach matches dagger -50%) + ALL dev/test UI hidden unless ?gm=on. REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r104.
    * labels the build, strips the word "TEST" from zone names / gate hints / item names; ?testlabels=on keeps them;
    * the floating gate button is replaced by a menu-bar button (glue_v3f); the 🕯 test button stays hidden unless ?gm=on;
    * starter weapons: "Test Bow (TEST)" / "Test Staff (TEST)" / "Test Dagger (TEST)" become their real names (Gale String / Starlight Staff / Spirit Fang);
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3l4',base:'TEST allin_r102 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l4b',base:'TEST allin_r104 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -60088,7 +60135,7 @@ setInterval(hide,800);
 if(!GM){try{const st=document.createElement('style');st.id='realNoDev';st.textContent='#atk19Btn,#atk19SizeBtn,#atk19PerBtn,#atk19WaveBtn,#atk19RangeBtn,#bowTestChip,#p210diag,#atk19Chip,#fpsBox,#fpsOverlay{display:none!important}';(document.head||document.documentElement).appendChild(st);
  const DEVRX=/ATK19|r7[a-z]\b|คอมโบ ATK|ขนาดมีด|จังหวะมีด|คลื่นดาบ:|ระยะฟัน|ทดสอบให้เห็น|\bTEST\b|dgvis|bow3|edgehit|FPS:/i;
  setInterval(()=>{try{for(const e of document.querySelectorAll('body *')){if(e.children.length>0||e.id==='realNoDev')continue;const cs=e.style;if(!cs||cs.position!=='fixed'&&getComputedStyle(e).position!=='fixed')continue;const tx=(e.textContent||'').trim();if(tx&&tx.length<140&&DEVRX.test(tx)&&!e.closest('#dlgBox,#chat,#bag')){e.style.setProperty('display','none','important');R.hidden++}}}catch(_){}},1200)}catch(e){R.err=e.message}}
-console.info('[REAL] v3l4');
+console.info('[REAL] v3l4b');
 })();
 </script>
 <script>
@@ -60096,6 +60143,6 @@ console.info('[REAL] v3l4');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l4';console.info('[REAL] v3l4')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l4b';console.info('[REAL] v3l4b')}catch(e){}
 })();
 </script>
