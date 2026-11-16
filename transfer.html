@@ -1,0 +1,68 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lanternfall: ย้ายเซฟ</title>
+<style>body{font-family:system-ui,sans-serif;background:#10131c;color:#eee;max-width:560px;margin:0 auto;padding:16px}
+button,label.b{display:block;width:100%;padding:16px;margin:10px 0;font-size:18px;border:0;border-radius:10px;background:#c8923a;color:#1a1208;font-weight:700;text-align:center;box-sizing:border-box}
+input[type=file]{display:none}#log{white-space:pre-wrap;font:13px monospace;background:#0008;padding:10px;border-radius:8px;min-height:60px}</style></head><body>
+<h2>ย้ายเซฟ Lanternfall</h2>
+<p>1) เปิดหน้านี้จากที่ที่เซฟเดิมอยู่ แล้วกด <b>ส่งออก</b> จะได้ไฟล์ .json<br>2) เปิดหน้านี้บนเว็บใหม่ แล้วกด <b>นำเข้า</b> เลือกไฟล์ที่ได้ จากนั้นรีเฟรชเกม</p>
+<p id="where"></p>
+<button id="ex">ส่งออกเซฟ</button>
+<label class="b">นำเข้าเซฟ<input type="file" id="im" accept=".json"></label>
+<div id="log"></div>
+<script>
+const log=m=>{document.getElementById('log').textContent+=m+'\n'};
+document.getElementById('where').textContent='ที่อยู่นี้: '+location.origin;
+const enc=async v=>{ // Blob/ArrayBuffer -> tagged base64
+  if(v instanceof Blob){const b=new Uint8Array(await v.arrayBuffer());return {__t:'blob',type:v.type,b:b64(b)};}
+  if(v instanceof ArrayBuffer)return {__t:'ab',b:b64(new Uint8Array(v))};
+  if(ArrayBuffer.isView(v))return {__t:'view',k:v.constructor.name,b:b64(new Uint8Array(v.buffer,v.byteOffset,v.byteLength))};
+  if(Array.isArray(v)){const o=[];for(const x of v)o.push(await enc(x));return o;}
+  if(v&&typeof v==='object'&&Object.getPrototypeOf(v)===Object.prototype){const o={};for(const k in v)o[k]=await enc(v[k]);return o;}
+  return v;};
+const dec=v=>{
+  if(Array.isArray(v))return v.map(dec);
+  if(v&&typeof v==='object'){
+    if(v.__t==='blob')return new Blob([unb64(v.b)],{type:v.type});
+    if(v.__t==='ab')return unb64(v.b).buffer;
+    if(v.__t==='view'){const u=unb64(v.b);return new self[v.k](u.buffer);}
+    const o={};for(const k in v)o[k]=dec(v[k]);return o;}
+  return v;};
+function b64(u){let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s);}
+function unb64(s){const r=atob(s),u=new Uint8Array(r.length);for(let i=0;i<r.length;i++)u[i]=r.charCodeAt(i);return u;}
+const req=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});
+async function dumpDB(name){
+  const db=await req(indexedDB.open(name));const out={version:db.version,stores:{}};
+  for(const sn of Array.from(db.objectStoreNames)){
+    const tx=db.transaction(sn,'readonly'),st=tx.objectStore(sn);
+    const keys=await req(st.getAllKeys()),vals=await req(st.getAll());
+    out.stores[sn]={keyPath:st.keyPath,autoInc:st.autoIncrement,rows:[]};
+    for(let i=0;i<keys.length;i++)out.stores[sn].rows.push([keys[i],await enc(vals[i])]);
+  }
+  db.close();return out;}
+document.getElementById('ex').onclick=async()=>{try{
+  const data={app:'lanternfall-save',v:1,ls:{},idb:{}};
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);data.ls[k]=localStorage.getItem(k);}
+  log('localStorage: '+Object.keys(data.ls).length+' รายการ');
+  const dbs=indexedDB.databases?await indexedDB.databases():[];
+  for(const d of dbs){try{data.idb[d.name]=await dumpDB(d.name);log('IndexedDB '+d.name+' ok');}catch(e){log('IndexedDB '+d.name+' ผิดพลาด '+e);}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));
+  a.download='lanternfall_save_'+new Date().toISOString().slice(0,10)+'.json';a.click();log('เสร็จ: ได้ไฟล์ '+a.download);
+}catch(e){log('ผิดพลาด: '+e);}};
+document.getElementById('im').onchange=async ev=>{try{
+  const f=ev.target.files[0];if(!f)return;const data=JSON.parse(await f.text());
+  if(data.app!=='lanternfall-save')throw 'ไม่ใช่ไฟล์เซฟ Lanternfall';
+  if(Object.keys(localStorage).length&&!confirm('ที่นี่มีเซฟอยู่แล้ว การนำเข้าจะเขียนทับรายการชื่อเดียวกัน ต้องการต่อไหม?'))return;
+  for(const k in data.ls)localStorage.setItem(k,data.ls[k]);log('localStorage: '+Object.keys(data.ls).length+' รายการ');
+  for(const name in data.idb){const d=data.idb[name];
+    await new Promise((res,rej)=>{const r=indexedDB.open(name,d.version);
+      r.onupgradeneeded=()=>{const db=r.result;for(const sn in d.stores){if(!db.objectStoreNames.contains(sn)){const s=d.stores[sn];db.createObjectStore(sn,s.keyPath!=null?{keyPath:s.keyPath,autoIncrement:s.autoInc}:{autoIncrement:s.autoInc});}}};
+      r.onsuccess=async()=>{try{const db=r.result;
+        for(const sn in d.stores){if(!db.objectStoreNames.contains(sn))continue;const s=d.stores[sn];
+          const tx=db.transaction(sn,'readwrite'),st=tx.objectStore(sn);
+          for(const [k,v] of s.rows){if(s.keyPath!=null)st.put(dec(v));else st.put(dec(v),k);}
+          await new Promise((a,b)=>{tx.oncomplete=a;tx.onerror=()=>b(tx.error);});}
+        db.close();log('IndexedDB '+name+' ok');res();}catch(e){rej(e);}};
+      r.onerror=()=>rej(r.error);}).catch(e=>log('IndexedDB '+name+' ผิดพลาด '+e));}
+  log('นำเข้าเสร็จ แล้วเปิดเกมใหม่');
+}catch(e){log('ผิดพลาด: '+e);}};
+</script></body></html>
