@@ -2870,9 +2870,9 @@ function drawEnemy_v1(e){
     const k=clamp(e.hp/e.maxHp,0,1);const g=ctx.createLinearGradient(x-bw/2,0,x+bw/2,0);
     if(ag){g.addColorStop(0,'#b0102a');g.addColorStop(1,'#ff6a7a');}else{g.addColorStop(0,'#1f9a4a');g.addColorStop(1,'#8dffa8');}
     ctx.fillStyle=g;rrect(x-bw/2,by,bw*k,5,3);ctx.fill();
-    ctx.fillStyle=lvGapCol(e);
+    ctx.fillStyle=(window.__MOBNAME&&__MOBNAME.on)?'#ffffff':lvGapCol(e);
     ctx.font=`${m.boss||m.elite?700:600} ${m.boss?14:11}px "Noto Sans Thai", system-ui, sans-serif`;ctx.textAlign='center';ctx.shadowColor='#000';ctx.shadowBlur=4;
-    ctx.fillText(`${(e.L-P.lvl)>=25?'☠ ':''}Lv${e.L}${dgapTag(e)} ${m.n}${m.elite?' ★':''}${e.aggro&&!ag?' ⚔':''}`,x,by-5);ctx.shadowBlur=0;
+    {const _t=`${(e.L-P.lvl)>=25?'☠ ':''}Lv${e.L}${dgapTag(e)} ${m.n}${m.elite?' ★':''}`;if(window.__MOBNAME&&__MOBNAME.on){const cmb=!!(e.aggro||e.hitT>0||(typeof time==='number'&&time-(e._rbHit||-99)<3)),sw=' ⚔';const w1=ctx.measureText(_t).width,w2=ctx.measureText(sw).width,xc=x-w2/2,off=e._mnOff||0;ctx.lineWidth=3;ctx.lineJoin='round';ctx.strokeStyle='rgba(0,0,0,.85)';ctx.strokeText(_t,xc+off,by-5);ctx.fillStyle='#ffffff';ctx.fillText(_t,xc,by-5);e._mnOff=(e._elTag&&e._elTag.t===time)?(e._elTag.x-xc):0;const ax=xc+e._mnOff;ctx.textAlign='left';ctx.strokeText(sw,ax+w1/2,by-5);ctx.fillStyle=cmb?'#ff3b3b':'#ffffff';ctx.fillText(sw,ax+w1/2,by-5);ctx.textAlign='center';ctx.lineWidth=1}else ctx.fillText(`${_t}${e.aggro&&!ag?' ⚔':''}`,x,by-5);ctx.shadowBlur=0;}
   }
   if(e.alertT>0){add();glow(x,top-30,18,'#ff5a6a',e.alertT);norm();}
 }
@@ -60080,15 +60080,15 @@ try{if(!window.SCYICONS)window.SCYICONS={};SCYICONS.th=URI;
 (function(){'use strict';
 const Q=String(location.search),AS=window.__AUTOSTICK={ver:'autostick-r1',on:!/[?&]autostick=off\b/.test(Q),picks:0,vetoes:0,stuckDrops:0,attackerSwitch:0,err:null,rs:null};
 if(!AS.on)return;
-let cur=null,hp0=0,noDmg=0,atk={e:null,t:0};
+let cur=null,hp0=0,noDmg=0,farT=0,atk={e:null,t:0};
 const alive=e=>!!(e&&!e.dead&&e.hp>0);
 try{const _h=hurtPlayer;hurtPlayer=function(raw,src){try{if(src&&alive(src)){atk.e=src;atk.t=time}}catch(_){}return _h.apply(this,arguments)}}catch(e){AS.err='hurt '+e.message}
 try{const _a=autoPlay;autoPlay=function(dt){
   if(!G.auto||P.dead){cur=null;return _a.apply(this,arguments)}
   try{
    if(cur&&(!alive(cur)||d2(cur.x,cur.y,P.x,P.y)>950))cur=null;
-   if(cur){if(cur.hp<hp0-.5)noDmg=0;else noDmg+=dt;hp0=cur.hp;
-     if(noDmg>3){cur.unreach=time+8;cur=null;noDmg=0;AS.stuckDrops++}}
+   if(cur){const _w=(typeof WEAPONS!=='undefined'&&P.weapon&&WEAPONS[P.weapon.t])||{},_er=(_w.range||80)+(cur.sz||16)+90,_dt=d2(cur.x,cur.y,P.x,P.y);if(cur.hp<hp0-.5){noDmg=0;farT=0}else if(_dt<=_er){noDmg+=dt;farT=0}else{noDmg=Math.max(0,noDmg-dt);farT+=dt;if(farT>10){cur.unreach=time+8;cur=null;noDmg=0;farT=0;AS.stuckDrops++}}if(cur){hp0=cur.hp;
+     if(noDmg>3){cur.unreach=time+8;cur=null;noDmg=0;AS.stuckDrops++}}}
    if(cur&&atk.e&&time-atk.t<1.5&&atk.e!==cur&&alive(atk.e)&&d2(cur.x,cur.y,P.x,P.y)>350&&d2(atk.e.x,atk.e.y,P.x,P.y)<420){cur=atk.e;hp0=cur.hp;noDmg=0;AS.attackerSwitch++}
    if(cur){cur.unreach=0;G.autoT=cur}
   }catch(e){AS.err='pre '+e.message}
@@ -60221,16 +60221,17 @@ try{const _i=interact;interact=function(){try{const it=G.interact;if(it&&it.k===
 })();
 
 </script>
+<script>window.__MOBNAME={ver:'mobname-r1',on:!/[?&]mobname=old\b/.test(location.search)};</script>
 
 <script>
-/* ---- REAL v3l4d (16 Nov 2026) = REAL v3l4c + r112 (town villagers: one talk per click, no log spam, vendors fixed at their stalls with the shop window, F prompt fixed; mobrefill: no idle despawn on any map + refill sites/home return + 13 extra Map 2 spawn sites, npcsize ~1.0x hero, npcfix NPC placement/overlap, no falling leaves staff skills no longer greyed by a transient error, staff Auto casts unlocked staff skills, skill tooltip) (staff Auto attacks, monsters no longer stop at the NPC pocket wall, special-skill tab guard). REAL v3k + TEST r98..r100 (dagger skills hide the hero, keepweapon: picked starter weapon kept across maps/reload, sword combo reach matches dagger -50%) + ALL dev/test UI hidden unless ?gm=on. REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r112.
+/* ---- REAL v3l4e (16 Nov 2026) = REAL v3l4d + r116 (autostick engage-range fix, monster names white with a red crossed-swords icon in combat; town villagers: one talk per click, no log spam, vendors fixed at their stalls with the shop window, F prompt fixed; mobrefill: no idle despawn on any map + refill sites/home return + 13 extra Map 2 spawn sites, npcsize ~1.0x hero, npcfix NPC placement/overlap, no falling leaves staff skills no longer greyed by a transient error, staff Auto casts unlocked staff skills, skill tooltip) (staff Auto attacks, monsters no longer stop at the NPC pocket wall, special-skill tab guard). REAL v3k + TEST r98..r100 (dagger skills hide the hero, keepweapon: picked starter weapon kept across maps/reload, sword combo reach matches dagger -50%) + ALL dev/test UI hidden unless ?gm=on. REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r116.
    * labels the build, strips the word "TEST" from zone names / gate hints / item names; ?testlabels=on keeps them;
    * the floating gate button is replaced by a menu-bar button (glue_v3f); the 🕯 test button stays hidden unless ?gm=on;
    * starter weapons: "Test Bow (TEST)" / "Test Staff (TEST)" / "Test Dagger (TEST)" become their real names (Gale String / Starlight Staff / Spirit Fang);
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3l4d',base:'TEST allin_r112 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l4e',base:'TEST allin_r116 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -60247,7 +60248,7 @@ setInterval(hide,800);
 if(!GM){try{const st=document.createElement('style');st.id='realNoDev';st.textContent='#atk19Btn,#atk19SizeBtn,#atk19PerBtn,#atk19WaveBtn,#atk19RangeBtn,#bowTestChip,#p210diag,#atk19Chip,#fpsBox,#fpsOverlay{display:none!important}';(document.head||document.documentElement).appendChild(st);
  const DEVRX=/ATK19|r7[a-z]\b|คอมโบ ATK|ขนาดมีด|จังหวะมีด|คลื่นดาบ:|ระยะฟัน|ทดสอบให้เห็น|\bTEST\b|dgvis|bow3|edgehit|FPS:/i;
  setInterval(()=>{try{for(const e of document.querySelectorAll('body *')){if(e.children.length>0||e.id==='realNoDev')continue;const cs=e.style;if(!cs||cs.position!=='fixed'&&getComputedStyle(e).position!=='fixed')continue;const tx=(e.textContent||'').trim();if(tx&&tx.length<140&&DEVRX.test(tx)&&!e.closest('#dlgBox,#chat,#bag')){e.style.setProperty('display','none','important');R.hidden++}}}catch(_){}},1200)}catch(e){R.err=e.message}}
-console.info('[REAL] v3l4d');
+console.info('[REAL] v3l4e');
 })();
 </script>
 <script>
@@ -60255,6 +60256,6 @@ console.info('[REAL] v3l4d');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l4d';console.info('[REAL] v3l4d')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l4e';console.info('[REAL] v3l4e')}catch(e){}
 })();
 </script>
