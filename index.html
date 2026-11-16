@@ -17239,7 +17239,7 @@ function slLightPass(){const v=LC.cur,z=camZ(),t=performance.now()/1000,rgb=(i)=
   if(v[24]>.004)for(const e of enemies){if(e.dead)continue;const q=w2s(e.x,e.y-(e.sz||20)*.5);gl(q[0],q[1],70*z,.3*v[24],cool);}   // 7. enemies keep a faint cool lift (the player is brightened at the sprite instead — no diffuse halo)
   ctx.restore();}
 /* ---------- r14: ambient motion — wind sway of canopies / grass tips + a few drifting leaves. Lab only, time-based (performance.now), never saved ---------- */
-const AMB={on:true,leaves:true,L:[],last:0,t:0,fr:0,next:1.5,cap:9,perTree:6,cur:null,cv:new WeakMap(),mask:{}};
+const AMB={on:true,leaves:/[?&]leaves=on\b/.test(location.search),L:[],last:0,t:0,fr:0,next:1.5,cap:9,perTree:6,cur:null,cv:new WeakMap(),mask:{}};
 const LEAF={n:8,w:32,h:20};
 const slH=(x,y)=>{let h=Math.imul((Math.round(x)*73856093)^(Math.round(y)*19349663),2654435761);h^=h>>>15;h=Math.imul(h,2246822519);h^=h>>>13;return(h>>>0)/4294967296;};
 function slWindAt(t,x,ph){const g=.7+.3*Math.sin(t*.23-x*.0042+1.7);return g*(.62*Math.sin(t*.9+ph)+.38*Math.sin(t*1.57+ph*1.9+1.3))+.2*Math.sin(t*.31+x*.003);}   // irregular gusts travelling west→east; two incommensurate sines per tree (own phase and rate)
@@ -53069,7 +53069,7 @@ const IM={};const img=k=>{if(IM[k]!==undefined)return IM[k];const d=window.NPC3Q
 const heroH=()=>{try{const c=window.PUPPETX&&PUPPETX.cfg;return c?c.TARGET_H*c.H_FACTOR:64}catch(_){return 64}};
 const poseOf=n=>{const s=n.name;if(/ช่าง|ตี|ค้อน|ถ่าน|ฝึกงาน/.test(s))return 'hammer';if(/กวาด/.test(s))return 'sweep';if(/ขลุ่ย|ดนตรี|กวี|เป่า/.test(s))return 'play';if(/เมา|หลับ|ยาย|คุณยาย/.test(s))return 'sleep';return 'idle'};
 /* ---- placement ---- */
-const okSpot=(x,y)=>{try{const Z=ZONES[ZID];return x>120&&y>120&&x<Z.w-120&&y<Z.h-120&&!blocked(x,y,30)&&!blocked(x+24,y,18)&&!blocked(x-24,y,18)&&!blocked(x,y+16,18)}catch(_){return false}};
+const okSpot=(x,y)=>{try{const Z=ZONES[ZID];return x>120&&y>120&&x<Z.w-120&&y<Z.h-120&&!blocked(x,y,30)&&!blocked(x+24,y,18)&&!blocked(x-24,y,18)&&!blocked(x,y+16,18)&&(!window.__NPCFIX||!__NPCFIX.on||__NPCFIX.clear(x,y))}catch(_){return false}};
 function spotIn(r,avoid){for(let i=0;i<80;i++){const x=rnd(r[0],r[2]),y=rnd(r[1],r[3]);if(!okSpot(x,y))continue;if(avoid&&avoid.some(a=>Math.hypot(a.x-x,a.y-y)<70))continue;return [x,y]}return null}
 function place(){T.npcs=[];const placed=[];let cnt=0;const hueRot=n=>[0,20,-20,35,-35,0][n%6];
   for(const d of DATA.npcs){if(cnt>=T.cfg.maxNpcs)break;const r=T.districts[d.district];if(!r){T.stats.rejected++;continue}const s=spotIn(r,placed);if(!s){T.stats.rejected++;continue}
@@ -60109,16 +60109,99 @@ AS.rs=()=>rs;
 })();
 
 </script>
+<script>
+/* ---- r111 mobrefill-r2 (idle despawn OFF on EVERY zone: tested on Maps 4, 10 and 11 as well, where the farm spawner / own populator never refilled despawned monsters: 52 -> 13, 24 -> 5 alive after the first idle 5 minutes) ; idle monsters far from the hero that drifted from their home go back (W22 site, or the spot where the monster was first seen) ---- r105 mobrefill (TEST only; DeaRz decision pending): Map 2 emptied over time because mobchase's idle despawn (5 min idle, > 1400 px from the hero) deletes W22 monsters and W22 never refills them. Fix: (1) on zones that use W22 sites the idle despawn is switched off; (2) an idle W22 monster that is > 1400 px from the hero for > 5 min and > 300 px from its site goes back to its site (inside the site's spawn ring, >= 360 px from the hero) with full HP; (3) 7 new sites around the central fields and 6 in the sparse east (x > 3400) on Map 2, found by farthest-point sampling on walkable cells. ?mobrefill=off = old behaviour. Debug: window.__MOBREFILL ---- */
+(function(){'use strict';
+const Q=String(location.search),MR=window.__MOBREFILL={ver:'mobrefill-r1',on:!/[?&]mobrefill=off\b/.test(Q),homed:0,added:0,err:null};
+if(!MR.on)return;
+try{
+const PD=window.__W22_DATA&&__W22_DATA.population;if(!PD||!PD.groups)throw new Error('no population');
+/* ---- extra sites (Map 2) ---- */
+function addSites(){const Z=ZONES.cartroad_plains;if(!Z||MR.sitesDone)return;const tpl=PD.groups.find(g=>g.id==='farmyard_1')||PD.groups[0];
+  const pts=PD.groups.map(g=>g.c.slice()),C=40,cand=[];
+  for(let y=160;y<Z.h-160;y+=C)for(let x=160;x<Z.w-160;x+=C){if(blocked(x,y,40))continue;if(Math.hypot(x-120,y-600)<420)continue;cand.push([x,y])}
+  const pick=(n,xmin,xmax,list)=>{for(let k=0;k<n;k++){let best=null,bd=-1;for(const c of cand){if(c[0]<xmin||c[0]>xmax)continue;let d=1e9;for(const p of pts){const dd=Math.hypot(c[0]-p[0],c[1]-p[1]);if(dd<d)d=dd}if(d>bd){bd=d;best=c}}if(best){pts.push(best);list.push(best)}}};
+  const fields=[],east=[];pick(7,2200,3400,fields);pick(6,3400,Z.w-200,east);
+  const mk=(id,c,band,m)=>Object.assign(JSON.parse(JSON.stringify(tpl)),{id,c:[Math.round(c[0]),Math.round(c[1])],band,m:[m],core:1,p206:'mrefill',p274agg:band[0]>=7?1:undefined});
+  const mixF=['seedling','slime','leafbun','slime','seedling','leafbun','slime'],mixE=['seedling','leafbun','slime','seedling','leafbun','slime'];
+  fields.forEach((c,i)=>{PD.groups.push(mk('field_extra_'+(i+1),c,[5,7],mixF[i%7]));MR.added++});
+  east.forEach((c,i)=>{PD.groups.push(mk('east_extra_'+(i+1),c,[8,10],mixE[i%6]));MR.added++});
+  MR.sitesDone=1;MR.newSites=[...fields,...east].map(c=>c.map(Math.round).join(','));
+  try{if(window.W22)W22.pop=null}catch(_){}}
+const tickAdd=setInterval(()=>{try{if(typeof blocked==='function'&&ZONES.cartroad_plains&&G.zone){addSites();clearInterval(tickAdd)}}catch(e){MR.err='add '+e.message}},800);
+/* ---- idle despawn off + home return ---- */
+const siteOf=new Map();const siteC=id=>{if(!siteOf.size)for(const g of PD.groups)siteOf.set(g.id,g);return siteOf.get(id)};
+let last=0;
+const _u=update;update=function(){const r=_u.apply(this,arguments);
+ try{const MC=window.__MOBCHASE;if(!MC||!MC.cfg)return r;
+  const w22=enemies.some(e=>e.w22m&&e.gid);const farm=window.__FARM&&__FARM.zone===G.zone;
+  if(!MR.base)MR.base=MC.cfg.DESPAWN;MC.cfg.DESPAWN=false;
+  if(time-last<5)return r;last=time;
+  for(const e of enemies){if(e.dead||e.aggro||(e.m&&(e.m.boss||e.m.raid))||e.gate)continue;let g=null;if(e.w22m&&e.gid)g=siteC(e.gid);else{if(!e._mrHome){e._mrHome={c:[e.x,e.y],spawnR:90};continue}g=e._mrHome}if(!g)continue;
+   const mc=e.mc;if(!mc||mc.lostAt==null||time-mc.lostAt<300)continue;
+   if(Math.hypot(e.x-P.x,e.y-P.y)<1400)continue;
+   const hd=Math.hypot(e.x-g.c[0],e.y-g.c[1]);if(hd<300)continue;
+   const a=Math.random()*6.283,rr=Math.random()*(g.spawnR||180)*.7;let x=g.c[0]+Math.cos(a)*rr,y=g.c[1]+Math.sin(a)*rr;
+   try{const q=window.__MOBGUARD&&__MOBGUARD.nearest?__MOBGUARD.nearest(x,y,(e.sz||16)*.5):null;if(q){x=q.x;y=q.y}}catch(_){}
+   if(Math.hypot(x-P.x,y-P.y)<360)continue;
+   e.x=x;e.y=y;e.sx=x;e.sy=y;e.wx=x;e.wy=y;e.vx=e.vy=0;e.hp=e.maxHp;mc.lostAt=time;mc.sx=x;mc.sy=y;mc.mx=x;mc.my=y;MR.homed++}
+ }catch(er){MR.err='tick '+er.message}
+ return r};
+}catch(e){MR.err=e.message}
+})();
+</script>
+<script>
+/* ---- r106 npcsize (DeaRz: NPCs look smaller than the hero, "about the same size"): the drawn puppet hero is 84 px tall (hair top to feet, measured), while NPC3Q sizes the NPC CONTENT (without padding) to PUPPETX TARGET_H (76) x scale: Ora .85 = 64.6 px (77 % of the hero), Mali 1.0 = 76 (90 %), Pip .8 = 61 (72 %). Now every human NPC = 84 px (scale 1.1 = 1.00 x hero, applies to Ora Mali Ferro Tor Fon Reo Pell Mira Hark Varg), Pip (child) = 76 px (scale 1.0 = 0.90 x hero). Lysel (angel) keeps its own size. Feet stay on the same ground point; the quest mark / talk icon height follows (A.h). ?npcsize=off = Art's original scales. Debug: window.__NPCSIZE ---- */
+(function(){'use strict';
+const Q=String(location.search),NS=window.__NPCSIZE={ver:'npcsize-r1',on:!/[?&]npcsize=off\b/.test(Q),done:false,err:null,table:{}};
+if(!NS.on)return;
+const NEW={ora:1.1,mali:1.1,ferro:1.1,tor:1.1,fon:1.1,reo:1.1,pell:1.1,mira:1.1,hark:1.1,varg:1.1,pip:1.0};
+let tries=0;const iv=setInterval(()=>{try{const N=window.NPC3Q;if(!N){if(++tries>120)clearInterval(iv);return}
+  for(const k in NEW){if(N[k]){if(N[k]._sc0==null)N[k]._sc0=N[k].scale;NS.table[k]=[N[k]._sc0,NEW[k]];N[k].scale=NEW[k]}}
+  NS.done=true;clearInterval(iv)}catch(e){NS.err=e.message;clearInterval(iv)}},300);
+})();
+</script>
+<script>
+/* ---- npcfix-r1 (TEST allin_r99, 16 Nov 2026, DeaRz: "วาง NPC ดูด้วยว่าโดนอะไรทับไหม" - place the NPCs and check that nothing covers them) ----
+   AUDIT (rendered with the game's own draw order: frame A = normal, frame D = props hidden, frame E = props hidden + NPC moved away; NPC pixels = D vs E, covered share = NPC pixels where A differs from D; hero 130 px in front of and behind the NPC):
+     Map 1  Ora 38 % covered (tree roots / trunk art), Mali 9 %, Ferro 0, Map 2 Pip 38 %, Map 3 gardener 13 %, trainer 0, Map 4 Reo 17-100 % (south arrival area), Pell 0, Map 5 Mira 0, Map 6 Hark 0 (Kraga is a prop, checked by screenshot),
+     Map 10 Suri 0 %, Astoria villagers: the 40 villagers are placed at RANDOM spots inside their district rectangle and only rejected on solids (blocked), never on art, so every page load hides 8-12 of them behind gate walls, trees and building fronts (up to 100 %).
+   FIX: (1) quest NPCs get a clear spot next to the old one (table below; NPC_SAFE table kept in step, the quest "!" mark, talk range and minimap follow the NPC because they read n.at);
+        (2) Astoria villagers: the town placement + the walkers' waypoints now only accept spots from a pre-computed "clear" grid (36 px cells measured with the same render test, both hero sides < 1.5 % covered), ~910 clear cells in the 7 districts.
+   ?npcfix=off = the old positions / random spots. Debug: window.__NPCFIX ---- */
+(function(){'use strict';
+const Q=String(location.search);
+const NF=window.__NPCFIX={ver:'npcfix-r1',on:!/[?&]npcfix=off\b/.test(Q),err:null,applied:0,
+  quest:{
+    npc_ora:{zone:'sylva_lab',x:1258,y:990,old:[1290,885]},
+    npc_mali:{zone:'sylva_lab',x:1915,y:1008,old:[1915,990]},
+    npc_pip:{zone:'cartroad_plains',x:90,y:668,old:[120,600]},
+    npc_traveler_m4:{zone:'w22_map4_test',x:878,y:4658,old:[800,4700]},
+    npc_astoria_gardener:{zone:'astoria_capital',x:2634,y:1370,old:[2600,1345]}},
+  cell:36,townCells:{"north_gate":"2318,278;2318,314;2318,350;2318,386;2318,422;2354,278;2354,314;2354,350;2354,386;2390,278;2390,314;2426,278;2426,314;2462,278;2642,278;2642,314;2642,602;2642,638;2678,278;2678,314;2678,350;2714,278;2714,314;2714,350;2750,566;2750,602;2786,602;2966,530;2966,566;3002,602;3038,638","inn":"2278,1462;2278,1498;2278,1534;2278,1570;2278,1606;2278,1642;2314,1462;2314,1498;2314,1534;2314,1570;2314,1606;2314,1642;2314,1678;2350,1426;2350,1462;2350,1498;2350,1534;2350,1570;2350,1606;2350,1642;2350,1678;2386,1390;2386,1426;2386,1462;2386,1498;2386,1534;2386,1570;2386,1606;2386,1642;2386,1678;2422,1354;2422,1390;2422,1426;2422,1462;2422,1498;2422,1534;2422,1570;2422,1606;2422,1642;2422,1678;2458,1390;2458,1426;2458,1462;2458,1498;2458,1534;2458,1570;2458,1606;2458,1642;2458,1678;2494,1426;2494,1462;2494,1498;2494,1534;2494,1570;2494,1606;2530,1426;2530,1462;2530,1498;2530,1534;2530,1570;2602,1426;2602,1462;2602,1678;2638,1390;2638,1426;2638,1462;2638,1498;2638,1534;2638,1570;2638,1606;2638,1642;2638,1678;2674,1318;2674,1354;2674,1390;2674,1426;2674,1462;2674,1498;2674,1534;2674,1570;2674,1606;2674,1642;2674,1678;2710,1318;2710,1354;2710,1390;2710,1426;2710,1462;2710,1498;2710,1534;2710,1570;2710,1606;2710,1642;2710,1678;2746,1318;2746,1390;2746,1426;2746,1462;2746,1678;2782,1426;2818,1426;2818,1462;2818,1498;2854,1462;2854,1498;2854,1534;2854,1570;2854,1606;2890,1534;2890,1570;2890,1606;2926,1354;2926,1390;2926,1570;2962,1390;2962,1570;2998,1390;2998,1534;2998,1570;3034,1570","plaza":"2268,1868;2268,1904;2268,1940;2268,2300;2268,2336;2304,1904;2304,1940;2304,1976;2304,2336;2340,1940;2340,1976;2340,2012;2340,2336;2376,1904;2376,1940;2376,1976;2376,2012;2412,1868;2412,1904;2412,1940;2412,1976;2412,2012;2412,2048;2448,1868;2448,1904;2448,1940;2448,1976;2448,2012;2448,2048;2448,2084;2448,2120;2484,1868;2484,1904;2484,2012;2484,2048;2484,2084;2484,2120;2484,2156;2484,2192;2520,1868;2520,2084;2520,2120;2520,2156;2520,2192;2556,2120;2592,2120;2592,2156;2592,2408;2628,2120;2628,2156;2628,2192;2628,2228;2628,2264;2628,2300;2628,2336;2628,2372;2628,2408;2664,2156;2664,2192;2664,2228;2664,2264;2664,2300;2664,2336;2664,2372;2664,2408;2700,2156;2700,2192;2700,2228;2700,2264;2700,2300;2700,2336;2700,2372;2700,2408;2736,2156;2736,2192;2736,2228;2736,2264;2736,2300;2736,2336;2736,2372;2736,2408;2772,2120;2844,1868;2844,2084;2844,2120;2844,2156;2844,2192;2880,1868;2880,1904;2880,1940;2880,2012;2880,2048;2880,2084;2880,2120;2880,2156;2916,1868;2916,1904;2916,1940;2916,1976;2916,2012;2916,2048;2916,2084;2916,2120;2952,1868;2952,1904;2952,1940;2952,1976;2952,2012;2952,2048;2952,2300;2988,1940;2988,1976;2988,2012;2988,2264;2988,2300;2988,2372;2988,2408;3024,1976;3024,2012;3024,2192;3024,2228;3024,2264;3024,2408;3060,1940;3060,1976;3060,2012;3060,2192;3060,2228;3060,2264;3096,1868;3096,1904;3096,1940;3096,1976;3096,2012;3096,2048;3096,2228;3096,2264","market":"438,1968;438,2004;438,2040;438,2076;474,1968;474,2004;474,2040;510,1968;510,2004;510,2040;510,2364;546,1968;546,2004;546,2040;546,2292;546,2328;546,2364;582,1968;582,2004;582,2040;582,2364;618,1968;618,2004;618,2040;618,2400;654,1968;654,2004;654,2040;654,2076;654,2400;690,1968;690,2004;690,2040;690,2076;690,2400;690,2436;690,2472;690,2508;726,1968;726,2004;726,2040;726,2076;726,2508;762,1968;762,2004;762,2040;762,2076;798,1968;798,2004;798,2040;798,2076;798,2364;834,1968;834,2004;834,2040;834,2076;870,1968;870,2004;906,1968;906,2004;942,1968;942,2004;942,2040;942,2076;942,2292;942,2364;942,2400;978,1968;978,2004;978,2040;978,2076;978,2292;978,2328;978,2364;1014,1968;1014,2004;1014,2040;1014,2328;1014,2364;1050,1968;1050,2004;1086,1968;1086,2364;1086,2472;1086,2508;1122,2364;1122,2400;1122,2436;1122,2472;1122,2508;1158,1968;1158,2184;1158,2364;1158,2400;1158,2436;1158,2472;1158,2508;1194,1968;1194,2004;1194,2184;1194,2220;1194,2256;1194,2292;1194,2328;1194,2364;1194,2400;1194,2436;1194,2472;1194,2508;1230,1968;1230,2004;1230,2040;1230,2076;1230,2112;1230,2148;1230,2184;1230,2220;1230,2256;1230,2292;1230,2328;1230,2364;1230,2400;1230,2436;1230,2472;1230,2508;1266,1968;1266,2004;1266,2040;1266,2076;1266,2112;1266,2148;1266,2220;1266,2256;1266,2292;1266,2436;1266,2472;1266,2508","smiths":"1518,2442;1518,2478;1518,2514;1518,2550;1554,2478;1554,2514;1554,2550;1626,2658;1662,2118;1662,2406;1662,2442;1662,2478;1662,2514;1662,2550;1662,2586;1662,2622;1662,2658;1698,2118;1698,2154;1698,2190;1698,2226;1698,2262;1698,2298;1698,2334;1698,2370;1698,2406;1698,2442;1698,2478;1698,2514;1698,2550;1698,2586;1698,2622;1698,2658;1734,2118;1734,2370;1734,2406;1734,2442;1734,2478;1734,2514;1734,2550;1734,2622;1770,2658;1842,2442;1842,2478;1842,2514;1878,2442;1878,2478;1878,2514;1878,2550;1878,2658;1914,2442;1914,2478;1914,2514;1914,2550;1914,2586;1914,2622;1914,2658;1950,2442;1950,2478;1950,2514;1950,2622;1950,2658;1950,2694;1986,2442;1986,2478;1986,2514;1986,2694;2022,2478;2022,2514;2022,2550;2058,2514;2058,2550;2094,2514;2130,2118;2130,2478;2130,2514;2166,2442;2166,2478;2202,2370;2202,2406;2202,2442;2202,2478;2202,2514;2238,2298;2238,2334;2238,2370;2238,2406;2238,2442;2238,2478;2238,2514;2238,2550;2238,2586;2274,2334;2274,2478;2274,2514;2274,2550;2274,2586;2274,2622;2274,2658;2310,2334;2310,2514;2310,2550;2310,2586;2310,2622;2310,2658;2310,2694;2346,2334;2346,2514;2346,2550;2346,2586","homes":"618,618;618,654;618,690;618,726;618,762;618,798;618,1302;618,1482;654,618;654,654;654,690;654,762;654,1266;654,1302;690,654;690,1230;690,1266;690,1302;726,1050;726,1086;726,1122;726,1158;726,1194;726,1230;726,1266;726,1302;762,1014;762,1050;762,1086;762,1122;762,1158;762,1194;762,1230;762,1266;798,1050;798,1086;798,1122;798,1158;798,1194;798,1230;798,1266;834,1050;834,1086;834,1122;834,1158;834,1194;834,1230;834,1266;870,1086;870,1122;870,1158;870,1194;870,1230;870,1266;906,1050;906,1086;906,1122;906,1158;942,618;942,1050;942,1086;942,1122;978,618;978,1122;1014,618;1014,654;1014,690;1014,726;1014,762;1014,798;1014,834;1014,1122;1014,1158;1050,618;1050,654;1050,690;1050,726;1050,762;1050,798;1050,1122;1050,1158;1086,618;1086,654;1086,690;1086,726;1086,762;1086,1158;1122,618;1122,654;1122,1122;1122,1158;1158,618;1158,1122;1158,1158;1194,618;1194,1122;1194,1158;1194,1266;1194,1302;1194,1338;1230,618;1230,654;1230,726;1230,762;1230,1122;1230,1158;1230,1194;1230,1230;1230,1266;1230,1302;1230,1338;1230,1374;1266,654;1266,690;1266,726;1266,762;1266,798;1266,1086;1266,1122;1266,1158;1266,1266;1266,1302;1266,1338;1266,1374;1266,1410;1266,1446;1266,1482;1302,618;1302,654;1302,690;1302,726;1302,762;1302,798;1302,1086;1302,1122;1302,1302;1302,1338;1302,1374;1302,1410;1302,1446;1302,1482;1338,654;1338,690;1338,726;1338,1122;1338,1302;1338,1338;1338,1374;1338,1410;1338,1446;1338,1482;1374,618;1374,654;1374,690;1374,1266;1374,1302;1374,1338;1374,1410;1374,1446;1374,1482;1410,618;1410,654;1410,690;1410,1230;1410,1266;1410,1302;1446,618;1446,654;1446,1086;1446,1122;1446,1158;1446,1194;1446,1230;1482,618;1482,1086;1482,1122;1482,1158;1482,1194;1482,1230;1554,1374;1590,618;1590,654;1590,1374;1626,618;1626,654;1662,618;1662,654;1698,618;1698,654;1734,618;1734,654;1734,690;1734,1230;1770,654;1770,690;1770,726;1770,762;1770,798;1770,834;1770,906;1770,1194;1770,1230;1770,1410;1806,690;1806,726;1806,762;1806,870;1806,906;1806,1050;1806,1086;1806,1122;1806,1158;1806,1194;1806,1230;1806,1266;1806,1302;1806,1374;1806,1410;1842,618;1842,654;1842,690;1842,726;1842,762;1842,942;1842,978;1842,1014;1842,1050;1842,1086;1842,1122;1842,1158;1842,1194;1842,1230;1842,1266;1842,1302;1842,1338;1842,1374;1842,1410;1842,1446;1878,618;1878,654;1878,690;1878,726;1878,762;1878,798;1878,870;1878,906;1878,942;1878,978;1878,1014;1878,1050;1878,1086;1878,1122;1878,1158;1878,1194;1878,1230;1878,1266;1878,1302;1878,1338;1878,1410;1878,1446;1878,1482","east_gate":"4568,1934;4568,1970;4568,2006;4604,1898;4604,1934;4604,1970;4604,2006;4640,1862;4640,1898;4640,1934;4676,1898;4676,1934;4712,1862;4712,1898;4712,1934;4712,1970;4748,1862;4748,1898;4748,1934;4748,1970;4748,2006;4748,2042;4748,2078;4748,2114;4748,2150;4784,1898;4784,1934;4784,1970;4784,2006;4784,2042;4784,2078;4784,2114;4784,2150;4784,2186;4784,2222;4820,1898;4820,1934;4820,1970;4820,2006;4820,2114;4820,2150;4820,2222;4856,1934;4856,1970;4856,2006;4892,1898;4892,1934;4892,1970;4892,2006;4892,2042;4892,2078;4928,1898;4928,1934;4928,1970;4928,2006;4928,2042;4928,2078;4928,2114;4964,1862;4964,1898;4964,1934;4964,1970;4964,2006;4964,2042;4964,2078;4964,2114;5000,1718;5000,1754;5000,1790;5000,1826;5000,1862;5000,1898;5000,1934;5000,1970;5000,2114;5000,2150;5036,1718;5036,1754;5036,1790;5036,1826;5036,1862;5036,1898;5036,1934;5036,1970;5072,1718;5072,1754;5072,1790;5072,1826;5072,1862;5072,1898;5072,1934;5072,1970;5072,2006;5072,2042;5072,2078;5108,1718;5108,1754;5108,1790;5108,1826;5108,1862;5108,1898;5108,1934;5108,1970;5108,2006;5108,2042;5108,2078;5144,1718;5144,1754;5144,1790;5144,1826;5144,1862;5144,1898;5144,1934;5144,1970;5144,2006;5144,2042;5144,2078"},set:{}};
+if(!NF.on)return;
+try{
+for(const d in NF.townCells){const s=new Set();for(const p of NF.townCells[d].split(';'))if(p)s.add(p);NF.set[d]=s}
+/* clear(x,y): true when the point is outside every Astoria district (no rule) or inside a clear cell of its district */
+NF.clear=function(x,y){try{const D=window.__TOWN&&__TOWN.districts;if(!D)return true;for(const d in D){const r=D[d];if(x<r[0]||x>r[2]||y<r[1]||y>r[3])continue;const S=NF.set[d];if(!S)return true;const cx=Math.round(r[0]+(Math.floor((x-r[0])/NF.cell)+.5)*NF.cell),cy=Math.round(r[1]+(Math.floor((y-r[1])/NF.cell)+.5)*NF.cell);return S.has(cx+','+cy)}return true}catch(e){NF.err=String(e);return true}};
+function lists(){const L=[];try{if(window.__QDATA2&&Array.isArray(__QDATA2.npcs))L.push(__QDATA2.npcs)}catch(_){}try{if(window.__QDATA&&Array.isArray(__QDATA.npcs))L.push(__QDATA.npcs)}catch(_){}return L}
+function apply(){for(const id in NF.quest){const c=NF.quest[id];for(const L of lists())for(const o of L){if(o&&o.id===id){if(!o.at||typeof o.at!=='object')o.at={};if(o.at.x!==c.x||o.at.y!==c.y||o.at.zone!==c.zone){o.at.x=c.x;o.at.y=c.y;o.at.zone=c.zone;NF.applied++}}}}
+  try{const NS=window.NPC_SAFE;if(NS&&NS.cfg&&NS.cfg.NPCS)for(const id in NS.cfg.NPCS){const c=NF.quest[id];if(c){NS.cfg.NPCS[id].x=c.x;NS.cfg.NPCS[id].y=c.y}}}catch(_){}}
+apply();setInterval(()=>{try{apply()}catch(e){NF.err='apply '+e.message}},500);
+console.info('[NPCFIX] ready r1');
+}catch(e){NF.err=e.message}
+})();
+</script>
 
 <script>
-/* ---- REAL v3l4b (16 Nov 2026) = REAL v3l4 + r104 (Auto target-sticky, Thunder Sword God icon, staff skills no longer greyed by a transient error, staff Auto casts unlocked staff skills, skill tooltip) (staff Auto attacks, monsters no longer stop at the NPC pocket wall, special-skill tab guard). REAL v3k + TEST r98..r100 (dagger skills hide the hero, keepweapon: picked starter weapon kept across maps/reload, sword combo reach matches dagger -50%) + ALL dev/test UI hidden unless ?gm=on. REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r104.
+/* ---- REAL v3l4c (16 Nov 2026) = REAL v3l4b + r111 (mobrefill: no idle despawn on any map + refill sites/home return + 13 extra Map 2 spawn sites, npcsize ~1.0x hero, npcfix NPC placement/overlap, no falling leaves staff skills no longer greyed by a transient error, staff Auto casts unlocked staff skills, skill tooltip) (staff Auto attacks, monsters no longer stop at the NPC pocket wall, special-skill tab guard). REAL v3k + TEST r98..r100 (dagger skills hide the hero, keepweapon: picked starter weapon kept across maps/reload, sword combo reach matches dagger -50%) + ALL dev/test UI hidden unless ?gm=on. REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r111.
    * labels the build, strips the word "TEST" from zone names / gate hints / item names; ?testlabels=on keeps them;
    * the floating gate button is replaced by a menu-bar button (glue_v3f); the 🕯 test button stays hidden unless ?gm=on;
    * starter weapons: "Test Bow (TEST)" / "Test Staff (TEST)" / "Test Dagger (TEST)" become their real names (Gale String / Starlight Staff / Spirit Fang);
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3l4b',base:'TEST allin_r104 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l4c',base:'TEST allin_r111 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -60135,7 +60218,7 @@ setInterval(hide,800);
 if(!GM){try{const st=document.createElement('style');st.id='realNoDev';st.textContent='#atk19Btn,#atk19SizeBtn,#atk19PerBtn,#atk19WaveBtn,#atk19RangeBtn,#bowTestChip,#p210diag,#atk19Chip,#fpsBox,#fpsOverlay{display:none!important}';(document.head||document.documentElement).appendChild(st);
  const DEVRX=/ATK19|r7[a-z]\b|คอมโบ ATK|ขนาดมีด|จังหวะมีด|คลื่นดาบ:|ระยะฟัน|ทดสอบให้เห็น|\bTEST\b|dgvis|bow3|edgehit|FPS:/i;
  setInterval(()=>{try{for(const e of document.querySelectorAll('body *')){if(e.children.length>0||e.id==='realNoDev')continue;const cs=e.style;if(!cs||cs.position!=='fixed'&&getComputedStyle(e).position!=='fixed')continue;const tx=(e.textContent||'').trim();if(tx&&tx.length<140&&DEVRX.test(tx)&&!e.closest('#dlgBox,#chat,#bag')){e.style.setProperty('display','none','important');R.hidden++}}}catch(_){}},1200)}catch(e){R.err=e.message}}
-console.info('[REAL] v3l4b');
+console.info('[REAL] v3l4c');
 })();
 </script>
 <script>
@@ -60143,6 +60226,6 @@ console.info('[REAL] v3l4b');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l4b';console.info('[REAL] v3l4b')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l4c';console.info('[REAL] v3l4c')}catch(e){}
 })();
 </script>
