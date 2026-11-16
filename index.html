@@ -26440,7 +26440,7 @@ try{if(typeof WCLASS!=='undefined'&&WCLASS.sword&&!WCLASS.sword.includes('novice
   if(typeof CLASSES!=='undefined'&&CLASSES.novice)CLASSES.novice.wp='sword';}catch(e){ERR.push('wclass '+e.message);}
 function toSword(w){const s=makeWeapon('sword',Math.max(1,w.lvl||1),w.rar||0,{plain:1});s.refine=w.refine||0;s.card=w.card||null;if(w.seal!=null)s.seal=w.seal;return s;}
 try{const _np=newPlayer;newPlayer=function(){const p=_np.apply(this,arguments);try{if(p&&p.weapon&&p.weapon.t==='dagger')p.weapon=toSword(p.weapon);}catch(e){}return p;};}catch(e){ERR.push('newPlayer '+e.message);}
-function fixPlayer(){try{if(typeof P==='undefined'||!P||!P.weapon)return;if(P.cls==='novice'&&P.weapon.t==='dagger'){P.weapon=toSword(P.weapon);recalc();}}catch(e){}}
+function fixPlayer(){try{if(typeof P==='undefined'||!P||!P.weapon)return;if(P.cls==='novice'&&P.weapon.t==='dagger'&&!(window.__KEEPW&&__KEEPW.on&&__KEEPW.keep())){P.weapon=toSword(P.weapon);recalc();}}catch(e){}}
 try{const _lz=loadZone;loadZone=function(){const r=_lz.apply(this,arguments);try{patchData();fixPlayer();}catch(e){}return r;};}catch(e){ERR.push('loadZone '+e.message);}
 window.__P202={errors:ERR,hpMul:HPMUL};if(ERR.length)console.warn('[p202]',ERR);
 })();
@@ -40901,7 +40901,7 @@ function basicTick(){if(!BA)return;const now=clk(),t=now-BA.t0;
   POSE={kind:'basic',t0:now,ang,d:BA.d,cast:wind,lock:Math.min(per*.95,wind+.2)};
   try{G.basicT=now;}catch(e){}try{sfx('swing','dagger');}catch(_){}};}
 /* ---------------- per-skill timelines (demo r3 timings) ---------------- */
-function tickSkill(S,t,dt){const c=CFG[S.k];
+function tickSkill(S,t,dt){const c=CFG[S.k];if(window.__DGHIDE&&__DGHIDE.on&&((S.k==='storm'&&t<D3_BACK)||(S.k==='ult'&&t<3.0)))__DGHIDE.until=clk()+.12;
   if(S.k==='shadow')tShadow(S,t,dt,c);else if(S.k==='blades')tBlades(S,t,dt,c);else if(S.k==='storm')tStorm(S,t,dt,c);
   else if(S.k==='smoke')tSmoke(S,t,dt,c);else if(S.k==='ult')tUlt(S,t,dt,c);
   else if(!S.rel&&t>=S.cast){S.rel=true;buffOn(S.k);if(FXON)buffRelFx(S.k);}}
@@ -56310,7 +56310,7 @@ window.SW3FX={set:function(o){cx=o.cx;TL=o.TL;HX=o.HX;HY=o.HY;SC=o.SC;ASPD=o.ASP
 const Q=String(location.search),OFF=/[?&]sword3=off\b/.test(Q),BALOFF=/[?&]sw3bal=off\b/.test(Q);
 const S=window.SW3={ver:'sw3-r1',on:!OFF,err:null,A:null,lastN:0,lastEnd:-99,root:0,TL:{hits:[],imp:[],clicks:[]},pend:[],layers:[],
   stats:{clicks:[0,0,0,0],hits:0,dmg:0,drawMs:0,draws:0,maxMs:0,fxMs:0,fxN:0,by:{}},
-  cfg:{CAL:0.215,MULT:{1:[1],2:[1],3:[1,3]},PLACEHOLDER:{slash:1,stab:1,smash:3},RESET:.5,DY:45,REACH:{slash:196,stab:223,smash:209},SPLASH:.5,MAXT:4,MAXW:4,CAP:99999,DEMO_SC:.1485,WINDOW:-15},bal:!BALOFF};
+  cfg:{CAL:0.215,MULT:{1:[1],2:[1],3:[1,3]},PLACEHOLDER:{slash:1,stab:1,smash:3},RESET:.5,DY:45,REACH:(/[?&]swsize=off\b/.test(Q)?{slash:196,stab:223,smash:209}:{slash:142,stab:170.5,smash:105}),SPLASH:.5,MAXT:4,MAXW:4,CAP:99999,DEMO_SC:.1485,WINDOW:-15},bal:!BALOFF};
 if(OFF)return;
 const ERR=(w,e)=>{S.err=w+': '+((e&&e.message)||e);try{console.error('[SW3]',w,e)}catch(_){}};
 const PU=()=>window.PUPPET,held=()=>!!(typeof P!=='undefined'&&P&&P.weapon&&P.weapon.t==='sword');
@@ -56334,7 +56334,7 @@ function hitFn(e,pct,tag){
   const d=Math.max(0,hp0-Math.max(0,e.hp));S.stats.hits++;S.stats.dmg+=d;try{const o=(S.stats.by[tag]=S.stats.by[tag]||{n:0,d:0});o.n++;o.d+=d}catch(_){}return d}
 try{const _a=applyDamage;applyDamage=function(e,d,crit,o){if(o&&o.sw3){if(o.kb)o.kb=0;if(d>S.cfg.CAP)d=S.cfg.CAP}return _a.call(this,e,d,crit,o)}}catch(e){ERR('hook damage',e)}
 /* ---------------- hits ---------------- */
-const rOf=sc=>sc/S.cfg.DEMO_SC;
+const rOf=sc=>sc/S.cfg.DEMO_SC;S.ksz=/[?&]swsize=off\b/.test(Q)?null:{slash:142/196,stab:170.5/223,smash:105/209};function swHits(c,TLs,L,side,r,t){if(!S.ksz){SW3FX.drawHits(t);return}const hx=side*L.x/r,hy=L.y/r;for(const ty of ['slash','stab','smash']){const hs=TLs.hits.filter(h=>h.type===ty);if(!hs.length)continue;c.save();c.translate(hx,hy);c.scale(S.ksz[ty],S.ksz[ty]);c.translate(-hx,-hy);SW3FX.set({cx:c,TL:{hits:hs,imp:[],clicks:TLs.clicks},HX:hx,HY:hy,SC:L.sc/r,ASPD:rate(),HEEL:heelY()});SW3FX.drawHits(t);c.restore()}SW3FX.set({cx:c,TL:TLs,HX:hx,HY:hy,SC:L.sc/r,ASPD:rate(),HEEL:heelY()})}
 const capOn=()=>/[?&]sw3fxcap=off\b/.test(Q)?false:/[?&]sw3fxcap=on\b/.test(Q)||(()=>{try{return G.gfx==='low'}catch(_){return false}})();
 const heelY=()=>250+((window.LONGSWORD&&LONGSWORD.done&&LONGSWORD.extra)||0);
 function bptsAt(p,x,y,sc){const U=PU(),W=U.solve(p),M=W.sword,gy=U.footY(W),X=x-(p.lunge||0)*sc,Y=y-(p.air||0)*sc;
@@ -56384,7 +56384,7 @@ try{const _t=drawTexts;drawTexts=function(){const r0=_t.apply(this,arguments);tr
   if(L&&(T.hits.length||T.imp.length||S.A)){const t=time,tf=performance.now(),r=rOf(L.sc);
     for(const side of [1,-1]){const TLs=sideTL(side);if(!TLs.hits.length&&!TLs.imp.length&&!(S.A&&L.fac===side))continue;
       fxBegin(ctx,side,r,L.x,L.y,L.sc,L.p,TLs);
-      try{SW3FX.drawTrails(t);SW3FX.drawHits(t);SW3FX.drawImpacts(t);for(const fn of S.layers){try{fn(ctx,t,side)}catch(_){}}}catch(e){ERR('fx front',e)}
+      try{SW3FX.drawTrails(t);swHits(ctx,TLs,L,side,r,t);SW3FX.drawImpacts(t);for(const fn of S.layers){try{fn(ctx,t,side)}catch(_){}}}catch(e){ERR('fx front',e)}
       ctx.restore()}
     S.stats.fxMs+=performance.now()-tf;S.stats.fxN++}}}catch(e){ERR('hook texts',e)}return r0}}catch(e){ERR('hook texts',e)}
 console.info('[SW3] ready');
@@ -59824,7 +59824,10 @@ console.info('[WORLDMAP] ready r1');
      NOW the hero stays fully drawn (his normal pose) the whole skill; the clones / afterimages are drawn on top as before. ?dgvis=off = old. Debug: __DGVIS.last = the alpha used. ---- */
 (function(){'use strict';
 const Q=String(location.search);
-window.__DGVIS={ver:'dgvis-r1',on:!/[?&]dgvis=off\b/.test(Q),last:1};
+window.__DGVIS={ver:'dgvis-r1',on:/[?&]dgvis=on\b/.test(Q),last:1};   /* r98: default OFF (DeaRz 16 Nov 12:28: the hero must be HIDDEN in these two skills; ?dgvis=on = the r96 always-visible look) */
+/* dghide-r1 (r98): twin-dagger Blade Storm (พายุกริช) and Thousand Shadows Night (ราตรีพันเงา): from the cast start until the shadows are done and the hero comes back (storm: t < D3_BACK, ult: t < 3.0 s) the hero is not drawn at all - no body, ground shadow, aura; clones / afterimages / FX stay. ?dghide=off = r97 look. Debug: __DGHIDE */
+const DH=window.__DGHIDE={ver:'dghide-r1',on:!/[?&]dghide=off\b/.test(Q),until:-1,frames:0};
+try{const od=drawPlayer;drawPlayer=function(){if(DH.on&&typeof time==='number'&&time<DH.until&&!(typeof P!=='undefined'&&P&&P.dead)){DH.frames++;return}return od.apply(this,arguments)}}catch(e){DH.err=String(e)}
 const TR=window.__THIEFRUN={ver:'thiefrun-r1',on:!/[?&]thiefrun=off\b/.test(Q),err:null,runs:0,
   cfg:{tree:{x:2150,y:1062,r:60,side:-1},stall:{x:1934,y:960},breadAt:{x:-4,y:-56},exit:{x:1380,y:1045},speed:205,emerge:.7,grab:.7,fade:.5,after:.3}};
 const C=TR.cfg;
@@ -59921,16 +59924,29 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&el&&el.classList.co
 console.info('[SHOPWIN] ready r1');
 })();
 </script>
+<script>
+/* ---- keepweapon-r1 (TEST allin_r100, 16 Nov 2026, DeaRz: picked the short dagger as the starting weapon, on Map 2 the hero held a SWORD) ----
+   CAUSE: p202 "sword for novices" (fixPlayer): on EVERY loadZone, `if (P.cls==='novice' && P.weapon.t==='dagger') P.weapon = toSword(P.weapon)` replaces the dagger by a NEW sword item (same level / refine / card) -
+   the weapon ID changes (dagger -> sword, name Tidecaller etc.), it is not only the sprite. The prologue lets the player pick the dagger (pedestal -> PROLOGUE state weapon 'dagger', EQUIPNEW('dagger') = DGR.toggle), the hero is still class novice,
+   so the first zone load after the prologue (forest -> Map 1) turns it into a sword. (newPlayer has the same rule for the default dagger of a brand new player: unchanged.) Saves reload through loadZone too, so a reload did the same (at that moment the prologue state is not loaded yet, so the saved quest block is read directly).
+   FIX: fixPlayer leaves the dagger alone when the prologue state says the dagger is the picked starter weapon (state.weapon or flags.startingWeapon === 'dagger'). Sword / bow / staff / holy starters were never touched by that rule.
+   ?keepweapon=off = old rule. Debug: window.__KEEPW ---- */
+(function(){'use strict';
+const Q=String(location.search);
+window.__KEEPW={ver:'keepweapon-r1',on:!/[?&]keepweapon=off\b/.test(Q),kept:0,
+  keep:function(){try{let S=window.PROLOGUE&&PROLOGUE.state;if(!S){/* at game start (startGame -> loadZone) the prologue state is not decided yet: read the same saved quest block the prologue will read */const raw=localStorage.getItem(KEYP+'save_v1'),o=raw&&JSON.parse(raw);S=o&&o.quest}const s=S&&(S.weapon||(S.flags&&S.flags.startingWeapon));const k=s==='dagger';if(k)this.kept++;return k}catch(_){return false}}};
+})();
+</script>
 
 <script>
-/* ---- REAL v3k (16 Nov 2026): REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r97.
+/* ---- REAL v3l (16 Nov 2026): REAL v3k + TEST r98..r100 (dagger skills hide the hero, keepweapon: picked starter weapon kept across maps/reload, sword combo reach matches dagger -50%) + ALL dev/test UI hidden unless ?gm=on. REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r100.
    * labels the build, strips the word "TEST" from zone names / gate hints / item names; ?testlabels=on keeps them;
    * the floating gate button is replaced by a menu-bar button (glue_v3f); the 🕯 test button stays hidden unless ?gm=on;
    * starter weapons: "Test Bow (TEST)" / "Test Staff (TEST)" / "Test Dagger (TEST)" become their real names (Gale String / Starlight Staff / Spirit Fang);
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3k',base:'TEST allin_r97 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l',base:'TEST allin_r100 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -59943,6 +59959,18 @@ function hide(){if(GM)return;try{
 if(!KEEP){setInterval(zones,1500);setInterval(items,700);
   try{const og=gatesFor;gatesFor=function(){const out=og.apply(this,arguments);try{for(const g of out||[]){for(const k of ['label','sub']){const v=g&&g[k],w=strip(v);if(v!==w){g[k]=w;R.stripped++}}}}catch(_){}return out}}catch(e){R.err=e.message}}
 setInterval(hide,800);
-console.info('[REAL] v3k');
+/* v3l: dev/test UI is never shown on the real server (only with ?gm=on) */
+if(!GM){try{const st=document.createElement('style');st.id='realNoDev';st.textContent='#atk19Btn,#atk19SizeBtn,#atk19PerBtn,#atk19WaveBtn,#atk19RangeBtn,#bowTestChip,#p210diag,#atk19Chip,#fpsBox,#fpsOverlay{display:none!important}';(document.head||document.documentElement).appendChild(st);
+ const DEVRX=/ATK19|r7[a-z]\b|คอมโบ ATK|ขนาดมีด|จังหวะมีด|คลื่นดาบ:|ระยะฟัน|ทดสอบให้เห็น|\bTEST\b|dgvis|bow3|edgehit|FPS:/i;
+ setInterval(()=>{try{for(const e of document.querySelectorAll('body *')){if(e.children.length>0||e.id==='realNoDev')continue;const cs=e.style;if(!cs||cs.position!=='fixed'&&getComputedStyle(e).position!=='fixed')continue;const tx=(e.textContent||'').trim();if(tx&&tx.length<140&&DEVRX.test(tx)&&!e.closest('#dlgBox,#chat,#bag')){e.style.setProperty('display','none','important');R.hidden++}}}catch(_){}},1200)}catch(e){R.err=e.message}}
+console.info('[REAL] v3l');
+})();
+</script>
+<script>
+/* ---- REAL v3l2 (16 Nov 2026): v3l + hides the two remaining dev editor buttons that showed without ?gm=on: "✏️ แก้วงวาร์ป" (#wpEdBtn, every map) and "✏️ แก้พร็อพแมพ 10" (#m10EdBtn, Map 10), plus their panels and the other dev test buttons (#bowTestBtn #stfTestBtn #m4TestBtn #m7TestBtn #m8TestBtn #holyTest #slGmEd). Skipped with ?gm=on. ---- */
+(function(){'use strict';
+if(/[?&]gm=on\b/.test(String(location.search)))return;
+try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
+if(window.__REAL)__REAL.ver='v3l2';console.info('[REAL] v3l2')}catch(e){}
 })();
 </script>
