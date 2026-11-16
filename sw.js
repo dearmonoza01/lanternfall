@@ -1,5 +1,5 @@
 /* Lanternfall service worker. BUILD id changes every build, so browsers pick up a new game version. */
-const BUILD = 'c0d1a6c715';
+const BUILD = '5392703c02';
 const HTML_CACHE = 'lf-html-' + BUILD;
 const ASSET_CACHE = 'lf-assets-v1'; // asset names are content hashes -> never need invalidating
 
