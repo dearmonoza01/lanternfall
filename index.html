@@ -60038,7 +60038,7 @@ let cur=null,saveT=null;
 function show(el){try{let html=null;
   if(el.matches('.slot.pot,[data-pot]')){html=potCard(el)}
   else if(el.matches('#wWpnSk .row')){const f=findByK(el.dataset.k);if(f)html=build(f,(el.querySelector('img')||{}).src,el.classList.contains('lock')||el.classList.contains('draft'))}
-  else if(el.dataset.sk&&!el.getAttribute('title')&&!el.dataset.tt){html=clsCard(el)}
+  else if(el.matches('#wWpnSk .skb-s')){const f=el.dataset.k?findByK(el.dataset.k):null;if(f)html=build(f,(el.querySelector('img')||{}).src,false);else if(el.dataset.spk)html=spCard(el.dataset.spk);else return hide()} else if(el.matches('#wWpnSk .spr')){html=spCard(el.dataset.sp)} else if(el.dataset.sk&&!el.getAttribute('title')&&!el.dataset.tt){html=clsCard(el)}
   else{const nm=el.getAttribute('title')||el.dataset.tt||'';if(!nm)return hide();const wt=P&&P.weapon&&P.weapon.t;const f=findByName(nm,wt);if(f)html=build(f,(el.querySelector('img')||{}).src,el.classList.contains('wsoff')||el.classList.contains('h2s-lock'));
     else html='<div class="h"><div class="ic">'+(el.querySelector('img')?'<img alt="" src="'+esc(el.querySelector('img').src)+'">':'')+'</div><div><div class="nm">'+esc(nm)+'</div></div></div><div class="nd">ยังไม่มีคำอธิบายสกิลนี้</div>';
     if(!f&&!TT.noDesc.includes(nm))TT.noDesc.push(nm)}
@@ -60047,7 +60047,7 @@ function show(el){try{let html=null;
   card.innerHTML=html;card.style.display='block';pos(el);TT.shown++}catch(e){TT.err=e.message;hide()}}
 function restore(){if(cur&&cur.dataset&&cur.dataset.tt!=null&&!cur.hasAttribute('title'))cur.setAttribute('title',cur.dataset.tt)}
 function hide(){card.style.display='none';restore();cur=null}
-const SEL='#bar .slot,#tSkills .tsk,#wWpnSk .row,.slot.pot';
+function spCard(id){let d=null;try{d=SPSK.defs.find(x=>x.id===id)}catch(_){}if(!d)return null;let s='off';try{s=SPSK.state(id)}catch(_){}let ic='';try{ic=SPSK.icons[id]||''}catch(_){}let mp=d.mp,cd=d.cd;try{const a=d.api&&d.api();if(a&&a.cfg){if(a.cfg.MP!=null)mp=a.cfg.MP;if(a.cfg.CD!=null)cd=a.cfg.CD}}catch(_){}return '<div class="h"><div class="ic">'+(ic?'<img alt="" src="'+esc(ic)+'">':'')+'</div><div><div class="nm">'+esc(d.name)+'</div><div class="sub">'+esc(d.en||'')+' · สกิลพิเศษ'+(d.lv?' · ต้อง Lv.'+esc(d.lv):'')+'</div></div></div>'+(s==='lock'?'<div class="lk">🔒 ล็อกอยู่ · ปลดล็อกที่เลเวลตัวละคร '+esc(d.lv)+'</div>':'')+'<div class="st"><span>MP <b>'+esc(mp)+'</b></span><span>คูลดาวน์ <b>'+esc(cd)+' วิ</b></span></div><div class="d">'+esc(d.full||d.desc||'')+'</div>'} const SEL='#bar .slot,#tSkills .tsk,#wWpnSk .row,.slot.pot,#wWpnSk .skb-s.has,#wWpnSk .spr';
 document.addEventListener('mouseover',e=>{try{if(e.sourceCapabilities&&e.sourceCapabilities.firesTouchEvents)return;const el=e.target.closest&&e.target.closest(SEL);if(!el)return;if(el===cur)return;show(el)}catch(er){TT.err=er.message}},true);
 document.addEventListener('mouseout',e=>{try{const el=e.target.closest&&e.target.closest(SEL);if(el&&el===cur&&!el.contains(e.relatedTarget))hide()}catch(_){}},true);
 /* phone: long press (0.45 s) shows the card, any release / scroll hides it */
@@ -60405,8 +60405,336 @@ for(const fn of ['basicAttack','castSkill','castSkillNow']){try{const o=window[f
 
 
 </script>
+<script>
+/* ---- r128 skslotbar (v3l6): a skill-slot bar INSIDE the weapon skill window (wWpnSk) and its ★ special page. DeaRz order via coordinator 17 Nov 2026.
+   * the long description text of the bottom detail panel is gone (it is in the skill tooltip: hover a skill card, a bar slot or a ★ card).
+   * the bar mirrors the real HUD slots 1-6 Q E R F (reads the painted #bar slots every 250 ms, so it is always in sync with the HUD and with the saved maps):
+       drag a skill card (mouse) onto a slot = assign · drag slot -> slot = swap / move · drag a slot out of the bar or right-click it = clear
+       phone / touch: tap a skill, then tap a slot (tap the slot that already holds that skill = clear); dragging a filled slot also works.
+   * assignment goes through each weapon module's OWN assign code (select row + its #wskAs button + a click on the HUD slot, with the window kept open), so saved data = the same maps as the "ช่อง N / ถอด" buttons.
+     special skills (★ page) are put into P.slots[idx] like SPSLOT does.
+   * locked / draft / passive skills cannot be assigned (short toast with the reason). R is reserved by the weapons' own rule (their message shows).
+   ?skslotbar=off = old panel. Debug: window.__SKBAR ---- */
+(function(){'use strict';
+const Q=String(location.search),SB=window.__SKBAR={ver:'skbar-r1',on:!/[?&]skslotbar=off\b/.test(Q),err:null,log:[],drops:0};
+if(!SB.on)return;
+const ERR=(w,e)=>{SB.err=w+': '+((e&&e.message)||e);try{console.error('[SKBAR]',w,e)}catch(_){}};
+const $=s=>document.querySelector(s);
+const WKEYS=['ws','bs','ss','dgs','scs','hs','hws'];
+const SLOTK=['1','2','3','4','5','6','Q','E','R','F'];
+const SPK={sak:'spSakura',dd:'spDemon',th:'spThunder',st:'spStorm'},SPI={};for(const k in SPK)SPI[SPK[k]]=k;
+const COARSE=()=>{try{return matchMedia('(pointer:coarse)').matches||document.body.classList.contains('mobile')}catch(_){return false}};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const css=document.createElement('style');css.id='skbarCss';css.textContent=`
+#wWpnSk .dtx .dd,#wWpnSk .spdtx .dd{display:none!important}
+#wWpnSk .dtx.skb-nosel .dd{display:block!important}
+#wWpnSk #spRow{display:none!important}
+#wWpnSk .skbW{flex:0 0 auto;display:flex;flex-direction:column;gap:.25cqw;margin-top:.5cqw;user-select:none;-webkit-user-select:none}
+#wWpnSk .skbar{display:flex;gap:max(2px,.45cqw);align-items:stretch;justify-content:flex-start}
+#wWpnSk .skb-s{position:relative;flex:1 1 0;min-width:0;max-width:4.7cqw;aspect-ratio:1;box-sizing:border-box;border:1px dashed rgba(214,176,92,.55);border-radius:.7cqw;background:rgba(20,15,9,.82);cursor:pointer;touch-action:none;overflow:hidden;padding:0}
+#wWpnSk .skb-s img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
+#wWpnSk .skb-s .k{position:absolute;left:0;top:0;min-width:1.5cqw;padding:0 .35cqw;font:700 max(9px,1.15cqw)/1.25 system-ui,sans-serif;color:#ffe9b0;background:rgba(0,0,0,.66);border-radius:.5cqw 0 .5cqw 0;text-align:center;pointer-events:none;z-index:2}
+#wWpnSk .skb-s.has{border:1px solid #d6b05c;cursor:grab}
+#wWpnSk .skb-s.has.ro{cursor:default;border-color:rgba(214,176,92,.4)}
+#wWpnSk .skb-s.off img{filter:grayscale(.85) brightness(.55)}
+#wWpnSk .skb-s.rsv:not(.has){border-color:rgba(140,140,140,.55)}
+#wWpnSk .skb-s.over{box-shadow:0 0 0 2px #ffd98a,0 0 10px rgba(255,217,138,.8);background:rgba(90,66,24,.9)}
+#wWpnSk .skb-s.selk{box-shadow:0 0 0 2px #9be8b4}
+#wWpnSk.tabs .dtx,#wWpnSk.tabs .spdtx{width:54.8%}
+#wWpnSk.tabs .skb-s{max-width:none}
+#wWpnSk .skhint{font-size:max(9px,1.12cqw);color:#a99c80;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#wWpnSk.tabs .skhint{font-size:max(9px,1.7cqw)}
+#wWpnSk .skbT{position:absolute;left:13.1%;top:74.2%;max-width:53%;z-index:9;padding:.5cqw 1.2cqw;border-radius:.9cqw;background:rgba(20,15,8,.94);border:1px solid #d6b05c;color:#ffe9b0;font:700 max(11px,1.5cqw)/1.25 system-ui,sans-serif;display:none;pointer-events:none}
+#skghost{position:fixed;z-index:99995;width:46px;height:46px;border-radius:8px;border:2px solid #ffd98a;box-shadow:0 4px 14px rgba(0,0,0,.7);background:#100d09;overflow:hidden;pointer-events:none;display:none;opacity:.92}
+#skghost img{width:100%;height:100%;object-fit:cover;display:block}
+#skghost.bad{border-color:#e07070;opacity:.7}
+body.skdrag,body.skdrag *{cursor:grabbing!important;user-select:none!important;-webkit-user-select:none!important}
+`;
+document.head.appendChild(css);
+const ghost=document.createElement('div');ghost.id='skghost';document.body.appendChild(ghost);
+let EXPL=false;                                     /* the player picked a skill on purpose (tap-to-assign is only armed then) */
+const winEl=()=>$('#wWpnSk');
+const isOpen=()=>{const w=winEl();return !!w&&!w.hidden};
+const onSp=()=>{const w=winEl();return !!w&&w.classList.contains('sp')};
+/* ---------------- data ---------------- */
+function types(){const m={};try{const L=__WSK.lines;for(const ln in L)for(const c of L[ln].cols)for(const s of c.skills)m[s.k]=s.type}catch(_){}return m}
+function rowEl(k){const w=winEl();if(!w)return null;for(const r of w.querySelectorAll('.row[data-k]'))if(r.dataset.k===k)return r;return null}
+function selRowK(){const r=$('#wWpnSk .row.sel');return r?r.dataset.k:null}
+function altsOf(rk){return [rk,rk.replace(/^(bsk_|stf_|dg_|scy_|pas_)/,''),rk.replace(/^stf_h_/,'h_')]}
+function rowKeyFor(v){const w=winEl();if(!w)return null;for(const r of w.querySelectorAll('.row[data-k]')){if(altsOf(r.dataset.k).includes(v))return r.dataset.k}return null}
+function slotEl(i){return document.querySelector('#bar .slot[data-i="'+i+'"]')||document.querySelector('#tSkills .tsk[data-ti="'+i+'"]')}
+function slotInfo(i){const el=slotEl(i);if(!el)return {i,none:true};
+  let kind=null,key=null;for(const k of WKEYS){if(el.dataset[k]){kind='w';key=el.dataset[k];break}}
+  if(!kind){const sk=el.dataset.sk;if(sk&&SPI[sk]){kind='s';key=SPI[sk]}else if(sk){kind='b';key=sk}}
+  if(!kind)return {i,empty:true};
+  const im=el.querySelector('img');const nm=el.getAttribute('title')||el.dataset.tt||'';
+  return {i,kind,key,src:im?im.src:'',name:nm,off:el.classList.contains('wsoff'),rk:kind==='w'?rowKeyFor(key):null};}
+const spDef=id=>{try{return SPSK.defs.find(d=>d.id===id)||null}catch(_){return null}};
+/* ---------------- toast ---------------- */
+let tT=0;function toast(t,ms){const w=winEl();if(!w)return;let el=w.querySelector('.skbT');if(!el){const b=w.querySelector('.box');if(!b)return;el=document.createElement('div');el.className='skbT';b.appendChild(el)}
+  el.textContent=t;el.style.display='block';clearTimeout(tT);tT=setTimeout(()=>{el.style.display='none'},ms||2400)}
+/* ---------------- rendering ---------------- */
+let sig='';
+function hintText(){return onSp()?(COARSE()?'แตะสกิลพิเศษ แล้วแตะช่อง · แตะช่องซ้ำเพื่อถอด':'ลากการ์ดสกิลพิเศษมาวางที่ช่อง · คลิกขวา/ลากออกเพื่อถอด'):(COARSE()?'แตะสกิล แล้วแตะช่อง · แตะช่องที่มีสกิลนั้นซ้ำเพื่อถอด':'ลากสกิลมาวางที่ช่อง · ลากช่องออก/คลิกขวาเพื่อถอด')}
+function ensure(){const w=winEl();if(!w)return;
+  for(const [sel,pos] of [['.dtx','.dn'],['.spdtx','.dn']]){const host=w.querySelector(sel);if(!host)continue;if(host.querySelector(':scope > .skbW'))continue;
+    const el=document.createElement('div');el.className='skbW';el.innerHTML='<div class="skbar"></div><div class="skhint"></div>';const dn=host.querySelector(pos);if(dn&&dn.nextSibling)host.insertBefore(el,dn.nextSibling);else host.appendChild(el);}
+  const dtx=w.querySelector('.dtx');if(dtx){const ns=!w.querySelector('.row.sel');if(dtx.classList.contains('skb-nosel')!==ns)dtx.classList.toggle('skb-nosel',ns)}}
+function render(force){const w=winEl();if(!w||w.hidden)return;ensure();if(D&&D.active)return;
+  const inf=[];for(let i=0;i<10;i++)inf.push(slotInfo(i));
+  const sel=onSp()?(window.SPSK&&SPSK.sel):selRowK();
+  const sg=inf.map(x=>x.empty||x.none?'-':x.kind+x.key+(x.off?'!':'')+(x.src?x.src.length:0)).join(',')+'|'+(sel||'')+'|'+onSp()+'|'+COARSE();
+  if(!force&&sg===sig)return;sig=sg;
+  const html=inf.map(x=>{const has=!x.empty&&!x.none;const R=SLOTK[x.i]==='R';
+    const cls='skb-s'+(has?' has':'')+(has&&x.kind==='b'?' ro':'')+(x.off?' off':'')+(R?' rsv':'')+(has&&((x.kind==='w'&&x.rk&&x.rk===sel)||(x.kind==='s'&&x.key===sel))?' selk':'');
+    return '<div class="'+cls+'" data-i="'+x.i+'"'+(has?' data-kind="'+x.kind+'" data-key="'+esc(x.key)+'"'+(x.rk?' data-k="'+esc(x.rk)+'"':'')+(x.kind==='s'?' data-spk="'+esc(x.key)+'"':''):'')+'>'
+      +'<span class="k">'+SLOTK[x.i]+'</span>'+(has&&x.src?'<img alt="" src="'+esc(x.src)+'">':'')+'</div>'}).join('');
+  for(const b of w.querySelectorAll('.skbar'))b.innerHTML=html;
+  const ht=hintText();for(const h of w.querySelectorAll('.skhint'))h.textContent=ht;}
+/* ---------------- validity ---------------- */
+function reasonRow(k){const r=rowEl(k);if(!r)return 'ไม่พบสกิลนี้';const t=types()[k];
+  if(r.classList.contains('lock')){const c=r.querySelector('.chip');return 'ล็อกอยู่ · '+(c?c.textContent.replace('🔒','').trim():'ยังไม่ปลดล็อก')}
+  if(r.classList.contains('draft'))return 'ยังไม่เปิดใช้งาน (กำลังพัฒนา) ใส่ช่องไม่ได้';
+  if(t!=='active')return 'สกิลพาสซีฟ ทำงานเอง ใส่ช่องไม่ได้';return ''}
+function reasonSp(id){const d=spDef(id);if(!d)return 'ไม่พบสกิลนี้';if(!SPK[id])return 'สกิลนี้ใช้ปุ่มของมันเอง ใส่ช่องไม่ได้';
+  let s='off';try{s=SPSK.state(id)}catch(_){}if(s==='lock')return 'ล็อกอยู่ · ต้อง Lv.'+d.lv;if(s!=='on')return 'ยังไม่เปิดใช้งาน ใส่ช่องไม่ได้';return ''}
+/* ---------------- actions ---------------- */
+function guard(fn){let oc=null,had=false;try{oc=closeWin;closeWin=function(){};had=true}catch(_){}try{return fn()}finally{if(had){try{closeWin=oc}catch(_){}}}}
+function cancelAssign(){try{if(document.body.classList.contains('wsAssign')){document.body.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
+    if(document.body.classList.contains('wsAssign')){document.body.classList.remove('wsAssign','wsAsNoR');const m=$('#wsAssignMsg');if(m)m.style.display='none'}}}catch(_){}}
+function assignWeapon(rk,idx){const r=reasonRow(rk);if(r){toast(r);return false}
+  const el=slotEl(idx);if(!el){toast('ไม่พบช่องนี้');return false}
+  const row=rowEl(rk);if(selRowK()!==rk)row.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
+  const as=document.getElementById('wskAs');if(!as||as.disabled){toast('ใส่ช่องไม่ได้');return false}
+  guard(()=>{as.click();el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));cancelAssign()});
+  const at=slotInfo(idx);const ok=at&&at.kind==='w'&&at.rk===rk;
+  if(!ok){if(SLOTK[idx]==='R')toast('ช่อง R สงวนไว้ให้สกิลท้ายสายของอาวุธนี้ เลือกช่องอื่น');else toast('ใส่สกิลนี้ลงช่อง '+SLOTK[idx]+' ไม่ได้')}
+  SB.log.push({ev:'assignW',rk,idx,ok});setTimeout(()=>render(true),60);return ok}
+function assignSpecial(spk,idx){const r=reasonSp(spk);if(r){toast(r);return false}
+  if(SLOTK[idx]==='R'){toast('ช่อง R สงวนไว้ให้สกิลของอาวุธ เลือกช่องอื่น');return false}
+  const id=SPK[spk];try{const el=slotEl(idx);const at=slotInfo(idx);if(at.kind==='w')guard(()=>{el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,view:window}))});
+    const old=P.slots.indexOf(id);if(old>=0)P.slots[old]=null;P.slots[idx]=id;try{buildBar()}catch(_){}try{saveGame()}catch(_){}}catch(e){ERR('assignSp',e);return false}
+  const ok=slotInfo(idx).key===spk;if(!ok)toast('ใส่สกิลนี้ลงช่อง '+SLOTK[idx]+' ไม่ได้');
+  SB.log.push({ev:'assignS',spk,idx,ok});setTimeout(()=>render(true),60);return ok}
+function clearSlot(idx,quiet){const at=slotInfo(idx);if(at.empty||at.none)return false;
+  if(at.kind==='b'){toast('สกิลพื้นฐาน ถอดจากหน้านี้ไม่ได้');return false}
+  if(at.kind==='s'){try{const id=SPK[at.key];const j=P.slots.indexOf(id);if(j>=0)P.slots[j]=null;try{buildBar()}catch(_){}try{saveGame()}catch(_){}}catch(e){ERR('clrS',e)}}
+  else guard(()=>{slotEl(idx).dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,view:window}))});
+  SB.log.push({ev:'clear',idx});setTimeout(()=>render(true),60);if(!quiet)toast('ถอดสกิลออกจากช่อง '+SLOTK[idx]+' แล้ว',1600);return true}
+const putItem=(it,idx)=>it.kind==='s'?assignSpecial(it.key,idx):assignWeapon(it.rk,idx);
+function moveSlot(a,b){if(a===b)return;const A=slotInfo(a),B=slotInfo(b);if(A.empty||A.kind==='b')return;
+  if(A.kind==='w'&&!A.rk){toast('ย้ายสกิลนี้ไม่ได้ในหน้านี้');return}
+  if(!putItem(A,b))return;
+  if(!B.empty&&!B.none&&B.kind!=='b'&&(B.kind==='s'||B.rk)){if(!putItem(B,a))toast('สลับไม่สำเร็จ · ถอด '+(B.name||'สกิล')+' ออกจากช่อง')}
+  setTimeout(()=>render(true),80)}
+/* ---------------- drag ---------------- */
+let D=null;
+function ghostAt(x,y){ghost.style.left=Math.round(x-23)+'px';ghost.style.top=Math.round(y-23)+'px'}
+function endDrag(){if(D&&D.active){ghost.style.display='none';document.body.classList.remove('skdrag');for(const e of document.querySelectorAll('#wWpnSk .skb-s.over'))e.classList.remove('over')}D=null}
+document.addEventListener('pointerdown',e=>{try{if(!isOpen()||e.button!==0)return;D=null;
+  const s=e.target.closest&&e.target.closest('#wWpnSk .skb-s');
+  if(s&&s.classList.contains('has')&&!s.classList.contains('ro')){D={from:'slot',i:+s.dataset.i,src:(s.querySelector('img')||{}).src||'',pid:e.pointerId}}
+  else if(!s&&e.pointerType!=='touch'){const row=e.target.closest&&e.target.closest('#wWpnSk .row[data-k]');
+    if(row)D={from:'row',k:row.dataset.k,src:(row.querySelector('img')||{}).src||'',bad:reasonRow(row.dataset.k),pid:e.pointerId};
+    else{const sp=e.target.closest&&e.target.closest('#wWpnSk .spr[data-sp]');if(sp)D={from:'sp',id:sp.dataset.sp,src:(sp.querySelector('img')||{}).src||'',bad:reasonSp(sp.dataset.sp),pid:e.pointerId}}}
+  if(D){D.sx=e.clientX;D.sy=e.clientY;D.active=false}}catch(er){ERR('down',er)}},true);
+document.addEventListener('pointermove',e=>{try{if(!D||e.pointerId!==D.pid)return;
+  if(!D.active){if(Math.hypot(e.clientX-D.sx,e.clientY-D.sy)<7)return;D.active=true;ghost.innerHTML=D.src?'<img alt="" src="'+esc(D.src)+'">':'';ghost.classList.toggle('bad',!!D.bad);ghost.style.display='block';document.body.classList.add('skdrag')}
+  ghostAt(e.clientX,e.clientY);e.preventDefault();
+  const t=document.elementFromPoint(e.clientX,e.clientY),s=t&&t.closest&&t.closest('#wWpnSk .skb-s');
+  for(const x of document.querySelectorAll('#wWpnSk .skb-s.over'))if(x!==s)x.classList.remove('over');if(s)s.classList.add('over')}catch(er){ERR('move',er)}},true);
+function swallowClick(){const h=ev=>{if(!ev.isTrusted)return;ev.stopImmediatePropagation();ev.preventDefault();document.removeEventListener('click',h,true)};document.addEventListener('click',h,true);setTimeout(()=>document.removeEventListener('click',h,true),120)}
+document.addEventListener('pointerup',e=>{try{if(!D||e.pointerId!==D.pid)return;const d=D;if(!d.active){D=null;return}
+  const t=document.elementFromPoint(e.clientX,e.clientY),s=t&&t.closest&&t.closest('#wWpnSk .skb-s');
+  const w=winEl(),inBar=!!(t&&t.closest&&t.closest('#wWpnSk .skbW'));
+  endDrag();SB.drops++;
+  if(d.from==='slot'){if(s){moveSlot(d.i,+s.dataset.i)}else if(!inBar){clearSlot(d.i)}}
+  else if(d.from==='row'){if(s){if(d.bad)toast(d.bad);else assignWeapon(d.k,+s.dataset.i)}}
+  else if(d.from==='sp'){if(s){if(d.bad)toast(d.bad);else assignSpecial(d.id,+s.dataset.i)}}
+  swallowClick();}catch(er){ERR('up',er);endDrag()}},true);
+document.addEventListener('pointercancel',()=>{endDrag()},true);
+addEventListener('keydown',e=>{if(e.key==='Escape'&&D)endDrag()},true);
+/* ---------------- tap ---------------- */
+document.addEventListener('click',e=>{try{const w=winEl();if(!w||w.hidden)return;
+  const row=e.target.closest&&e.target.closest('#wWpnSk .row[data-k], #wWpnSk .spr[data-sp]');if(row){EXPL=true;return}
+  const s=e.target.closest&&e.target.closest('#wWpnSk .skb-s');if(!s)return;
+  e.stopImmediatePropagation();e.stopPropagation();e.preventDefault();
+  const i=+s.dataset.i,at=slotInfo(i),sp=onSp();
+  if(!EXPL){if(!at.empty&&!at.none){if(at.kind==='w'&&at.rk){const r=rowEl(at.rk);if(r)r.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}))}else if(at.kind==='s'){const c=w.querySelector('.spr[data-sp="'+at.key+'"]');if(c)c.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}))}EXPL=true}
+    else toast(COARSE()?'แตะสกิลก่อน แล้วแตะช่อง':'ลากสกิลมาวาง หรือคลิกสกิลก่อน แล้วคลิกช่อง');return}
+  if(sp){const id=window.SPSK&&SPSK.sel;if(!id)return;if(at.kind==='s'&&at.key===id){clearSlot(i);return}assignSpecial(id,i);return}
+  const k=selRowK();if(!k)return;if(at.kind==='w'&&at.rk===k){clearSlot(i);return}assignWeapon(k,i)}catch(er){ERR('tap',er)}},true);
+document.addEventListener('contextmenu',e=>{try{const s=e.target.closest&&e.target.closest('#wWpnSk .skb-s');if(!s)return;e.preventDefault();e.stopPropagation();if(s.classList.contains('has'))clearSlot(+s.dataset.i)}catch(er){ERR('ctx',er)}},true);
+/* ---------------- loop ---------------- */
+let wasOpen=false;
+setInterval(()=>{try{const o=isOpen();if(o!==wasOpen){wasOpen=o;if(!o){EXPL=false;endDrag()}else sig=''}if(o)render()}catch(e){ERR('tick',e)}},250);
+SB.assign=(rk,i)=>assignWeapon(rk,i);SB.assignSp=(id,i)=>assignSpecial(id,i);SB.clear=i=>clearSlot(i);SB.move=moveSlot;SB.info=()=>{const a=[];for(let i=0;i<10;i++)a.push(slotInfo(i));return a};SB.render=()=>render(true);
+})();
+
+</script>
+<script>
+/* ---- r129 wikinew (v3l6): Realm Wiki (H button) rebuilt from the CURRENT game only. DeaRz order via coordinator 17 Nov 2026.
+   The old wiki table (old classes / jobs / 79 old monsters / 22 old maps / fashion / old sets) is no longer used; categories with 0 entries are hidden.
+   Live sources: quests = __QDATA2.quests (types main / side / affinity / daily) · NPCs = __QDATA2.npcs · maps = __WORLDMAP.nodes + Map 9 floors (ZONES, __WARP.circles, __ZONE_NAMES_22)
+   · monsters = spawn census per map (WN.where, taken 17 Nov 2026 from the running game) + every monster that has a card (__MCARDS / ITEMS.mcard_*) and still exists in MOBS
+   · weapons / skills / unlock levels = __WSK.lines + __WSK.cfg.unlock (holy staff = live while held, else snapshot) · robot = ROBOT.cfg · cards = __MCARDS (36 incl. 6 boss)
+   · items = shop goods + refine / socket materials + quest items · systems pages use live tables (refineInfo, ELE_TABLE, DRILL, warp circles).
+   Same look, same search. ?wikinew=off = old wiki. Debug: window.__WIKINEW ---- */
+(function(){'use strict';
+const Q=String(location.search),WN=window.__WIKINEW={ver:'wikinew-r1',on:!/[?&]wikinew=off\b/.test(Q),err:null,counts:{},built:0};
+if(!WN.on)return;
+const ERR=(w,e)=>{WN.err=w+': '+((e&&e.message)||e);try{console.error('[WIKINEW]',w,e)}catch(_){}};
+const E=s=>wkE(s);
+/* spawn census (what actually spawns per map, measured in the running game 17 Nov 2026) */
+const WHERE=WN.where={cartroad_plains:['slime','leafbun','seedling','venomslime'],w22_map4_test:['stoneboar','mossback','puffcap','ruinwarden_m4'],w22_cave1_test:['stoneboar','mossback','ruinwarden_m4'],
+ w22_map5_test:['stoneboar','mossback','galefeather','ruinwarden_m4'],w23_map6_test:['stoneboar','mossback','galefeather','ruinwarden_m4','shard_crab','crystal_bat'],w23_map8_test:['frostquill','hollowlantern','rimeguard'],
+ w24_map10_test:['bogtoad','pinesquirrel','meadowram','buzzbee','strawman','gloomcrow'],map11:['ds_sand_scarab','ds_dune_gecko','ds_cactoid','ds_dust_jackal','ds_scarab_matriarch']};
+const HOLY=[['โจมตี',['แสงพิพากษา','โคมลอยวิญญาณ','ตราผนึกแสง','วงแหวนทัณฑ์สวรรค์','ฝนหอกศักดิ์สิทธิ์']],['บัฟ / สนับสนุน',['แสงฟื้นฟู','พรแห่งแสง','ม่านพิทักษ์','เร่งมานา','รัศมีอรุณ']],['พาสซีฟ',['ศรัทธา','ใจเมตตา','แสงสะท้อน','เปลวไม่ดับ','ผู้พิทักษ์']]];
+const QCOL={main:['เควสหลัก','#ffd36b'],side:['เควสรอง','#7fb8ff'],daily:['เควสรายวัน','#8fe39a'],affinity:['เควสพิเศษ (ความสนิท)','#d8a6ff'],special:['เควสพิเศษ','#d8a6ff']};
+const PLAN={w22_map4_planned:'w22_map4_test',w22_map10_planned:'w24_map10_test'};
+const zname=z=>{z=PLAN[z]||z;return ZONES[z]?ZONES[z].n:null};
+const L=(cat,id,label)=>wkLink(cat,id,label);
+const g=(ch,col)=>wkGlyph(ch,col);
+const Qd=()=>window.__QDATA2||{quests:[],npcs:[],points:[],items:{}};
+const itemName=id=>{try{if(ITEMS[id])return ITEMS[id].n}catch(_){}const it=Qd().items&&Qd().items[id];return it?it.n:id};
+const ALIAS={quarry_warden_stone_golem:'ruinwarden_m4',frostquill:'frostquill',rimeguard_frost_knight:'rimeguard',hollow_lantern:'hollowlantern'};
+let RS={};
+function roster(){const R={};const add=(t,o)=>{R[t]=Object.assign(R[t]||{t},o)};
+  for(const c of (window.__MCARDS?__MCARDS.cards:[])){const id='mcard_'+c.slug,I=ITEMS[id];if(!I)continue;const t=I.mob||ALIAS[c.slug]||c.slug;add(t,{card:id,boss:!!c.boss,cname:I.n.replace(/^การ์ด\s*/,''),ccol:I.col})}
+  for(const z in WHERE)for(const t of WHERE[z])add(t,{});
+  try{for(const z in ZONES)if(!WHERE[z]&&ZONES[z].mobs)for(const m of ZONES[z].mobs)add(m[0],{})}catch(_){}
+  for(const t of Object.keys(R)){const m=MOBS[t],r=R[t];if(!m&&!r.card){delete R[t];(WN.missing=WN.missing||[]).push(t);continue}r.name=m?m.n:(r.cname||t);r.kind=m?wkMobKind(m):(r.boss?'boss':'normal');r.col=m?m.c:(r.ccol||'#cfe8ff')}
+  RS=R;return R}
+const mobName=t=>RS[t]?RS[t].name:(MOBS[t]?MOBS[t].n:t);
+const mobIcon=t=>MOBS[t]?wkMobIcon(t):(RS[t]&&RS[t].card?wkItemIcon({id:RS[t].card,q:1}):g('☠','#345'));
+const npcOf=id=>Qd().npcs.find(n=>n.id===id)||null;
+const ptLabel=id=>{const a=Qd().points;const p=Array.isArray(a)?a.find(x=>x.id===id):null;return p?p.label:id};
+const unlockTxt=row=>{try{const u=__WSK.cfg.unlock,v=u[Math.min(row|0,u.length-1)];return v>=1e6?'ชำนาญอาวุธ Lv.'+(v-1e6):v>0?'เลเวลตัวละคร '+v:'เปิดตั้งแต่เริ่ม'}catch(_){return ''}};
+/* ---------- monsters ---------- */
+function mobIdsOld(){const s=new Set();for(const z in WHERE)for(const t of WHERE[z])s.add(t);
+  for(const k in ITEMS){const I=ITEMS[k];if(I&&I.k==='card'&&I.card2&&I.mob)s.add(I.mob)}
+  try{for(const z in ZONES)if(WHERE[z]===undefined&&ZONES[z].mobs)for(const m of ZONES[z].mobs)s.add(m[0])}catch(_){}
+  return [...s].filter(t=>{if(!MOBS[t]){WN.missing=(WN.missing||[]).concat(t);return false}return true})}
+function mobWhere(t){const r=[];for(const z in WHERE)if(WHERE[z].includes(t))r.push(z);try{for(const z in ZONES)if(!WHERE[z]&&ZONES[z].mobs&&ZONES[z].mobs.some(m=>m[0]===t))r.push(z)}catch(_){}return r}
+const cardOf=t=>(RS[t]&&RS[t].card)||null;
+function mobQuests(t){return Qd().quests.filter(q=>(q.objectives||[]).some(o=>(o.types&&o.types.includes(t))||(o.dropFrom&&o.dropFrom.includes(t))))}
+function mobPage(t){const m=MOBS[t]||{sp:'-'},kd=RS[t].kind,x=(typeof MOBX!=='undefined'&&MOBX[t])||null,wh=mobWhere(t),cd=cardOf(t),qs=mobQuests(t);
+  let h=`<div class="wkHero"><img src="${mobIcon(t)}" alt=""><div><span class="wkTag" style="--c:${WK_KIND[kd][1]}">${WK_KIND[kd][0]}</span><div class="wkMeta">${x?'เผ่า <b>'+wkCap(x[0])+'</b> · ธาตุ <b>'+wkCap(x[1])+'</b> · ':''}${m.sp!=='-'?'ความเร็ว '+m.sp:''}${m.rng?' · โจมตีระยะไกล':''}</div></div></div>`;
+  h+='<h4>พบได้ที่</h4>'+(wh.length?`<div class="wkChips">${wh.map(z=>L('zone',z,zname(z)||z)).join('')}</div>`:'<p class="muted">ไม่ได้เกิดตามแผนที่ปกติ (บอส / ประตูมิติ / อีเวนต์)</p>');
+  if(cd)h+=`<h4>การ์ด</h4><div class="wkChips">${L('card',cd,ITEMS[cd].n)}</div>`;
+  if(qs.length)h+=`<h4>เควสที่เกี่ยวข้อง</h4><div class="wkChips">${qs.map(q=>L('quest',q.id,q.name)).join('')}</div>`;
+  if(m.elite||kd==='elite')h+='<p class="muted">Elite: มีคุณสมบัติพิเศษ (Affix) สุ่ม</p>';
+  return h}
+/* ---------- maps ---------- */
+function zoneList(){const out=[];const nodes=(window.__WORLDMAP&&__WORLDMAP.nodes)||[];for(const n of nodes)if(ZONES[n[0]])out.push({z:n[0],label:n[1]});
+  for(let f=2;f<=7;f++){const z='w24_map9f'+f+'_test';if(ZONES[z])out.push({z,label:'Map 9 ชั้น '+f})}return out}
+function zoneEdges(z){const r=[];try{for(const c of (window.__WARP&&__WARP.circles)||[])if(c.z===z&&c.dest){const d=PLAN[c.dest]||c.dest;r.push(d)}}catch(_){}return [...new Set(r)]}
+function zonePage(z,label){const Z=ZONES[z],m=/Map (\d+)/.exec(label),pn=m&&window.__ZONE_NAMES_22&&__ZONE_NAMES_22[m[1]];let h='';
+  if(pn)h+=`<p>${E(pn[2]||'')}</p><p class="muted">ชื่อแผน: ${E(pn[0])} · ${E(pn[1])}</p>`;
+  const ed=zoneEdges(z);h+='<h4>ทางไปต่อ (วงวาร์ป)</h4>'+(ed.length?`<div class="wkChips">${ed.map(d=>zname(d)?L('zone',d,zname(d)):`<span class="wkChip">${E(d.replace(/^w\d+_|_planned$/g,''))} (ยังไม่เปิด)</span>`).join('')}</div>`:'<p class="muted">ไม่มีวงวาร์ปออกจากแผนที่นี้ในตอนนี้</p>');
+  const wh=(WHERE[z]||[]).filter(t=>RS[t]);if(wh.length)h+=`<h4>มอนสเตอร์</h4><div class="wkGrid">${wh.map(t=>`<a class="wkCard" data-wk="mob:${t}"><img src="${mobIcon(t)}" alt=""><b>${E(mobName(t))}</b><small>${RS[t].kind==='boss'?'บอส':RS[t].kind==='elite'?'Elite':'ทั่วไป'}</small></a>`).join('')}</div>`;
+  const ns=Qd().npcs.filter(n=>(n.at&&n.at.zone===z)||n.map===z);if(ns.length)h+=`<h4>NPC</h4><div class="wkChips">${ns.map(n=>L('npc',n.id,n.name)).join('')}</div>`;
+  const qs=Qd().quests.filter(q=>q.zone===z);if(qs.length)h+=`<h4>เควสในแมพนี้</h4><div class="wkChips">${qs.map(q=>`<a class="wkA" data-wk="quest:${E(q.id)}" style="border-color:${(QCOL[q.type]||QCOL.main)[1]};color:${(QCOL[q.type]||QCOL.main)[1]}">${E(q.name)}</a>`).join('')}</div>`;
+  return h}
+/* ---------- weapons ---------- */
+function linesFor(t){const Ls=window.__WSK&&__WSK.lines;if(!Ls)return null;if(t==='holy'){const st=Ls.staff;if(st&&st.holy)return st;return null}return Ls[t]||null}
+function skillRows(ln){let h='';ln.cols.forEach(c=>{if(!c.skills.length)return;h+=`<h4>${E(c.name)}</h4><table class="wkT"><tr><th></th><th>สกิล</th><th>ปลดล็อก</th><th>MP / CD</th></tr>`+c.skills.map(s=>{let ic='',ok=false,mp='-',d='';try{ic=s.icon()||''}catch(_){}try{ok=s.ok()}catch(_){}
+      try{if(ok&&s.type==='active'){const k=s.cost();mp='MP '+k.mp+' · '+k.cd+' วิ'}}catch(_){}try{if(ok)d=String(s.desc()).replace(/^เลเวล \d+ \/ \d+\s*\n*/,'').slice(0,260)}catch(_){}
+      return `<tr><td style="width:44px">${ic?`<img src="${ic}" alt="" style="width:38px;height:38px;border-radius:7px">`:''}</td><td><b>${E(s.name)}</b> <small class="muted">${s.type==='passive'?'พาสซีฟ':'สกิลกด'}${ok?'':' · ยังไม่เปิดใช้งาน'}</small>${d?`<div class="muted" style="font-size:12px;white-space:pre-line;max-width:520px">${E(d)}</div>`:''}</td><td>${E(unlockTxt(s.row))}</td><td>${E(mp)}</td></tr>`}).join('')+'</table>'});return h}
+function holyRows(){let h='';HOLY.forEach(([cn,names])=>{h+=`<h4>${E(cn)}</h4><table class="wkT"><tr><th>สกิล</th><th>ปลดล็อก</th></tr>`+names.map((n,i)=>`<tr><td><b>${E(n)}</b></td><td>${E(unlockTxt(i))}</td></tr>`).join('')+'</table>'});return h}
+function weaponList(){const L=[];const Ls=(window.__WSK&&__WSK.lines)||{};for(const t of ['sword','dagger','bow','staff'])if(Ls[t])L.push(t);
+  if(Ls.staff&&window.HOLYW&&HOLYW.ok)L.push('holy');for(const t of ['scythe','knuckle','hammer'])if(Ls[t])L.push(t);if(window.ROBOT&&ROBOT.cfg&&Ls.hammer)L.push('robot');return L}
+const WN_NAME={holy:['คทาพระ','Holy Staff'],robot:['หุ่นยนต์ไอน้ำ','Steam Robot']};
+function wName(t){return WN_NAME[t]?WN_NAME[t][0]:(WEAPONS[t]&&WEAPONS[t].th)||t}
+function weaponPage(t){let h='';const W0=WEAPONS[t==='holy'?'staff':t==='robot'?'hammer':t];
+  if(t==='robot'){const c=ROBOT.cfg;h+=`<p>หุ่นยนต์ไอน้ำ เรียกด้วยสกิลของค้อนไอน้ำ (ปลดล็อกแถวที่ ${(c.UNLOCK_ROW|0)+1} · ${E(unlockTxt(c.UNLOCK_ROW))}) ขึ้นขี่แล้วโจมตีด้วยการคลิก / ใช้ท่ากระโดด กวาด ดีดตัวออก</p>
+    <table class="wkT"><tr><th>MP</th><td>${c.MP}</td><th>คูลดาวน์</th><td>${c.CD} วิ</td></tr><tr><th>ดาเมจฐาน</th><td>${c.BASE}%</td><th>กระโดด CD</th><td>${c.JUMP_CD} วิ</td></tr><tr><th>กวาด CD</th><td>${c.SW_CD} วิ</td><th>ระยะกระโดด</th><td>${c.JUMP_RANGE} px</td></tr></table>
+    <h4>ดาเมจตามเลเวลสกิล (Lv 1–10)</h4><div class="wkChips">${c.PCT.map((p,i)=>`<span class="wkChip">Lv${i+1} · ${p}%</span>`).join('')}</div><p class="muted">เลเวลสกิลเพิ่มด้วยแต้มสกิลในหน้าต่างทักษะอาวุธ (+1 เลเวล)</p>`;
+    const ln=linesFor('hammer');if(ln)h+=skillRows(ln);return h}
+  if(W0)h+=`<table class="wkT"><tr><th>ความเร็วโจมตี</th><td>${W0.aspd}</td><th>ระยะ</th><td>${W0.range}</td></tr></table>`;
+  const ln=linesFor(t);h+=ln?skillRows(ln):(t==='holy'?'<p class="muted">สลับเป็นคทาพระด้วยปุ่ม 🔆 ตอนถือคทาเวท (รายการด้านล่างเป็นรายการสกิลของโหมดนี้ — เปิดหน้านี้ตอนถือคทาพระเพื่อดูรายละเอียดจริงของแต่ละสกิล)</p>'+holyRows():'');
+  h+=`<h4>ระบบชำนาญอาวุธ</h4><p class="muted">สกิลแถวที่ 1–2 ใช้ได้ตั้งแต่เริ่ม · แถวที่ 3–5 ปลดล็อกตามเลเวลชำนาญอาวุธ (${[2,3,4].map(i=>unlockTxt(i)).join(' · ')}) · ใส่สกิลลงช่องแถบสกิลได้จากหน้าต่างทักษะอาวุธ (K)</p>`;return h}
+/* ---------- quests / npcs ---------- */
+function objText(o){const k=o.kind,n=o.n&&o.n>1?' ×'+o.n:'';
+  if(k==='reach')return 'ไปที่ '+ptLabel(o.point);if(k==='interact')return 'โต้ตอบที่ '+ptLabel(o.point);if(k==='talk')return 'คุยกับ '+((npcOf(o.npc)||{}).name||o.npc);
+  if(k==='buy')return 'ซื้อ '+itemName(o.item)+(o.n?' ×'+o.n:'')+(o.npc?' จาก '+((npcOf(o.npc)||{}).name||o.npc):'');if(k==='use')return 'ใช้ '+itemName(o.item)+(o.n?' ×'+o.n:'');
+  if(k==='deliver')return 'ส่ง '+itemName(o.item)+(o.n?' ×'+o.n:'')+' ให้ '+((npcOf(o.npc)||{}).name||o.npc);
+  if(k==='kill')return 'กำจัด '+(o.types||[]).map(mobName).join(' / ')+(o.n?' ×'+o.n:'')+(o.zone&&zname(o.zone)?' ที่ '+zname(o.zone):'');
+  if(k==='collect')return 'เก็บ '+itemName(o.item)+(o.n?' ×'+o.n:'')+(o.dropFrom?' (ดรอปจาก '+o.dropFrom.map(mobName).join(' / ')+')':'');
+  if(k==='hit_dummy')return 'ตีหุ่นซ้อม'+n+' ครั้ง';if(k==='switch_weapon')return 'สลับอาวุธ';if(k==='cutscene')return null;return k}
+function questPage(q){const T=QCOL[q.type]||QCOL.main,rq=q.requires||{},rw=q.reward||{};
+  let h=`<div class="wkHero"><div><span class="wkTag" style="--c:${T[1]}">${T[0]}</span><div class="wkMeta">${q.zone&&zname(q.zone)?'แมพ '+L('zone',q.zone,zname(q.zone)):''}${q.giver?' · ผู้ให้ '+L('npc',q.giver,(npcOf(q.giver)||{}).name||q.giver):''}${q.receiver&&q.receiver!==q.giver?' · ส่งที่ '+L('npc',q.receiver,(npcOf(q.receiver)||{}).name||q.receiver):''}</div></div></div>`;
+  const aft=(rq.after||[]).map(id=>{const x=Qd().quests.find(y=>y.id===id);return x?L('quest',id,x.name):null}).filter(Boolean);
+  h+=`<h4>เงื่อนไข</h4><ul class="wkUl"><li>เลเวลตัวละคร ${rq.lv||1}+</li>${aft.length?'<li>ทำเควสก่อนหน้า: '+aft.join(' ')+'</li>':''}${rq.aff?'<li>ความสนิท: '+E(JSON.stringify(rq.aff))+'</li>':''}</ul>`;
+  const ob=(q.objectives||[]).map(objText).filter(Boolean);if(ob.length)h+=`<h4>เป้าหมาย</h4><ol class="wkUl">${ob.map(x=>`<li>${E(x)}</li>`).join('')}</ol>`;
+  const it=(rw.items||[]).map(i=>E(itemName(i.id))+(i.n>1?' ×'+i.n:''));const af=rw.affinity?Object.entries(rw.affinity).map(([k,v])=>E((npcOf(k)||{}).name||k)+' +'+v):[];
+  h+=`<h4>รางวัล</h4><ul class="wkUl">${rw.exp?`<li>EXP ${wkN(rw.exp)}</li>`:''}${rw.goldMult?`<li>Gold ×${rw.goldMult} (ตามเลเวลเควส)</li>`:''}${it.length?'<li>ไอเทม: '+it.join(', ')+'</li>':''}${af.length?'<li>ความสนิท: '+af.join(', ')+'</li>':''}</ul>`;
+  return h}
+function npcPage(n){let h=`<p>${E(n.title||'')}${n.position?' · '+E(n.position):''}</p>`;const qz=(Qd().quests.find(q=>q.giver===n.id||q.receiver===n.id)||{}).zone;const z=(n.at&&n.at.zone)||n.map||qz;if(!n.title&&!n.position&&!(n.shop&&n.shop.length))h='<p class="muted">ตัวละครในเควส</p>';if(z&&zname(z))h+=`<h4>อยู่ที่</h4><div class="wkChips">${L('zone',z,zname(z))}</div>`;
+  if(n.shop&&n.shop.length)h+=`<h4>สินค้า</h4><table class="wkT">${n.shop.map(s=>`<tr><td>${E(itemName(s.id))}</td><td>${wkN(s.price)} G</td></tr>`).join('')}</table>`;
+  const qs=Qd().quests.filter(q=>q.giver===n.id||q.receiver===n.id);if(qs.length)h+=`<h4>เควส</h4><div class="wkChips">${qs.map(q=>`<a class="wkA" data-wk="quest:${E(q.id)}" style="border-color:${(QCOL[q.type]||QCOL.main)[1]};color:${(QCOL[q.type]||QCOL.main)[1]}">${E(q.name)}</a>`).join('')}</div>`;
+  if(n.affinity)h+='<p class="muted">NPC นี้มีระบบความสนิท (ให้ของขวัญ / เควสพิเศษ)</p>';return h}
+/* ---------- systems ---------- */
+function sysList(){const S=[];
+  S.push(['refine','การตีบวก (Refine)','+1 ถึง +10 ที่ Master Smith','⚒',()=>{let r='';for(let n=1;n<=10;n++){let I=null;try{I=refineInfo({refine:n-1,lvl:50})}catch(e){}if(!I)continue;r+=`<tr><td>+${n-1} → +${n}</td><td><b style="color:${I.rate>=1?'#8dffc8':I.rate>=.4?'#ffd36b':'#ff8a9a'}">${Math.round(I.rate*100)}%</b></td><td>${ITEMS[I.mat]?L('item',I.mat,ITEMS[I.mat].n):E(I.mat)}</td><td>${I.safe?'ปลอดภัย':'ล้มเหลว = ลด +1'}</td></tr>`}
+    return `<table class="wkT"><tr><th>ขั้น</th><th>โอกาส</th><th>วัสดุ</th><th>ถ้าล้มเหลว</th></tr>${r}</table>`}]);
+  S.push(['card','ใส่การ์ด / เจาะรู','การ์ดมอนสเตอร์ · ช่องการ์ด','▣',()=>{const n=Object.keys(ITEMS).filter(k=>ITEMS[k].card2).length;let d='';try{d=`<li>เจาะรูเพิ่มด้วย ${L('item','abyssDrill',ITEMS.abyssDrill?ITEMS.abyssDrill.n:'Abyssal Drill')} โอกาสสำเร็จ <b>${Math.round(DRILL.rate*100)}%</b></li>`}catch(_){}
+    return `<ul class="wkUl"><li>การ์ดมอนสเตอร์ในเกมตอนนี้ ${n} ใบ (รวมการ์ดบอส ${(window.__MCARDS?__MCARDS.cards.filter(c=>c.boss).length:0)}) ดูได้ที่หมวด “การ์ด”</li><li>การ์ดเก็บสะสมในสมุดการ์ด กดที่การ์ดในกระเป๋าเพื่อดูภาพการ์ด</li>${d}</ul>`}]);
+  S.push(['element','ตารางธาตุ','ธาตุโจมตี × ธาตุเป้าหมาย','☯',()=>{if(typeof ELE_TABLE==='undefined')return '';const A=Object.keys(ELE_TABLE),D=Object.keys(ELE_TABLE[A[0]]||{});
+    return `<div class="wkScroll"><table class="wkT wkSm"><tr><th>โจมตี ↓ / รับ →</th>${D.map(d=>`<th>${wkCap(d)}</th>`).join('')}</tr>${A.map(a=>`<tr><th>${wkCap(a)}</th>${D.map(d=>{const v=ELE_TABLE[a][d];return `<td style="color:${v>1?'#8dffc8':v<1?'#ff8a9a':'#c8d4f0'}">${Math.round(v*100)}%</td>`}).join('')}</tr>`).join('')}</table></div>`}]);
+  S.push(['gates','ประตู / วงวาร์ป','เดินทางระหว่างแมพ','⛩',()=>{const by={};try{for(const c of __WARP.circles){if(!c.dest)continue;(by[c.z]=by[c.z]||new Set()).add(PLAN[c.dest]||c.dest)}}catch(_){}
+    return `<p>ยืนบนวงวาร์ปค้างไว้ครู่หนึ่งเพื่อเดินทางไปแมพถัดไป</p><table class="wkT"><tr><th>จาก</th><th>ไป</th></tr>${Object.keys(by).filter(z=>zname(z)).map(z=>`<tr><td>${L('zone',z,zname(z))}</td><td>${[...by[z]].map(d=>zname(d)?L('zone',d,zname(d)):'<span class="muted">'+E(d.replace(/^w\d+_|_planned$/g,''))+' (ยังไม่เปิด)</span>').join(' ')}</td></tr>`).join('')}</table>`}]);
+  S.push(['mastery','ชำนาญอาวุธ / JobLv','เลเวลสกิลและการปลดล็อกแถวสกิล','★',()=>{const u=(window.__WSK&&__WSK.cfg.unlock)||[];return `<ul class="wkUl"><li>ชำนาญอาวุธเพิ่มจากการใช้อาวุธนั้นต่อสู้ แยกตามอาวุธที่ถือ</li><li>แถวสกิลที่ 1–5 ปลดล็อก: ${u.map((v,i)=>'แถว '+(i+1)+' = '+unlockTxt(i)).join(' · ')}</li><li>เลเวลสกิล 1–5 เพิ่มด้วยแต้มสกิล (ได้ตามเลเวลตัวละคร) ในหน้าต่างทักษะอาวุธ · รีเซ็ตแต้มได้</li></ul>`}]);
+  if(window.ROBOT&&ROBOT.cfg)S.push(['robot','หุ่นยนต์ไอน้ำ','ท่าของค้อนไอน้ำ','⚙',()=>`<p>ดูรายละเอียดที่หมวด “อาวุธ” › ${L('weapon','robot','หุ่นยนต์ไอน้ำ')}</p>`]);
+  S.push(['discard','ทิ้งของ (หลายชิ้น)','โหมดเลือกทิ้งในกระเป๋า','🗑',()=>'<ul class="wkUl"><li>เปิดโหมดทิ้งในกระเป๋า แล้วแตะเลือกหลายชิ้นพร้อมกันได้</li><li>ของมีค่า / ของที่สวมอยู่จะมีข้อความเตือนก่อนทิ้ง</li></ul>']);
+  S.push(['shop','ร้านค้า','ซื้อ-ขายกับ NPC','$',()=>{const rows=[];try{for(const n of Qd().npcs)if(n.shop&&n.shop.length)rows.push(`<tr><td>${L('npc',n.id,n.name)}</td><td>${n.shop.map(s=>E(itemName(s.id))+' '+wkN(s.price)+' G').join(' · ')}</td></tr>`)}catch(_){}
+    return `<p>ซื้อของจาก NPC ที่เป็นร้านค้า และขายของที่ไม่ต้องการได้ที่ร้านเดียวกัน</p>${rows.length?'<table class="wkT"><tr><th>ร้าน</th><th>สินค้า</th></tr>'+rows.join('')+'</table>':''}`}]);
+  return S}
+/* ---------- items ---------- */
+function itemIds(){const s=new Set();try{for(const n of Qd().npcs)for(const x of n.shop||[])s.add(x.id)}catch(_){}
+  try{for(const k in __TOWNNPC.goods)for(const id of __TOWNNPC.goods[k])s.add(id)}catch(_){}
+  try{for(let i=1;i<=10;i++){const I=refineInfo({refine:i-1,lvl:50});if(I&&I.mat)s.add(I.mat)}}catch(_){}
+  if(ITEMS.abyssDrill)s.add('abyssDrill');
+  return [...s].filter(id=>ITEMS[id]&&ITEMS[id].k!=='card')}
+function itemPage(id){const I=ITEMS[id];return `<div class="wkHero"><img src="${wkItemIcon({id,q:1})}" alt=""><div><span class="wkTag" style="--c:${I.col||'#ccc'}">${E(I.k)}</span><div class="wkMeta">${E(I.d||'')}</div></div></div><table class="wkT">${I.price?`<tr><th>ราคาซื้อ</th><td>${wkN(I.price)} G</td></tr>`:''}${I.sell?`<tr><th>ราคาขาย</th><td>${wkN(I.sell)} G</td></tr>`:''}</table>`}
+/* ---------- builder ---------- */
+function build(){const out=[],push=o=>{o.key=o.cat+':'+o.id;out.push(o)};
+  try{for(const q of Qd().quests){const T=QCOL[q.type]||QCOL.main;push({cat:'quest',id:q.id,name:q.name,sub:[T[0],q.zone&&zname(q.zone),q.requires&&q.requires.lv?'Lv '+q.requires.lv:''].filter(Boolean).join(' · '),chip:q.type,col:T[1],icon:()=>g('!',T[1]),search:[q.id,q.name,T[0],q.zone,zname(q.zone)].join(' '),html:()=>questPage(q)})}}catch(e){ERR('quests',e)}
+  try{const R=roster();for(const t of Object.keys(R)){const r=R[t],kd=r.kind,wh=mobWhere(t);push({cat:'mob',id:t,name:r.name,sub:WK_KIND[kd][0]+(wh.length?' · '+wh.map(zname).filter(Boolean).join(', '):''),chip:kd,col:r.col,icon:()=>mobIcon(t),search:[t,r.name,kd,...wh.map(zname)].join(' '),html:()=>mobPage(t)})}}catch(e){ERR('mobs',e)}
+  try{for(const zz of zoneList()){const Z=ZONES[zz.z];const m=/Map (\d+)/.exec(zz.label);push({cat:'zone',id:zz.z,name:Z.n,sub:zz.label,col:Z.acc||'#7fdcff',icon:()=>g(Z.safe?'⌂':'⛰',Z.acc||'#3a6aa8'),search:[zz.z,Z.n,zz.label,(m&&__ZONE_NAMES_22&&__ZONE_NAMES_22[m[1]]||[]).join(' ')].join(' '),html:()=>zonePage(zz.z,zz.label)})}}catch(e){ERR('zones',e)}
+  try{for(const t of weaponList()){push({cat:'weapon',id:t,name:wName(t),sub:t==='robot'?'ท่าของค้อนไอน้ำ':t==='holy'?'โหมดของคทาเวท':(WEAPONS[t]?'ASPD '+WEAPONS[t].aspd+' · ระยะ '+WEAPONS[t].range:''),col:'#ffd36b',icon:()=>{const u=t==='robot'?'':wkItemIcon({kind:'wpn',t:t==='holy'?'staff':t,rar:4});return u||g(t==='robot'?'⚙':'⚔','#8a6a1a')},search:[t,wName(t),(WN_NAME[t]||[])[1]||''].join(' '),html:()=>weaponPage(t)})}}catch(e){ERR('weapons',e)}
+  try{for(const k in GEAR){const G0=GEAR[k],th=(EQ_SLOTS.find(s=>s[0]===k)||[])[2]||G0.n;push({cat:'gear',id:k,name:G0.n,sub:th+' · '+G0.names.join(', '),col:'#9fc4ff',icon:()=>wkItemIcon({kind:'eq',type:k,rar:4}),search:[k,G0.n,th,...G0.names].join(' '),html:()=>wkGearPage(k)})}}catch(e){ERR('gear',e)}
+  try{for(const c of (window.__MCARDS?__MCARDS.cards:[])){const id='mcard_'+c.slug;if(!ITEMS[id])continue;const I=ITEMS[id],mt=I.mob||ALIAS[c.slug]||c.slug;push({cat:'card',id,name:I.n,sub:(c.boss?'การ์ดบอส · ':'')+mobName(mt),chip:c.boss?'boss':'normal',col:c.boss?'#ff9a6a':(I.col||'#ffd36b'),icon:()=>wkItemIcon({id,q:1}),search:[id,I.n,mobName(mt),c.slug].join(' '),html:()=>`<div class="wkHero"><img src="${wkItemIcon({id,q:1})}" alt=""><div><span class="wkTag" style="--c:${c.boss?'#ff9a6a':'#ffd36b'}">${c.boss?'การ์ดบอส':'การ์ดมอนสเตอร์'}</span><div class="wkMeta">${E(I.d||'')}</div></div></div><h4>มอนสเตอร์</h4><div class="wkChips">${L('mob',mt,mobName(mt))}</div>${(()=>{try{const dd=__CARDS.data instanceof Map?__CARDS.data.get(c.slug):Array.isArray(__CARDS.data)?(__CARDS.data.find(x=>x[0]===c.slug)||[])[1]:__CARDS.data[c.slug];return dd&&dd.drop?'<h4>โอกาสดรอป</h4><p>'+wkPct(dd.drop)+'</p>':''}catch(_){return ''}})()}`})}}catch(e){ERR('cards',e)}
+  try{for(const id of itemIds())push({cat:'item',id,name:ITEMS[id].n,sub:ITEMS[id].d||'',chip:ITEMS[id].k,col:ITEMS[id].col||'#ccc',icon:()=>wkItemIcon({id,q:1}),search:[id,ITEMS[id].n,ITEMS[id].d].join(' '),html:()=>itemPage(id)});
+    for(const id in (Qd().items||{})){const I=Qd().items[id];push({cat:'item',id,name:I.n,sub:I.d||'ไอเทมเควส',chip:'quest',col:I.col||'#e8dcc0',icon:()=>g('✉',I.col||'#8a6a1a'),search:[id,I.n].join(' '),html:()=>`<p>${E(I.d||'ไอเทมเควส')}</p>${(()=>{const qs=Qd().quests.filter(q=>(q.startGive||[]).some(x=>x.id===id)||(q.objectives||[]).some(o=>o.item===id));return qs.length?'<h4>เควสที่เกี่ยวข้อง</h4><div class="wkChips">'+qs.map(q=>L('quest',q.id,q.name)).join('')+'</div>':''})()}`})}}catch(e){ERR('items',e)}
+  try{for(const n of Qd().npcs)push({cat:'npc',id:n.id,name:n.name,sub:[n.title,(n.at&&zname(n.at.zone))||zname(n.map)].filter(Boolean).join(' · '),col:'#ffbe5c',icon:()=>g('☻','#a86a2a'),search:[n.id,n.name,n.nameEn,n.title].join(' '),html:()=>npcPage(n)})}catch(e){ERR('npcs',e)}
+  try{for(const s of sysList())push({cat:'sys',id:s[0],name:s[1],sub:s[2],col:'#5ef0e0',icon:()=>g(s[3],'#1f6a8a'),search:s.slice(1,3).join(' '),html:s[4]})}catch(e){ERR('sys',e)}
+  /* categories: only those with entries */
+  const cnt={};for(const e of out)cnt[e.cat]=(cnt[e.cat]||0)+1;
+  const ALL=[['home','หน้าแรก','⌂'],['quest','เควส','!'],['mob','มอนสเตอร์','☠'],['zone','แผนที่','⛰'],['weapon','อาวุธ','⚔'],['gear','อุปกรณ์สวมใส่','⛨'],['card','การ์ด','▣'],['item','ไอเทม','◍'],['npc','NPC','☻'],['sys','ระบบเกม','⚙']];
+  WK_CATS.length=0;for(const c of ALL)if(c[0]==='home'||cnt[c[0]])WK_CATS.push(c);
+  for(const k of Object.keys(WK_CHIPS))delete WK_CHIPS[k];
+  const qt=[...new Set(out.filter(e=>e.cat==='quest').map(e=>e.chip))];WK_CHIPS.quest=qt.map(t=>[t,(QCOL[t]||[t])[0]]);
+  WK_CHIPS.mob=[['normal','ทั่วไป'],['elite','Elite'],['boss','บอส']].filter(c=>out.some(e=>e.cat==='mob'&&e.chip===c[0]));
+  if(out.some(e=>e.cat==='card'&&e.chip==='boss'))WK_CHIPS.card=[['normal','ทั่วไป'],['boss','บอส']];
+  try{WK.reg.length=0}catch(_){}
+  WN.counts=cnt;WN.built++;return out}
+try{wkBuild=build}catch(e){ERR('hook build',e)}
+try{wkSeen=function(){try{return JSON.parse(localStorage.getItem('wiki_seen_v2')||'null')}catch(e){return null}};wkMarkSeen=function(E2){try{localStorage.setItem('wiki_seen_v2',JSON.stringify(E2.map(e=>e.key)))}catch(e){}}}catch(e){ERR('hook seen',e)}
+try{wkGuideBtn=function(sel){if(sel.cat!=='quest'||!window.__QUESTHUD||!__QUESTHUD.go)return '';return `<div class="wkGuide"><button class="wkGo" data-wkqgo="${E(sel.id)}" ${G.state==='play'?'':'disabled'}>🧭 นำทางไปเควสนี้</button><span>${G.state==='play'?'เดินไปยังเป้าหมายเควสอัตโนมัติ':'เข้าเกมก่อนจึงจะนำทางได้'}</span></div>`}}catch(e){ERR('hook guide',e)}
+document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.closest('[data-wkqgo]');if(!b||!window.__QUESTHUD||!__QUESTHUD.go)return;e.stopImmediatePropagation();wikiClose();__QUESTHUD.go(b.dataset.wkqgo)}catch(er){ERR('qgo',er)}},true);
+try{wkHome=function(cnt){const tot=Object.values(cnt).reduce((a,b)=>a+b,0);const recent=[...WK.newSet].slice(0,24).map(k=>WK.E.find(e=>e.key===k)).filter(Boolean);
+  const has=id=>WK.E.some(e=>e.cat==='sys'&&e.id===id);
+  return `<div class="wkH"><h3>ยินดีต้อนรับสู่ Realm Wiki</h3></div><p class="muted" style="font-size:14px;max-width:720px">รวมข้อมูลที่มีอยู่ในเกมตอนนี้ ${wkN(tot)} หน้า · สร้างจากข้อมูลเกมโดยตรงทุกครั้งที่เปิด หมวดที่ยังไม่มีข้อมูลจะซ่อนอัตโนมัติ</p>
+  <div class="wkStats">${WK_CATS.filter(c=>c[0]!=='home').map(([c,l,i])=>`<div class="wkStat" data-wkcat="${c}"><span>${i} ${l}</span><b>${cnt[c]||0}</b></div>`).join('')}</div>
+  ${recent.length?`<h4>เพิ่มใหม่ตั้งแต่เปิดครั้งก่อน</h4><div class="wkGrid">${recent.map(e=>`<a class="wkCard" data-wk="${e.cat}:${wkE(e.id)}"><img src="${e.icon()}" alt=""><b>${wkE(e.name)}</b><small>${wkE((WK_CATS.find(c=>c[0]===e.cat)||[0,e.cat])[1])}</small></a>`).join('')}</div>`:''}
+  <h4>หน้าแนะนำ</h4><div class="wkChips">${[['refine','การตีบวก'],['card','ใส่การ์ด'],['element','ตารางธาตุ'],['gates','วงวาร์ป'],['mastery','ชำนาญอาวุธ']].filter(x=>has(x[0])).map(x=>wkLink('sys',x[0],x[1])).join('')}</div>`}}catch(e){ERR('hook home',e)}
+})();
+
+</script>
 
 <script>
+/* ---- REAL v3l6 (17 Nov 2026) = REAL v3l5b + r129 (skill slot bar inside the skill window incl. the star page, skill tooltip on window cards; new Realm Wiki rebuilt from the current game data). Previous header follows. ---- */
 /* ---- REAL v3l5b (16 Nov 2026) = REAL v3l4g + r125 (quest tracker left with categories, fold button collapses it, click-to-walk quest navigation; bag: dark-gold hover card, compare block, double-click; autostick engage-range fix, monster names white with a red crossed-swords icon in combat; town villagers: one talk per click, no log spam, vendors fixed at their stalls with the shop window, F prompt fixed; mobrefill: no idle despawn on any map + refill sites/home return + 13 extra Map 2 spawn sites, npcsize ~1.0x hero, npcfix NPC placement/overlap, no falling leaves staff skills no longer greyed by a transient error, staff Auto casts unlocked staff skills, skill tooltip) (staff Auto attacks, monsters no longer stop at the NPC pocket wall, special-skill tab guard). REAL v3k + TEST r98..r100 (dagger skills hide the hero, keepweapon: picked starter weapon kept across maps/reload, sword combo reach matches dagger -50%) + ALL dev/test UI hidden unless ?gm=on. REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r127.
    * labels the build, strips the word "TEST" from zone names / gate hints / item names; ?testlabels=on keeps them;
    * the floating gate button is replaced by a menu-bar button (glue_v3f); the 🕯 test button stays hidden unless ?gm=on;
@@ -60431,7 +60759,7 @@ setInterval(hide,800);
 if(!GM){try{const st=document.createElement('style');st.id='realNoDev';st.textContent='#atk19Btn,#atk19SizeBtn,#atk19PerBtn,#atk19WaveBtn,#atk19RangeBtn,#bowTestChip,#p210diag,#atk19Chip,#fpsBox,#fpsOverlay{display:none!important}';(document.head||document.documentElement).appendChild(st);
  const DEVRX=/ATK19|r7[a-z]\b|คอมโบ ATK|ขนาดมีด|จังหวะมีด|คลื่นดาบ:|ระยะฟัน|ทดสอบให้เห็น|\bTEST\b|dgvis|bow3|edgehit|FPS:/i;
  setInterval(()=>{try{for(const e of document.querySelectorAll('body *')){if(e.children.length>0||e.id==='realNoDev')continue;const cs=e.style;if(!cs||cs.position!=='fixed'&&getComputedStyle(e).position!=='fixed')continue;const tx=(e.textContent||'').trim();if(tx&&tx.length<140&&DEVRX.test(tx)&&!e.closest('#dlgBox,#chat,#bag')){e.style.setProperty('display','none','important');R.hidden++}}}catch(_){}},1200)}catch(e){R.err=e.message}}
-console.info('[REAL] v3l5b');
+console.info('[REAL] v3l6');
 })();
 </script>
 <script>
@@ -60439,6 +60767,6 @@ console.info('[REAL] v3l5b');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l5b';console.info('[REAL] v3l5b')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l6';console.info('[REAL] v3l6')}catch(e){}
 })();
 </script>
