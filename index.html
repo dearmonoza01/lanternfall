@@ -60732,8 +60732,20 @@ try{wkHome=function(cnt){const tot=Object.values(cnt).reduce((a,b)=>a+b,0);const
 })();
 
 </script>
+<script>
+/* ---- r132 w22leash (coordinator 17 Nov: DeaRz's mobchase rule "no leash / reset / walk-home while chasing"): on Map 2 the W22 leash check (leashR 360 px from the spawn site) still ran every frame: it called w22ResetStart and `continue`d (skipping the monster's movement), mobchase then cancelled the reset (stats.leashCancelled counted 534 in a 25 s test), and the monster stayed pinned ~360 px from its site while the hero was 146 px away = "monster runs into something and stops following".
+   Fix: for every enemy the leash radius reads as 560 (the engine's "no leash" value, the check needs leashR < 560) and the population leash.radius (560) is set to 1e9, so the reset never starts and the monster keeps following inside mobchase's LOSE distance (unchanged, 520 px). Old behaviour: ?w22leash=on. Debug: window.__W22LEASH ---- */
+(function(){'use strict';
+const Q=String(location.search),WL=window.__W22LEASH={ver:'w22leash-r1',on:!/[?&]w22leash=on\b/.test(Q),err:null,fixed:0};
+if(!WL.on)return;
+function fix(e){if(e._wlFix)return;try{Object.defineProperty(e,'leashR',{get(){return 560},set(v){},configurable:true,enumerable:true});e._wlFix=1;WL.fixed++}catch(er){WL.err=er.message}}
+function wide(){try{const L=window.__W22_DATA.population.leash;if(L&&L.radius<1e8){L.radius=1e9;WL.fixed++}}catch(er){WL.err='r '+er.message}}wide();setInterval(wide,1000);   /* the second W22 check (population leash.radius, 560 px) */
+try{const _u=update;update=function(dt){try{for(const e of enemies)if(e&&!e._wlFix)fix(e)}catch(er){WL.err='pre '+er.message}return _u.apply(this,arguments)}}catch(e){WL.err='hook '+e.message}
+})();
+</script>
 
 <script>
+/* ---- REAL v3l6b (17 Nov 2026) = REAL v3l6 + r132 (W22 leash off while chasing: monsters follow a kiting hero past 360/560 px from their spawn site; ?w22leash=on = old). Previous header follows. ---- */
 /* ---- REAL v3l6 (17 Nov 2026) = REAL v3l5b + r129 (skill slot bar inside the skill window incl. the star page, skill tooltip on window cards; new Realm Wiki rebuilt from the current game data). Previous header follows. ---- */
 /* ---- REAL v3l5b (16 Nov 2026) = REAL v3l4g + r125 (quest tracker left with categories, fold button collapses it, click-to-walk quest navigation; bag: dark-gold hover card, compare block, double-click; autostick engage-range fix, monster names white with a red crossed-swords icon in combat; town villagers: one talk per click, no log spam, vendors fixed at their stalls with the shop window, F prompt fixed; mobrefill: no idle despawn on any map + refill sites/home return + 13 extra Map 2 spawn sites, npcsize ~1.0x hero, npcfix NPC placement/overlap, no falling leaves staff skills no longer greyed by a transient error, staff Auto casts unlocked staff skills, skill tooltip) (staff Auto attacks, monsters no longer stop at the NPC pocket wall, special-skill tab guard). REAL v3k + TEST r98..r100 (dagger skills hide the hero, keepweapon: picked starter weapon kept across maps/reload, sword combo reach matches dagger -50%) + ALL dev/test UI hidden unless ?gm=on. REAL v3j + TEST work r53 .. r97 (every item DeaRz ordered, all features at their TEST defaults, each behind its own flag): knuckle / mastery unlock, JobLv HUD, install-row fix, robot + Steam Knight + AUTO, card backs, char-create fix, discard single/multi, bow any direction + range 370, dagger hero visible + combo -50%, Map 11 ground G5 + props + DeaRz mask, Suri at Map 10, mobguard / edgehit / bosspush, world map M fix, Mali shop window, thief-kid scene. Base = TEST allin_r127.
    * labels the build, strips the word "TEST" from zone names / gate hints / item names; ?testlabels=on keeps them;
@@ -60759,7 +60771,7 @@ setInterval(hide,800);
 if(!GM){try{const st=document.createElement('style');st.id='realNoDev';st.textContent='#atk19Btn,#atk19SizeBtn,#atk19PerBtn,#atk19WaveBtn,#atk19RangeBtn,#bowTestChip,#p210diag,#atk19Chip,#fpsBox,#fpsOverlay{display:none!important}';(document.head||document.documentElement).appendChild(st);
  const DEVRX=/ATK19|r7[a-z]\b|คอมโบ ATK|ขนาดมีด|จังหวะมีด|คลื่นดาบ:|ระยะฟัน|ทดสอบให้เห็น|\bTEST\b|dgvis|bow3|edgehit|FPS:/i;
  setInterval(()=>{try{for(const e of document.querySelectorAll('body *')){if(e.children.length>0||e.id==='realNoDev')continue;const cs=e.style;if(!cs||cs.position!=='fixed'&&getComputedStyle(e).position!=='fixed')continue;const tx=(e.textContent||'').trim();if(tx&&tx.length<140&&DEVRX.test(tx)&&!e.closest('#dlgBox,#chat,#bag')){e.style.setProperty('display','none','important');R.hidden++}}}catch(_){}},1200)}catch(e){R.err=e.message}}
-console.info('[REAL] v3l6');
+console.info('[REAL] v3l6b');
 })();
 </script>
 <script>
@@ -60767,6 +60779,6 @@ console.info('[REAL] v3l6');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l6';console.info('[REAL] v3l6')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l6b';console.info('[REAL] v3l6b')}catch(e){}
 })();
 </script>
