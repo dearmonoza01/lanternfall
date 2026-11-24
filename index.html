@@ -5972,7 +5972,7 @@ function initAdmUI(){
    ===================================================================== */
 const SHELL_HEAD='<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n';
 const HOSTED=!!(window.claude&&typeof window.claude.use==='function');
-let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l10: admin only with ?gm=on (local file / tests): developer mode
+let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l11: admin only with ?gm=on (v3l10) (local file / tests): developer mode
 function setAdmin(v){ADMIN=!!v;document.body.classList.toggle('noadmin',!ADMIN);if(!ADMIN){if(G.win==='wGM')closeWin();const d=$('#dev');if(d&&!d.hidden)toggleDev();if(G.edit)toggleEditor(false);}}
 setAdmin(ADMIN);
 (async()=>{if(!HOSTED)return;try{const u=await window.claude.use('user');setAdmin(u?await u.canEdit():false);}catch(e){setAdmin(false);}})();
@@ -24221,7 +24221,7 @@ setTimeout(function init(){
     go();
   }else{
     const row=document.querySelector('#title .ovc .row');
-    if(row&&!document.getElementById('bArena')){const b=document.createElement('button');b.className='btn';b.id='bArena';b.textContent='สนามรีวิวต่อสู้ (v182)';b.style.cssText='margin-top:10px;font-size:13px;opacity:.9';
+    if(row&&/[?&]gm=on\b/.test(location.search)&&!document.getElementById('bArena')){const b=document.createElement('button');b.className='btn';b.id='bArena';b.textContent='สนามรีวิวต่อสู้ (v182)';b.style.cssText='margin-top:10px;font-size:13px;opacity:.9';
       b.addEventListener('click',()=>{location.hash='arena';location.reload();});row.parentNode.insertBefore(b,row.nextSibling);}
   }
 },120);
@@ -47435,7 +47435,7 @@ pn.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)r
   else if(/^s\d$/.test(a))r=gm.step(+a.slice(1));else if(a==='fail')r=gm.failDefend();else if(a.startsWith('tp')){r=a==='tpm'?gm.tpMonk():gm.tp(+a.slice(2))}else if(a==='learn')r=gm.learned(!S.learned);else if(a==='reset')r=gm.reset();
   else if(a==='mist')r=gm.mistStats();else if(a==='ttk')r=await gm.ttk();pn.querySelector('.st').textContent=typeof r==='object'?JSON.stringify(r):String(r);gmUpd()});
 function gmUpd(){const s=pn.querySelector('.st');if(s&&!pn.matches('.on'))return;if(s&&!s.dataset.hold)s.textContent='aff '+S.aff+' · quest '+S.q.s+' step '+S.q.step+(S.learned?' · learned':'')}
-if(/[?&]mqtest=off\b/.test(Q))gmEl.style.display='none';
+if(/[?&]mqtest=off\b/.test(Q)||!/[?&]gm=on\b/.test(location.search))gmEl.style.display='none';
 const fixSp=setInterval(()=>{try{const d=window.SPSK&&SPSK.defs&&SPSK.defs.find(x=>x.id==='g18');if(d){d.lv=CF.QUEST.LV;d.npc='หลวงตาสุริ แมพ 10 (เควส ก้าวที่หายไป)';clearInterval(fixSp)}}catch(_){}},500);
 refresh();MQ.ok=true;
 }catch(e){MQ.err=e.message;MQ.ok=false}
@@ -60834,7 +60834,7 @@ setInterval(()=>{try{hook();const lg=document.querySelector('#wMap .legend');if(
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3l10',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l11',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -60859,7 +60859,7 @@ console.info('[REAL] v3l6c');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l10';console.info('[REAL] v3l10')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l11';console.info('[REAL] v3l11')}catch(e){}
 })();
 </script>
 <script>
