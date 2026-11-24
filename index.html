@@ -5225,9 +5225,9 @@ function applyMobile(){const on=isMobile();TOUCH.on=on;document.body.classList.t
 function doDash(){if(G.state!=='play'||!P||P.dead||P.dash||(G.dashCd||0)>0||P.casting)return;
   const jd=G.joy&&G.joy.m>0?scr2wDir(G.joy.x,G.joy.y/camT()):null,a=jd?Math.atan2(jd[1],jd[0]):(Math.hypot(P.vx,P.vy)>30?Math.atan2(P.vy,P.vx):P.face),sp=640,pl=pal(null);
   P.dash={vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,t:.2,hit:new Set(),back:true,pl};P.invT=Math.max(P.invT,.22);G.dashCd=.85;emitThemed(P.x,P.y-10,pl,12,140);}
-const TSK_POS=[[95,180],[95,148],[95,116],[95,84],[160,180],[160,157],[160,134],[160,111]];
+const TSK_POS=[[95,180],[95,148],[95,116],[95,84],[160,180],[160,157],[160,134],[160,111]];if(!/[?&]touch10=off\b/.test(location.search))TSK_POS.push([160,203],[215,196]);/* r213: phone buttons for hotkey slots R and F */
 function buildTouchSkills(){const box=$('#tSkills');if(!box||!P)return;let h='';
-  for(let i=0;i<8;i++){const id=P.slots[i],[r,dg]=TSK_POS[i],a=dg*Math.PI/180;
+  for(let i=0;i<TSK_POS.length;i++){const id=P.slots[i],[r,dg]=TSK_POS[i],a=dg*Math.PI/180;
     h+=`<div class="slot tsk" data-ti="${i}" ${id?`data-sk="${id}"`:''} style="left:${Math.cos(a)*r}px;top:${-Math.sin(a)*r}px">${id?`<img src="${skillIcon(id)}" alt="">`:''}<div class="cd"></div><div class="cdt"></div><kbd>${SLOT_KEYS[i].toUpperCase()}</kbd></div>`;}
   box.innerHTML=h;}
 function initTouchUI(){
@@ -5972,7 +5972,7 @@ function initAdmUI(){
    ===================================================================== */
 const SHELL_HEAD='<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n';
 const HOSTED=!!(window.claude&&typeof window.claude.use==='function');
-let ADMIN=!HOSTED;      // opened outside claude.ai (local file / tests): developer mode
+let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l10: admin only with ?gm=on (local file / tests): developer mode
 function setAdmin(v){ADMIN=!!v;document.body.classList.toggle('noadmin',!ADMIN);if(!ADMIN){if(G.win==='wGM')closeWin();const d=$('#dev');if(d&&!d.hidden)toggleDev();if(G.edit)toggleEditor(false);}}
 setAdmin(ADMIN);
 (async()=>{if(!HOSTED)return;try{const u=await window.claude.use('user');setAdmin(u?await u.canEdit():false);}catch(e){setAdmin(false);}})();
@@ -44723,7 +44723,7 @@ function stateOf(c){const s=c.s,w=why(c),d=Math.hypot(P.x-c.x,P.y-c.y),now=time;
 let lastT=0;
 function vis(c,m){try{return inView(c.x,c.y-60,m);}catch(_){return true;}}
 function nearest(){let b=null,bd=1e9;for(const c of C){if(c.z!==G.zone||c.off)continue;const d=Math.hypot(P.x-c.x,P.y-c.y);if(d<bd){bd=d;b=c;}}return b;}
-function groundPass(){const dt=Math.min(.05,Math.max(0,time-lastT));lastT=time;const nb=nearest();
+function groundPass(){if(window.MAPWARP213&&MAPWARP213.on){try{return MAPWARP213.ground(C,stateOf,nearest,vis)}catch(e){MAPWARP213.err='ground '+e.message;MAPWARP213.on=false}}const dt=Math.min(.05,Math.max(0,time-lastT));lastT=time;const nb=nearest();
   for(const c of C){if(c.z!==G.zone||c.off||!vis(c,260))continue;const st=stateOf(c),s=c.s,full=c===nb;
     s.lvl+=(st.tgt-s.lvl)*Math.min(1,dt*3);c._st=st;c._full=full;
     const t=time,go=st.go,surge=go>=0?Math.sin(Math.min(1,go/2.2)*Math.PI):0,L=s.lvl*(1+surge*.7),cc=COL[st.colk];
@@ -44756,7 +44756,7 @@ function overPass(){const low=LOW(),dt=Math.min(.05,Math.max(0,time-(overPass.t|
   for(const c of C){if(c.z!==G.zone||c.off||!c._st||!vis(c,320))continue;const st=c._st,s=c.s,t=time;
     const go=st.go,surge=go>=0?Math.sin(Math.min(1,go/2.2)*Math.PI):0,L=s.lvl*(1+surge*.7),cc=COL[st.colk],lvl=s.lvl;
     const g=ctx;g.save();g.translate(c.x,c.y);g.scale(K,K);
-    if(c._full&&!st.w){const Rc=RX*.92,Rcy=Rc*RY/RX,hc=RX*1.8*(.55+.45*Math.min(L,1.3));
+    if(c._full&&!st.w&&!(window.MAPWARP213&&MAPWARP213.on)){const Rc=RX*.92,Rcy=Rc*RY/RX,hc=RX*1.8*(.55+.45*Math.min(L,1.3));
       if(lvl>.35){const k2=Math.min(1,(lvl-.3)/.7)*(1+surge*.5);g.globalCompositeOperation='lighter';
         g.save();g.translate(0,-hc*.45);g.scale(Rc*.95,hc*.75);const pg=g.createRadialGradient(0,.15,0,0,0,1);pg.addColorStop(0,rgb(cc.core,.14*k2*lvl));pg.addColorStop(.45,rgb(cc.mid,.07*k2*lvl));pg.addColorStop(1,rgb(cc.mid,0));g.fillStyle=pg;g.beginPath();g.arc(0,0,1,0,6.2832);g.fill();g.restore();
         const NP=low?10:24;for(let i=0;i<NP;i++){const p=(((t*.3+i/NP+Math.sin(i*5.3)*.05)%1)+1)%1,sw=Math.sin(i*12.9+t*.8+p*3)*Rc*.8*(1-p*.3),x=sw,y=-p*hc*1.05,rr=(Rc*.5+Math.sin(i*3.1)*Rc*.15)*(1-p*.45)+6,al=Math.pow(Math.sin(p*Math.PI),1.1)*.16*k2*Math.min(1,L)*(low?1.5:1);
@@ -60402,7 +60402,7 @@ function go(id){try{const rows=collect(),x=rows.find(r=>r.q.id===id);if(!x||!x.t
 QH.go=go;
 function showInd(){const c=QH.cur;if(!c){ind.classList.remove('on');return}ind.querySelector('#qtIndT').textContent='กำลังเดินไป: '+c.label;ind.classList.add('on')}
 function stopNav(why,silent){if(!QH.cur)return;const keep=QH.cur;QH.cur=null;NV.path=null;if(why==='arrive')QH.arrivals++;else QH.cancels++;G.auto=NV.prevAuto;G.autoT=null;if(!NV.prevAuto){try{const ch=document.getElementById('autoChip');if(ch){ch.classList.remove('on');ch.textContent='AUTOPLAY · OFF'}}catch(_){}}ind.classList.remove('on');sig='';
-  if(why==='arrive'&&keep.tg.kind==='npc'){try{const a=A();if(a&&a.talk)a.talk(keep.tg.npc)}catch(e){QH.err='talk '+e.message}}}
+  if(why==='arrive'&&keep.tg.kind==='npc'){try{const a=A();if(a&&a.talk)a.talk((!/[?&]qtalkfix=off\b/.test(location.search)&&a.NPC&&a.NPC[keep.tg.npc])||keep.tg.npc)/* r214: the quest talk needs the NPC record, not its id (with the id it fell to an idle talk without shop / quest) */}catch(e){QH.err='talk '+e.message}}}
 function step(dt){const c=QH.cur;if(!c)return null;NV.lastCall=time;try{if(typeof dlgOpen==='function'&&dlgOpen()){QH.paused=(QH.paused||0)+1;return [0,0]}}catch(_){}
   const hopNow=NV.route&&NV.route[c.hop];
   if(hopNow&&G.zone===hopNow.to){c.hop++;NV.path=null;NV.tmp.length=0}
@@ -60834,7 +60834,7 @@ setInterval(()=>{try{hook();const lg=document.querySelector('#wMap .legend');if(
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3l9',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l10',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -60859,7 +60859,7 @@ console.info('[REAL] v3l6c');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l9';console.info('[REAL] v3l9')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l10';console.info('[REAL] v3l10')}catch(e){}
 })();
 </script>
 <script>
@@ -63598,7 +63598,7 @@ HP.say=say;
 const mobName=t=>{try{return MOBS[t].n}catch(_){return t}};
 /* ---------------- roll: strong job, level, stamina trait ---------------- */
 HP.leanOf=type=>{if(HP.cfg.noLean.test(String(type)))return null;for(const [j,rx] of HP.cfg.lean)if(rx.test(String(type)))return j;return null};
-HP.rollJob=function(type,elite,rng){rng=rng||rnd;const lean=HP.leanOf(type),w=JOBS.map(j=>j===lean?HP.cfg.leanW:1),sum=w.reduce((a,b)=>a+b,0);let r=rng()*sum,job=JOBS[0];for(let i=0;i<JOBS.length;i++){r-=w[i];if(r<0){job=JOBS[i];break}}
+HP.rollJob=function(type,elite,rng){rng=rng||rnd;const JOBS=HP.cfg.jobs.filter(j=>j!=='tank');/* r213: the feed-fish job is never a strong job */const lean=HP.leanOf(type),w=JOBS.map(j=>j===lean?HP.cfg.leanW:1),sum=w.reduce((a,b)=>a+b,0);let r=rng()*sum,job=JOBS[0];for(let i=0;i<JOBS.length;i++){r-=w[i];if(r<0){job=JOBS[i];break}}
  const o=elite?HP.cfg.lvOddsElite:HP.cfg.lvOdds;let q=rng(),lv=1;for(let i=0;i<3;i++){q-=o[i];if(q<0){lv=i+1;break}if(i===2)lv=3}return {job,lv}};
 HP.rollTrait=function(rng){rng=rng||rnd;let q=rng();for(const t of HP.cfg.fatigue.traits){q-=t.p;if(q<0)return {k:t.k,lv:t.lv}}return {k:'normal',lv:0}};
 const traitMul=t=>{if(!t)return 1;const r=HP.cfg.fatigue.traits.find(x=>x.k===t.k&&x.lv===t.lv);return r?r.mul:1};
@@ -63732,8 +63732,8 @@ HP.bonus=function(job){let best=0,rec=null;for(const r of hs().list){if(!r.out||
 /* ---------------- stations ---------------- */
 HP.station=function(job){try{if(job==='farm')return (typeof HS!=='undefined')&&(S0().placed||[]).some(o=>o&&HS.items[o.id]&&HS.items[o.id].farm);
  if(job==='fishing')return (S0().placed||[]).some(o=>o&&o.id==='fishPond');
- if(job==='cooking'){const f=window.COOK&&COOK.fire;return !!(f&&f.lit&&f.zone===HS.ZID)}return false}catch(_){return false}};
-const needTxt={farm:'ต้องมีแปลงผักหรือแปลงต้นไม้',fishing:'ต้องมีบ่อตกปลา',cooking:'ต้องมีกองไฟที่ติดอยู่ในลาน',weapon:'ยังไม่มีโต๊ะคราฟต์อาวุธ'};
+ if(job==='cooking'){const f=window.COOK&&COOK.fire;return !!(f&&f.lit&&f.zone===HS.ZID)}if(job==='tank')return !!(window.HLPTANK213&&HLPTANK213.on&&HLPTANK213.station());return false}catch(_){return false}};
+const needTxt={farm:'ต้องมีแปลงผักหรือแปลงต้นไม้',fishing:'ต้องมีบ่อตกปลา',cooking:'ต้องมีกองไฟที่ติดอยู่ในลาน',weapon:'ยังไม่มีโต๊ะคราฟต์อาวุธ',tank:'ต้องมีตู้ปลาวางอยู่ในบ้าน'};
 HP.needText=job=>needTxt[job]||'';
 /* ---------------- fatigue (sub-flag ?helperfatigue=off) ---------------- */
 function gainRate(r){/* fatigue per second while working */const F=HP.cfg.fatigue,mins=r.task==='farm'?F.workMin.farm:F.workMin.other;let k=100/(mins*60);k*=traitMul(r.trait);if(r.task===r.job)k*=1-(F.strongSlow[r.lv-1]||0);return k}
@@ -63775,6 +63775,7 @@ function jobStep(r,dt,ctx){/* returns the status kind for the bubble: water/harv
   const res=doFarmAction(r);ctx.at=null;if(res==='full'){HP.stats.bagFull++;return 'bag'}return res==='harv'?'harv':res==='water'?'water':null}
  if(job==='fishing'){if(!HP.station('fishing'))return null;const pond=(S0().placed||[]).find(o=>o&&o.id==='fishPond');if(ctx.home&&pond){const d=HS.items.fishPond,gx=pond.x+(r.id.charCodeAt(2)%2?-38:38),gy=pond.y+d.h/2+26;if(!ctx.at||ctx.at.k!=='pond'){ctx.need={x:gx,y:gy,k:'pond'};return 'walkf'}}
   r.fishT=(r.fishT||0)+dt;ctx.worked=true;const iv=fishInterval(r);if(r.fishT>=iv){const id=rollFish(r),item=(window.__FISHING&&__FISHING.cfg.fish[id].item);if(item&&bagCan(item)){r.fishT=0;(window.__F183&&__F183.helperFish?__F183.helperFish(id,item):bagPut(item));HP.stats.fish++;ctx.pop='fish'}else{r.fishT=iv;HP.stats.bagFull++;return 'bag'}}return 'fish'}
+ if(job==='tank')return (window.HLPTANK213&&HLPTANK213.on)?HLPTANK213.step(r,dt,ctx):null;
  if(job==='cooking'){if(!HP.station('cooking'))return null;
   if(!r.cook){const rid=(r.queue||[])[0];if(!rid)return null;const rc=recipeById(rid);if(!rc||!canMakeRecipe(rc)){/* missing ingredients: skip it */r.queue.shift();return null}
    for(const [id,k] of rc.ing)(window.__F183&&__F183.hTake?__F183.hTake(id,k):takeItem(id,k));r.cook={rid,t:0,total:cookTime(r,rid)};r.queue.shift()}
@@ -63792,7 +63793,7 @@ function ensureProps(){if(G.zone!==HS.ZID||!ensureDef())return;try{for(const r o
    if(!E.prop||PROPS.indexOf(E.prop)<0){E.prop={t:'househelper',x:E.x,y:E.y,s:1,v:0,f:1,ph:0,hlp:r.id};PROPS.push(E.prop)}}
   for(const id of Object.keys(ENT)){if(!hs().list.some(r=>r.id===id)||!cageOf(recOf(id))){const E=ENT[id];if(E&&E.prop){const i=PROPS.indexOf(E.prop);if(i>=0)PROPS.splice(i,1)}delete ENT[id]}}}catch(e){ERR('ensureProps',e)}}
 /* the game's drawEnemy draws a name plate + HP bar when the hero is within 720 px: a helper must show neither, so the hero is moved out of reach for that one call */
-/* r177b: the game culls monsters further than ~600 px from the hero and shows name plates nearer than ~720; P is parked 580 px to the side so the sprite is drawn (before: -99999 = nothing drawn, helpers were invisible) */function drawMon(en){const px=P.x,py=P.y,c=ctx,sv=[c.fillText,c.strokeText,c.fillRect,c.createLinearGradient,c.fill,c.drawImage],nop=function(){};let R=null,sc0=null;try{const M=window.MON_SPRITES;R=M&&M.byType&&M.byType[en.type];if(R&&R.data&&R.data.scope==='studio'){sc0=R.data.scope;R.data.scope='home'/* r177c: approved Studio-scope art (Stone Boar, Moss Turtle, Gale Feather ...) is drawn at home too */}else R=null}catch(_){R=null}P.x=en.x+580;P.y=en.y;const V211=window.__VIS,vr211=V211?V211.r:0;if(V211&&!/[?&]helpervis=off\b/.test(location.search))V211.r=1e6;/* r211: the sight-circle cull (vision module) hid every helper on screens where its radius is under ~520 px *//* the game queues the name plate text through MNFIX (removed below) and draws the HP bar as a dark backing + a linear-gradient fill; the monster draws two 64x64 glow sprites (a big soft halo): all swallowed for a helper */c.fillText=nop;c.strokeText=nop;c.fillRect=nop;c.createLinearGradient=function(){const g=sv[3].apply(this,arguments);g.addColorStop=nop;return g};c.fill=function(){if(this.fillStyle==='rgba(3, 6, 18, 0.8)')return;return sv[4].apply(this,arguments)};c.drawImage=function(im){if(im&&im.tagName==='CANVAS'&&im.width===64&&im.height===64)return;return sv[5].apply(this,arguments)};try{drawEnemy(en)}catch(_){}finally{if(V211)V211.r=vr211;P.x=px;P.y=py;c.fillText=sv[0];c.strokeText=sv[1];c.fillRect=sv[2];c.createLinearGradient=sv[3];c.fill=sv[4];c.drawImage=sv[5];if(R)R.data.scope=sc0;try{const F=window.MNFIX;if(F&&F.q&&F.q.length)F.q=F.q.filter(it=>it.e!==en)}catch(_){}}}
+/* r177b: the game culls monsters further than ~600 px from the hero and shows name plates nearer than ~720; P is parked 580 px to the side so the sprite is drawn (before: -99999 = nothing drawn, helpers were invisible) */function drawMon(en){const px=P.x,py=P.y,c=ctx,sv=[c.fillText,c.strokeText,c.fillRect,c.createLinearGradient,c.fill,c.drawImage],nop=function(){};let R=null,sc0=null;try{const M=window.MON_SPRITES;R=M&&M.byType&&M.byType[en.type];if(R&&R.data&&R.data.scope==='studio'){sc0=R.data.scope;R.data.scope='home'/* r177c: approved Studio-scope art (Stone Boar, Moss Turtle, Gale Feather ...) is drawn at home too */}else R=null}catch(_){R=null}P.x=en.x+580;P.y=en.y;const V211=window.__VIS,vr211=V211?V211.r:0;if(V211&&!/[?&]helpervis=off\b/.test(location.search))V211.r=1e6;/* r211: the sight-circle cull (vision module) hid every helper on screens where its radius is under ~520 px *//* the game queues the name plate text through MNFIX (removed below) and draws the HP bar as a dark backing + a linear-gradient fill; the monster draws two 64x64 glow sprites (a big soft halo): all swallowed for a helper */c.fillText=nop;c.strokeText=nop;c.fillRect=nop;c.createLinearGradient=function(){const g=sv[3].apply(this,arguments);g.addColorStop=nop;return g};c.fill=function(){if(this.fillStyle==='rgba(3, 6, 18, 0.8)')return;return sv[4].apply(this,arguments)};c.drawImage=function(im){if(im&&im.tagName==='CANVAS'&&im.width===64&&im.height===64&&!(window.HELPERGLOW213&&HELPERGLOW213.keep(en,this)))return;return sv[5].apply(this,arguments)};try{drawEnemy(en)}catch(_){}finally{if(V211)V211.r=vr211;P.x=px;P.y=py;c.fillText=sv[0];c.strokeText=sv[1];c.fillRect=sv[2];c.createLinearGradient=sv[3];c.fill=sv[4];c.drawImage=sv[5];if(R)R.data.scope=sc0;try{const F=window.MNFIX;if(F&&F.q&&F.q.length)F.q=F.q.filter(it=>it.e!==en)}catch(_){}}}
 /* r177b: a thin pale warm rim (4 shadow copies, 1.5 px, no blur) + a soft ground shadow so a helper reads on grass of any colour */
 function drawMonRim(en){const c=ctx;for(const o of HP.cfg.rimOff){c.save();c.shadowColor=HP.cfg.rimCol;c.shadowBlur=0;c.shadowOffsetX=o[0];c.shadowOffsetY=o[1];try{drawMon(en)}finally{c.restore()}}drawMon(en)}
 function groundShadow(c,x,y,sz){c.save();const g=c.createRadialGradient(x,y+2,2,x,y+2,sz*1.15+8);g.addColorStop(0,'rgba(0,0,0,.42)');g.addColorStop(.6,'rgba(0,0,0,.24)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.beginPath();c.ellipse(x,y+3,sz*1.15+8,(sz*.45+5),0,0,6.2832);c.fill();c.restore()}
@@ -66574,5 +66575,101 @@ try{const H=window.HOUSE;if(!H||!H.houseWarp){X.err='no HOUSE.houseWarp';return}
    A harvest done by a helper gives the crop but NO harvest EXP (window.__HLPHARV is set around the helper's harvest, HEXP skips it; HEXP.helperSkip counts).
    Helper fishing already gives only the fish (no EXP anywhere in that path). Patches: helpermgr render + click, helper jobStep + doFarmAction, r189 __HEXP. Off: ?helperfarmopt=off */
 window.HLPFARM212={ver:'hlpfarm-r212',on:!/[?&]helperfarmopt=off\b/.test(String(location.search))};
+
+</script>
+
+<script>
+/* ---- r213 MAPWARP213 — every map warp circle uses the NEW code-drawn circle (DeaRz 24 Nov 2026 19:27 BKK "วงวาฟใช้วงใหม่แทนวงเก่าทั้งหมด").
+   Look = HOMEWARP209.pad (the circle he passed 16:54 BKK, approved rune atlas, no pointed columns). The p337 logic is unchanged: stand on the centre ~0.8 s, the map's own gate runs,
+   locks / "never been there" / fight rules, labels and the edit mode all stay. Locked or closed circles are drawn dim and grey. Going through a circle plays the same light as the
+   yard door (#houseFx) until the hero has arrived. Two exact-string patches in p337 (groundPass, overPass) hand the drawing over. Off: ?mapwarp=off (old circles). ---- */
+(function(){'use strict';
+const X=window.MAPWARP213={ver:'mapwarp-r213',on:!/[?&]mapwarp=off\b/.test(String(location.search)),err:null,draws:0,W:168,lightOn:true,stats:{light:0}};
+if(!X.on)return;
+if(!(window.HOMEWARP209&&HOMEWARP209.pad)){X.on=false;X.err='HOMEWARP209.pad missing';return}
+let last=0;
+X.ground=function(C,stateOf,nearest,vis){const now=time,dt=Math.min(.05,Math.max(0,now-last));last=now;const nb=nearest();
+  for(const c of C){if(c.z!==G.zone||c.off||!vis(c,260))continue;const st=stateOf(c),s=c.s;s.lvl+=(st.tgt-s.lvl)*Math.min(1,dt*3);c._st=st;c._full=c===nb;
+    const go=st.go,surge=go>=0?Math.sin(Math.min(1,go/2.2)*Math.PI):0,W=X.W*(1+.12*surge);
+    ctx.save();
+    if(st.w){ctx.globalAlpha=.5;try{ctx.filter='grayscale(1) brightness(.8)'}catch(_){}}
+    HOMEWARP209.pad(ctx,c.x,c.y,W,st.w?.5:Math.min(1,.55+.6*s.lvl));
+    if(surge>.02&&!st.w){ctx.globalCompositeOperation='lighter';ctx.translate(c.x,c.y);ctx.scale(1,.42);const R=W*.62,g=ctx.createRadialGradient(0,0,0,0,0,R);g.addColorStop(0,'rgba(255,255,255,'+(.7*surge)+')');g.addColorStop(1,'rgba(160,190,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,R,0,6.2832);ctx.fill()}
+    ctx.restore();X.draws++}};
+/* light while travelling through a circle */
+let mine=0;
+setInterval(()=>{try{if(!X.lightOn||!window.__WARP||!__WARP.circles)return;const fx=document.getElementById('houseFx');if(!fx)return;const t=performance.now();
+  let act=false;for(const c of __WARP.circles){const s=c.s;if(s&&s.goT>=0&&c.z===G.zone&&!(c._st&&c._st.w)){act=true;break}}
+  if(act&&!mine){mine=t;fx.classList.add('on');X.stats.light++}
+  else if(mine&&((!act&&!G.fade&&G.state==='play'&&t-mine>900)||t-mine>5000)){mine=0;fx.classList.remove('on')}}catch(e){X.err='light '+e.message}},100);
+})();
+
+</script>
+
+<script>
+/* ---- r213 HELPERGLOW213 — helpers whose BODY is the soft glow sprite (Mistling, wisps) show their body in the yard (DeaRz 24 Nov 2026 19:27 BKK "เห็นตัวด้วยเลย").
+   The helper draw swallows the game's 64x64 glow sprites (they are only a halo for other monsters); for these types the glow is kept, on the plain pass only
+   (not on the 4 rim copies, so it is not 5x bright). One exact-string patch in the helper drawMon. Off: ?helperglow=off. ---- */
+window.HELPERGLOW213={ver:'helperglow-r213',on:!/[?&]helperglow=off\b/.test(String(location.search)),rx:/mistling|wisp/i,n:0,
+  keep(en,c){if(!this.on||!en||!this.rx.test(String(en.type)))return false;if(c.shadowOffsetX||c.shadowOffsetY)return false;this.n++;return true}};
+
+</script>
+
+<script>
+/* ---- r213 HLPTANK213 — new helper job "เลี้ยงปลา": a helper feeds the tank fish (DeaRz 24 Nov 2026 19:27 BKK "ให้ผู้ช่วยให้อาหารปลาด้วยก็ได้").
+   Needs a placed fish tank (yard or room). One pellet to one hungry fish every cfg.feedSec seconds, same limit as the player (3 per fish per game-time period).
+   Rule from DeaRz 19:02 BKK ("ผู้ช่วยทำให้ = ไม่ได้ EXP ... เลี้ยงปลาก็เช่นกัน"): a fish the HELPER makes full drops NO reward bubble for that period (rec.rw is set);
+   fish the player feeds full still drop theirs. The job is never rolled as a strong job (roll table unchanged). Works away from the yard like the other jobs.
+   Four exact-string patches in the helper module (rollJob, station, needTxt, jobStep). Off: ?helpertank=off. ---- */
+(function(){'use strict';
+const X=window.HLPTANK213={ver:'hlptank-r213',on:!/[?&]helpertank=off\b/.test(String(location.search)),err:null,cfg:{feedSec:15},stats:{fed:0,full:0}};
+const HP=window.__HELPER,FT=window.__FISHTANK,H=window.HOUSE;
+if(!X.on)return;if(!HP||!HP.cfg||!FT||!FT.ready||!H){X.on=false;X.err='helper / tank module missing';return}
+const S0=()=>H.state();
+const yardTank=()=>{try{return (S0().placed||[]).find(o=>o&&o.id==='fishTank')||null}catch(_){return null}};
+const roomTank=()=>{try{const r=S0().room;return !!(r&&Array.isArray(r.items)&&r.items.some(o=>o&&o.id==='fishTank'))}catch(_){return false}};
+X.station=()=>!!(yardTank()||roomTank());
+if(HP.cfg.jobs.indexOf('tank')<0)HP.cfg.jobs.push('tank');HP.cfg.jobNames.tank='เลี้ยงปลา';
+X.hungry=function(){const per=FT.period(),n=FT.cfg.perPeriod;return FT.fishList().filter(f=>f&&f.e&&(f.e.k!==per.key||f.e.n<n))};
+X.step=function(r,dt,ctx){try{if(!X.station())return null;const hu=X.hungry();if(!hu.length){ctx.need=null;return null}
+  const t=yardTank();if(ctx.home&&t){if(!ctx.at||ctx.at.k!=='tank'){ctx.need={x:t.x+(r.id.charCodeAt(2)%2?-40:40),y:t.y+34,k:'tank'};return 'walkf'}}
+  r.feedT=(r.feedT||0)+dt;ctx.worked=true;if(r.feedT>=X.cfg.feedSec){r.feedT=0;const per=FT.period(),f=hu[0];if(f.e.k!==per.key){f.e.k=per.key;f.e.n=0}f.e.n++;X.stats.fed++;
+    if(f.e.n>=FT.cfg.perPeriod){f.rw=per.key;X.stats.full++}try{H.save()}catch(_){}}
+  return 'fish'}catch(e){X.err='step '+e.message;return null}};
+})();
+
+</script>
+
+<script>
+/* ---- r214 CHARFIT214 — character-select portraits always stay inside their box (DeaRz 24 Nov 2026 19:56 BKK, screenshot: a Lv 1 sword character drawn bigger than the box,
+   sword and boots over the edge; "แก้สักทีเถอะเรื่องตัวละครหลุดกรอบเนี้ย").
+   Cause: two older portrait paths. A slot WITH a saved look used a fixed small scale without weapon; a slot WITHOUT one fell through to the path that adds the held weapon
+   and uses a scale fitted to weaponless looks, so the weapon and a bigger body went over the edge.
+   Now EVERY slot card is drawn one way: the slot's own look (or the default look), idle pose, NO weapon, measured from its real pixels and fitted into the box
+   (at most 80 % of the height and 76 % of the width, centred on what is drawn, feet at 93 %); one size cap keeps characters the same size between slots.
+   The creator preview is untouched. Off: ?charfit=off. ---- */
+(function(){'use strict';
+const X=window.CHARFIT214={ver:'charfit-r214',on:!/[?&]charfit=off\b/.test(String(location.search)),err:null,drawn:0,cache:{},cap:.36,last:null};
+if(!X.on)return;
+const DEF={gender:'boy',hair:'default',hairColor:'natural'};
+function snap(look,W,H){const U=window.PUPPET;if(!U||!U.draw||!U.pose||!U.setChar||!U.getChar)return null;
+  const keep=JSON.parse(JSON.stringify(U.getChar())),cfg=U.cfg||{},ss=cfg.showSword,sway=cfg.SWAY,wl=window.__WLHERO,CS=window.CHARSEL,keepW=CS&&CS.curW;let out=null;
+  try{const ch={};for(const k of ['gender','hair','hairColor','race','catColor','face','eyeColor'])if(look[k]!=null)ch[k]=look[k];U.setChar(Object.assign({},DEF,ch));
+    cfg.showSword=false;cfg.SWAY=false;window.__WLHERO=false;try{if(U.setWeapon)U.setWeapon('none')}catch(_){}
+    const big=document.createElement('canvas');big.width=400;big.height=440;const g=big.getContext('2d',{willReadFrequently:true});U.draw(g,200,380,.5,-1,U.pose('idle',0,{}));
+    const d=g.getImageData(0,0,400,440).data;let x0=400,x1=-1,y0=440,y1=-1;for(let y=0;y<440;y++)for(let x=0;x<400;x++)if(d[(y*400+x)*4+3]>24){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+    if(x1<0)return null;const bw=x1-x0+1,bh=y1-y0+1,s=Math.min(H*.80/bh,W*.76/bw,X.cap*W/120);
+    out=document.createElement('canvas');out.width=W;out.height=H;const o=out.getContext('2d');o.imageSmoothingEnabled=true;o.imageSmoothingQuality='high';
+    o.drawImage(big,x0,y0,bw,bh,W/2-bw*s/2,H*.93-bh*s,bw*s,bh*s);X.last={bw,bh,s:+s.toFixed(3)}}
+  catch(e){X.err='snap '+e.message;out=null}
+  finally{try{U.setChar(keep)}catch(_){}cfg.showSword=ss;cfg.SWAY=sway;window.__WLHERO=wl;try{if(keepW!==undefined&&U.setWeapon)U.setWeapon(keepW)}catch(_){}}
+  return out}
+try{const _c=chDrawHero;chDrawHero=function(cv,look,a,t){
+  try{if(cv&&cv.dataset&&cv.dataset.chcv!=null){const i=+cv.dataset.chcv,s=chSaveOf(i),pl=(s&&s.P&&s.P.pLook)||DEF,key=JSON.stringify(pl)+'|'+cv.width+'x'+cv.height;
+      let im=X.cache[key];if(!im){im=snap(pl,cv.width,cv.height);if(im)X.cache[key]=im}
+      if(im){const g=cv.getContext('2d');g.clearRect(0,0,cv.width,cv.height);cv.style.imageRendering='auto';g.drawImage(im,0,0);X.drawn++;return}}}
+  catch(e){X.err='draw '+e.message}
+  return _c.apply(this,arguments)}}catch(e){X.err='hook '+e.message}
+})();
 
 </script>
