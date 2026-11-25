@@ -1591,7 +1591,7 @@ function newPlayer(){
 }
 function addItemTo(p,it){
   if(it.id){const ex=p.inv.find(x=>x.id===it.id&&(x.st?JSON.stringify(x.st):'')+(x.br?'b':'')===(it.st?JSON.stringify(it.st):'')+(it.br?'b':''));if(ex){ex.q+=it.q;return true;}}
-  if(p.inv.length>=p.invSize)return false;p.inv.push(it);return true;
+  if((window.QBAG222?QBAG222.used(p):p.inv.length)>=p.invSize)return false;p.inv.push(it);return true;
 }
 function addItem(it){const ok=addItemTo(P,it);if(!ok)log('กระเป๋าเต็ม! ขยายกระเป๋าได้ที่หน้าต่าง Inventory','r');if(G.win==='wInv')renderInv();return ok;}
 function countItem(id){let n=0;for(const x of P.inv)if(x.id===id)n+=x.q;return n;}
@@ -2232,15 +2232,15 @@ function interact(){
 }
 function usePotion(kind){
   if(G.potCd>0||P.dead)return;
-  const ids=kind==='hp'?(P.hp/P.maxHp<.4?['hpPot2','hpPot']:['hpPot','hpPot2']):['mpPot'];
+  const ids=window.POTFLAT221&&POTFLAT221.on?POTFLAT221.ids(kind):kind==='hp'?(P.hp/P.maxHp<.4?['hpPot2','hpPot']:['hpPot','hpPot2']):['mpPot'];
   for(const id of ids)if(countItem(id)){useItemId(id);G.potCd=.8;return;}
   const now=performance.now();if(now-(G.potMsgT||-1e9)<1000)return;G.potMsgT=now;
   textAt(P.x,P.y-60,kind==='hp'?'ไม่มียา HP':'ไม่มียา MP','#8fa4cc',13);
 }
 function useItemId(id){
   const it=ITEMS[id];if(!it)return;
-  if(it.heal){C182.hsrc='potion';try{healP(P.maxHp*it.heal);}finally{C182.hsrc=null;}ring(P.x,P.y,50,10,.4,'#ff6b8b',4);}
-  if(it.mana){P.mp=Math.min(P.maxMp,P.mp+P.maxMp*it.mana);textAt(P.x,P.y-50,'+MP','#5ef0e0',16);}
+  if(it.heal){C182.hsrc='potion';try{healP(window.POTFLAT221&&POTFLAT221.on&&it.healN>0?it.healN:P.maxHp*it.heal);}finally{C182.hsrc=null;}ring(P.x,P.y,50,10,.4,'#ff6b8b',4);}
+  if(it.mana){P.mp=Math.min(P.maxMp,P.mp+(window.POTFLAT221&&POTFLAT221.on&&it.manaN>0?it.manaN:P.maxMp*it.mana));textAt(P.x,P.y-50,'+MP','#5ef0e0',16);}
   if(id==='bagScroll'){if(P.invSize>=192){log('กระเป๋าขยายเต็มที่แล้ว (192 ช่อง)','r');return;}P.invSize=Math.min(192,P.invSize+16);log(`ขยายกระเป๋าเป็น ${P.invSize} ช่อง`,'g');}
   if(it.k==='mat')return;
   if(it.k==='dye'){log(`${it.n}: ใช้ที่ Madame Celeste (Stylist) ข้างน้ำพุในเมืองหลวง`,'v');return;}
@@ -3568,7 +3568,7 @@ function equipItem_v3(i){
 }
 function unequip(slot,quiet){
   const it=slot==='weapon'?(P.weapon.t==='fist'?null:P.weapon):P.equip[slot];if(!it)return false;
-  if(!quiet&&P.inv.length>=P.invSize){log('กระเป๋าเต็ม — ถอดอุปกรณ์ไม่ได้','r');return false;}
+  if(!quiet&&(window.QBAG222?QBAG222.used(P):P.inv.length)>=P.invSize){log('กระเป๋าเต็ม — ถอดอุปกรณ์ไม่ได้','r');return false;}
   P.inv.push(it);if(slot==='weapon')P.weapon=fist();else P.equip[slot]=null;return true;
 }
 function stripAll(){let n=0;for(const [s] of EQ_SLOTS)if(unequip(s,true))n++;recalc();return n;}
@@ -3680,7 +3680,7 @@ function killEnemy_v3(e){
   const rr=()=>rollRar(m);
   if(rng()<Math.min(1,(m.boss?1:m.elite?.35:.03)*dm))dropLoot(e.x,e.y,{item:makeWeapon(pick(WTYPES),e.L,rr())});
   if(rng()<Math.min(1,(m.boss?1:m.elite?.35:.04)*dm))dropLoot(e.x,e.y,{item:makeGear(pick(GEAR_TYPES),e.L,rr())});
-  if(rng()<.001*dm*(m.boss?20:m.elite?3:1))dropLoot(e.x,e.y,{item:{id:'smithGem',q:1},rare:1});     // 0.1% base
+  if(rng()<(window.GEMDROP226&&GEMDROP226.on?Math.max(GEMDROP226.P,.001*dm*(m.boss?20:m.elite?3:1)):.001*dm*(m.boss?20:m.elite?3:1)))dropLoot(e.x,e.y,{item:{id:'smithGem',q:1},rare:1});     // 0.1% base
   if(rng()<.0001*dm*(m.boss?50:m.elite?5:1))dropLoot(e.x,e.y,{item:{id:'card_'+e.type,q:1},rare:2}); // 0.01% base
   for(let i=0;i<(m.boss?90:22);i++)part({x:e.x+rand(-e.sz,e.sz),y:e.y-rand(0,e.sz*1.5),vx:rand(-40,40),vy:rand(-160,-40),life:rand(.6,1.4),max:1.4,size:rand(4,10)*(m.boss?2:1),col:rng()<.5?m.c:'#ffffff',type:'wisp',sway:40,drag:.95});
   ring(e.x,e.y-e.sz*.4,e.sz*.5,e.sz*3,.5,m.c,5);
@@ -3853,10 +3853,10 @@ function autoPlay(dt){
   if(hpP<.35&&G.potCd<=0)usePotion('hp');
   if(P.mp/P.maxMp<.12&&G.potCd<=0)usePotion('mp');
   let t=G.autoT;
-  if(!t||t.dead||d2(t.x,t.y,P.x,P.y)>950||(t.unreach||0)>time){t=null;let bd=900;for(const e of enemies){if(e.dead||(e.unreach||0)>time)continue;const d=d2(e.x,e.y,P.x,P.y);if(d<bd){bd=d;t=e;}}}
+  if(!t||t.dead||d2(t.x,t.y,P.x,P.y)>950||(t.unreach||0)>time){t=null;let bd=900;for(const e of enemies){if(e.dead||(e.unreach||0)>time||(window.AUTOSLOT218&&AUTOSLOT218.out(e)))continue;const d=d2(e.x,e.y,P.x,P.y);if(d<bd){bd=d;t=e;}}}
   G.autoT=t;
   const dT=t?d2(t.x,t.y,P.x,P.y):1e9;
-  for(const id of P.slots){
+  for(const id of (window.AUTOSLOT218?AUTOSLOT218.legacy():P.slots)){
     if(!id||!P.skills[id])continue;const s=SK[id];if((P.cds[id]||0)>0||P.mp<mpCost(s,P.skills[id]))continue;
     let go=false;
     if(s.type==='heal')go=hpP<.6||(!!s.buff&&!P.buffs[id]&&t&&dT<500&&hpP<.85);
@@ -3870,8 +3870,8 @@ function autoPlay(dt){
     if(go){castSkill(id);break;}
   }
   // loot & orbs first when nothing is right on top of us
-  let lt=null,ld=340;for(const l of loot){const d=d2(l.x,l.y,P.x,P.y);if(d<ld&&!(l.item&&P.inv.length>=P.invSize&&!(l.item.id&&countItem(l.item.id)))){ld=d;lt=l;}}
-  if(lt&&(!t||dT>240))return navTo(lt.x,lt.y,dt);
+  let lt=null,ld=340;for(const l of loot){const d=d2(l.x,l.y,P.x,P.y);if(d<ld&&!(window.LOOT222&&LOOT222.skip(l))&&!(l.item&&(window.QBAG222?QBAG222.used(P):P.inv.length)>=P.invSize&&!(l.item.id&&countItem(l.item.id)))){ld=d;lt=l;}}
+  if(lt&&(window.LOOT222&&LOOT222.on?LOOT222.autoGo(lt,t,dT):(!t||dT>240)))return navTo(lt.x,lt.y,dt);
   let orb=null,od=260;for(const o of orbs){const d=d2(o.x,o.y,P.x,P.y);if(d<od){od=d;orb=o;}}
   const W_=WEAPONS[P.weapon.t],pref=P.weapon.t==='staff'?230:W_.ranged?300:W_.range*.6;
   if(t){
@@ -3882,7 +3882,7 @@ function autoPlay(dt){
     return [0,0];
   }
   if(orb)return navTo(orb.x,orb.y,dt);
-  if(!G.autoWp||d2(G.autoWp.x,G.autoWp.y,P.x,P.y)<90||(G.nav&&G.nav.fail))G.autoWp=freePoint();
+  if(!G.autoWp||d2(G.autoWp.x,G.autoWp.y,P.x,P.y)<90||(G.nav&&G.nav.fail))G.autoWp=(window.AUTOSLOT218&&AUTOSLOT218.wp())||freePoint();
   return navTo(G.autoWp.x,G.autoWp.y,dt);
 }
 
@@ -3951,10 +3951,10 @@ function updLoot(dt){
   for(const l of loot){
     l.t+=dt;
     if(l.t<2){l.x+=l.vx*dt;l.y+=l.vy*dt;l.vx*=Math.pow(.02,dt);l.vy*=Math.pow(.02,dt);if(!P.dead&&l.t>.45&&d2(l.x,l.y,P.x,P.y)<32)pickLoot(l);}
-    else if(!P.dead){const d=d2(l.x,l.y,P.x,P.y),sp=420+(l.t-2)*1400;
+    else if(!P.dead&&window.LOOT222&&LOOT222.stay(l)){}else if(!P.dead){const d=d2(l.x,l.y,P.x,P.y),sp=420+(l.t-2)*1400;
       if(d<24)pickLoot(l);
       else{const k=Math.min(1,sp*dt/d);l.x+=(P.x-l.x)*k;l.y+=(P.y-l.y)*k;if(rng()<.5)part({x:l.x,y:l.y-12,vx:0,vy:0,life:.3,max:.3,size:4,col:lootColor(l),type:'glow'});}}
-    if(l.t>15&&!l.dead){l.dead=1;emitThemed(l.x,l.y-10,{...THEMES.void,main:'#8fa4cc'},6,60);}
+    if(l.t>(window.LOOT222&&LOOT222.on&&!LOOT222.flies(l)?LOOT222.LIFE:15)&&!l.dead){l.dead=1;emitThemed(l.x,l.y-10,{...THEMES.void,main:'#8fa4cc'},6,60);}
   }
   loot=loot.filter(l=>!l.dead);
 }
@@ -5227,7 +5227,7 @@ function doDash(){if(G.state!=='play'||!P||P.dead||P.dash||(G.dashCd||0)>0||P.ca
   P.dash={vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,t:.2,hit:new Set(),back:true,pl};P.invT=Math.max(P.invT,.22);G.dashCd=.85;emitThemed(P.x,P.y-10,pl,12,140);}
 const TSK_POS=[[95,180],[95,148],[95,116],[95,84],[160,180],[160,157],[160,134],[160,111]];if(!/[?&]touch10=off\b/.test(location.search))TSK_POS.push([160,203],[215,196]);/* r213: phone buttons for hotkey slots R and F */
 function buildTouchSkills(){const box=$('#tSkills');if(!box||!P)return;let h='';
-  for(let i=0;i<TSK_POS.length;i++){const id=P.slots[i],[r,dg]=TSK_POS[i],a=dg*Math.PI/180;
+  for(let i=0;i<TSK_POS.length;i++){const id=P.slots[i],[r,dg]=(i>=8&&innerWidth<innerHeight&&innerWidth<=640&&!/[?&]touchpt=off\b/.test(location.search))?[[225,92],[160,65]][i-8]:TSK_POS[i],a=dg*Math.PI/180;/* r217: upright phone, slots R/F go above the attack button, not onto the joystick */
     h+=`<div class="slot tsk" data-ti="${i}" ${id?`data-sk="${id}"`:''} style="left:${Math.cos(a)*r}px;top:${-Math.sin(a)*r}px">${id?`<img src="${skillIcon(id)}" alt="">`:''}<div class="cd"></div><div class="cdt"></div><kbd>${SLOT_KEYS[i].toUpperCase()}</kbd></div>`;}
   box.innerHTML=h;}
 function initTouchUI(){
@@ -5253,7 +5253,7 @@ function initTouchUI(){
 function updTouch(){if(!TOUCH.on||!P)return;const a=$('#tAtk');if(a)a.classList.toggle('dim',P.weapon.t==='fist');
   const pr=$('#tInt');if(pr)pr.classList.toggle('hot',!!G.interact||(typeof lootNear==='function'&&!!lootNear()));
   const d=$('#tDash');if(d)d.style.setProperty('--cd',(G.dashCd||0)/.85);
-  const hq=$('#tHpQ'),mq=$('#tMpQ');if(hq)hq.textContent=countItem('hpPot')+countItem('hpPot2');if(mq)mq.textContent=countItem('mpPot');}
+  const hq=$('#tHpQ'),mq=$('#tMpQ');if(hq)hq.textContent=window.POTFLAT221&&POTFLAT221.on?POTFLAT221.cnt('hp'):countItem('hpPot')+countItem('hpPot2');if(mq)mq.textContent=window.POTFLAT221&&POTFLAT221.on?POTFLAT221.cnt('mp'):countItem('mpPot');}
 
 /* ---------- GM economy hooks ---------- */
 function devEco(a){
@@ -5972,7 +5972,7 @@ function initAdmUI(){
    ===================================================================== */
 const SHELL_HEAD='<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n';
 const HOSTED=!!(window.claude&&typeof window.claude.use==='function');
-let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l11: admin only with ?gm=on (v3l10) (local file / tests): developer mode
+let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l12: admin only with ?gm=on (v3l10) (local file / tests): developer mode
 function setAdmin(v){ADMIN=!!v;document.body.classList.toggle('noadmin',!ADMIN);if(!ADMIN){if(G.win==='wGM')closeWin();const d=$('#dev');if(d&&!d.hidden)toggleDev();if(G.edit)toggleEditor(false);}}
 setAdmin(ADMIN);
 (async()=>{if(!HOSTED)return;try{const u=await window.claude.use('user');setAdmin(u?await u.canEdit():false);}catch(e){setAdmin(false);}})();
@@ -6073,7 +6073,7 @@ function drawWeapon(g,t,x,y,a,sc,pl,live){if(live&&g===ctx&&FASH.vis.weapon===fa
 function fashionOK(it){return it&&it.kind==='eq'&&FASHION_SLOTS.some(([s])=>s===it.type);}
 G.invView='gear';
 function wearFashion(i){const it=P.inv[i];if(!fashionOK(it))return false;const s=it.type,old=FASH.slots[s];P.inv.splice(i,1);if(old)P.inv.push(old);FASH.slots[s]=it;FASH.fvis[s]=true;saveFash();log(`แฟชั่น: ใส่ ${itemName(it)} (ไม่มีค่าสถานะ)`,'v');return true;}
-function removeFashion(s){const it=FASH.slots[s];if(!it)return;if(P.inv.length>=P.invSize){notify('กระเป๋าเต็ม');return;}P.inv.push(it);delete FASH.slots[s];saveFash();}
+function removeFashion(s){const it=FASH.slots[s];if(!it)return;if((window.QBAG222?QBAG222.used(P):P.inv.length)>=P.invSize){notify('กระเป๋าเต็ม');return;}P.inv.push(it);delete FASH.slots[s];saveFash();}
 function renderInv(){renderInv_v15();
   const sec=$('#invBody .cwEq');if(!sec)return;const fv=G.invView==='fash';
   let h=`<h3 class="sec">${fv?'Fashion':'Equipment'} <em>${fv?'แสดงผลอย่างเดียว · ไม่มีค่าสถานะ':'ดับเบิลคลิกเพื่อถอด'}</em></h3>
@@ -11555,7 +11555,7 @@ function apSave(){try{localStorage.setItem(AP_KEY,JSON.stringify(AP));}catch(e){
 function apDrink(kind){
   if(G.potCd>0||P.dead)return false;
   let ids;
-  if(kind==='mp')ids=['mpPot'];
+  if(window.POTFLAT221&&POTFLAT221.on&&(kind==='mp'||!(AP.hpKind==='hpPot'||AP.hpKind==='hpPot2')))ids=POTFLAT221.ids(kind);else if(kind==='mp')ids=['mpPot'];
   else if(AP.hpKind==='hpPot')ids=['hpPot'];
   else if(AP.hpKind==='hpPot2')ids=['hpPot2'];
   else ids=P.hp/P.maxHp<.4?['hpPot2','hpPot']:['hpPot','hpPot2'];
@@ -23360,7 +23360,8 @@ function elemMult(att,def){const a=elemKey(att),d=elemKey(def);if(a==='Neutral'|
   return CFG.elemTable[CFG.elements.indexOf(a)][CFG.elements.indexOf(d)];}
 
 /* ---------------- EXP / levels ---------------- */
-const expNeed=L=>Math.round(CFG.exp.base*Math.pow(L,CFG.exp.pow)+CFG.exp.add);
+const EARLY215=!(typeof location!=='undefined'&&/[?&]earlyexp=off\b/.test(location.search)),early215=L=>!EARLY215?1:L<=5?.5:L<=10?.7:L<=15?.85:1;   // r215 Balance r2b: faster early levels
+const expNeed=L=>Math.round((CFG.exp.base*Math.pow(L,CFG.exp.pow)+CFG.exp.add)*early215(L));
 const minutesPerLevel=L=>Math.min(CFG.exp.minutes.max,CFG.exp.minutes.base+CFG.exp.minutes.per*(L-1));
 function expGapMult(playerLvl,monsterLvl){const d=playerLvl-monsterLvl;for(const g of CFG.exp.gap)if(d<=g.maxDiff)return g.mult;return .1;}
 /* state: {lvl,exp,capOverflow,capOverflowCap,unspentPts,levelEarnedPts}  — mutates and returns an event record.
@@ -24323,7 +24324,7 @@ function updHUD(dt){
     $('#hpT').textContent=`${fmt(Math.ceil(P.hp))} / ${fmt(P.maxHp)}`;$('#mpT').textContent=`${fmt(Math.floor(P.mp))} / ${fmt(P.maxMp)}`;
     $('#hLv').textContent=P.lvl;$('#cJob').textContent=`Job ${P.jobLv}/${jobCap()}`;$('#hCls').textContent=CLASSES[P.cls].n+(G.god?' · GOD':'');$('#cGold').textContent=fmt(P.gold)+' G';$('#cSp').textContent='Spirit '+P.sp;
     const pts=[];if(P.skillPts)pts.push(P.skillPts+' SP');if(P.statPts)pts.push(P.statPts+' Stat');const cp=$('#cPts');cp.hidden=!pts.length;cp.textContent=pts.join(' · ');
-    const qh=countItem('hpPot')+countItem('hpPot2'),qm=countItem('mpPot');const a=$('#qHp'),b=$('#qMp');if(a)a.textContent=qh;if(b)b.textContent=qm;
+    const qh=window.POTFLAT221&&POTFLAT221.on?POTFLAT221.cnt('hp'):countItem('hpPot')+countItem('hpPot2'),qm=window.POTFLAT221&&POTFLAT221.on?POTFLAT221.cnt('mp'):countItem('mpPot');const a=$('#qHp'),b=$('#qMp');if(a)a.textContent=qh;if(b)b.textContent=qm;
     const pr=$('#prompt');const it=G.interact;
     if(it&&G.state==='play'&&!G.win){let t='';if(it.k==='way')t=G.unlocked.has(G.zone)?'วาร์ปกลับ Capital City':'ผนึกพลังแท่นวาร์ป (Attune Waystone)';else if(it.k==='nexus')t='เปิด Grand Teleport Nexus';else t=npcPrompt(it.n);pr.innerHTML=`<kbd>F</kbd>${t}`;pr.hidden=false;}else if(G.state==='play'&&lootNear()){pr.innerHTML=`<kbd>F</kbd>เก็บของ (${lootNear()})`;pr.hidden=false;}else pr.hidden=true;
   }
@@ -24950,7 +24951,7 @@ const st=document.createElement('style');st.id='hudV178Style';st.textContent=css
 // ---------- skill layout: two arcs around the attack button (hit areas 52px, never overlapping) ----------
 const ARC=[[88,172],[88,136],[88,100],[88,64],[142,156],[142,133.5],[142,111],[142,88.5]];
 function layoutSkills(){const box=$('#tSkills');if(!box)return;
-  $$('#tSkills .tsk').forEach(e=>{const i=+e.dataset.ti;if(!(i>=0&&i<8))return;const [r,d]=ARC[i],a=d*Math.PI/180;e.style.left=(Math.cos(a)*r).toFixed(1)+'px';e.style.top=(-Math.sin(a)*r).toFixed(1)+'px';
+  $$('#tSkills .tsk').forEach(e=>{const i=+e.dataset.ti;if(!(i>=0&&i<8))return;if(window.SKPAGE219&&SKPAGE219.on&&document.body.classList.contains('mobile'))return;/* r219: the page layout owns the positions */const [r,d]=ARC[i],a=d*Math.PI/180;e.style.left=(Math.cos(a)*r).toFixed(1)+'px';e.style.top=(-Math.sin(a)*r).toFixed(1)+'px';
     const id=(typeof P!=='undefined'&&P&&P.slots)?P.slots[i]:null;e.setAttribute('role','button');if(id&&typeof SK!=='undefined'&&SK[id])e.setAttribute('aria-label',(SK[id].name||id)+' · ช่อง '+(i+1));});}
 let sig='';
 setInterval(()=>{try{if(typeof P==='undefined'||!P||!P.slots||typeof buildTouchSkills!=='function')return;const s=P.slots.join(',');
@@ -54005,7 +54006,7 @@ function wikiCard(){try{if(!document.getElementById('wikiOv')||document.getEleme
   const nm=norm(h.textContent.replace(/NEW$/,''));const c=BYN[nm];if(!c)return;const im=new Image();im.className='mcardImg';im.src=c.framed;im.title=c.monster;im.style.cssText='float:right;width:150px;margin:0 0 8px 12px;border-radius:8px;cursor:pointer;filter:drop-shadow(0 3px 8px rgba(0,0,0,.6))';im.addEventListener('click',ev=>{ev.stopPropagation();view(c)});body.after(im);CD.wikiShown=(CD.wikiShown||0)+1}catch(e){ERR('wiki',e)}}
 CD.wikiCard=wikiCard;setInterval(wikiCard,600);try{new MutationObserver(()=>{clearTimeout(wt);wt=setTimeout(wikiCard,250)}).observe(document.body,{childList:true,subtree:true})}catch(e){ERR('observer',e)}
 /* ---- GM ---- */
-CD.give=()=>{let n=0;for(const c of D.cards){if(!P.inv.find(x=>x&&x.id===c.id)){if(P.inv.length>=P.invSize)P.invSize=P.inv.length+1;addItem({id:c.id,q:1});n++}}try{if(G.win==='wInv')renderInv()}catch(_){}return n};
+CD.give=()=>{let n=0;for(const c of D.cards){if(!P.inv.find(x=>x&&x.id===c.id)){if((window.QBAG222?QBAG222.used(P):P.inv.length)>=P.invSize)P.invSize=P.inv.length+1;addItem({id:c.id,q:1});n++}}try{if(G.win==='wInv')renderInv()}catch(_){}return n};
 if(/[?&]gm=on\b/.test(Q)){const add=()=>{try{if(document.getElementById('cardsBtn'))return;const b=document.createElement('button');b.id='cardsBtn';b.textContent='Cards TEST';b.style.cssText='position:fixed;left:8px;top:270px;z-index:8000;padding:7px 12px;border-radius:10px;border:1px solid #ffd36b;background:rgba(60,44,10,.92);color:#ffe9b0;font:700 14px system-ui,sans-serif;cursor:pointer';b.addEventListener('click',e=>{e.stopPropagation();CD.give()});document.body.appendChild(b)}catch(e){ERR('btn',e)}};if(document.body)add();else document.addEventListener('DOMContentLoaded',add);setTimeout(add,1500)}
 console.info('[CARDS] '+CD.report.counts.matched+'/'+D.cards.length+' matched');
 })();
@@ -60115,7 +60116,7 @@ try{const _h=hurtPlayer;hurtPlayer=function(raw,src){try{if(src&&alive(src)){atk
 try{const _a=autoPlay;autoPlay=function(dt){
   if(!G.auto||P.dead){cur=null;return _a.apply(this,arguments)}
   try{
-   if(cur&&(!alive(cur)||d2(cur.x,cur.y,P.x,P.y)>950))cur=null;
+   if(cur&&(!alive(cur)||d2(cur.x,cur.y,P.x,P.y)>950||(window.AUTOSLOT218&&AUTOSLOT218.out(cur))))cur=null;
    if(cur){const _w=(typeof WEAPONS!=='undefined'&&P.weapon&&WEAPONS[P.weapon.t])||{},_er=(_w.range||80)+(cur.sz||16)+90,_dt=d2(cur.x,cur.y,P.x,P.y);if(cur.hp<hp0-.5){noDmg=0;farT=0}else if(_dt<=_er){noDmg+=dt;farT=0}else{noDmg=Math.max(0,noDmg-dt);farT+=dt;if(farT>10){cur.unreach=time+8;cur=null;noDmg=0;farT=0;AS.stuckDrops++}}if(cur){hp0=cur.hp;
      if(noDmg>3){cur.unreach=time+8;cur=null;noDmg=0;AS.stuckDrops++}}}
    if(cur&&atk.e&&time-atk.t<1.5&&atk.e!==cur&&alive(atk.e)&&d2(cur.x,cur.y,P.x,P.y)>350&&d2(atk.e.x,atk.e.y,P.x,P.y)<420){cur=atk.e;hp0=cur.hp;noDmg=0;AS.attackerSwitch++}
@@ -60245,7 +60246,7 @@ setInterval(place,400);
 try{const _np=npcPrompt;npcPrompt=function(n){try{if(n&&n.town)return 'คุยกับ '+n.n+(n.tk==='shop'?' · ซื้อของ':'')}catch(_){}return _np.apply(this,arguments)}}catch(e){TN.err='prompt '+e.message}
 /* 4) F at a vendor opens the shop window */
 function openShop(n){const SW=window.__SHOPWIN;if(!SW||!SW.openNpc)return false;const ids=GOODS[n.id]||[];const list=[];for(const id of ids){const d=ITEMS[id];if(d)list.push({id,p:d.price||d.sell||30})}
-  return SW.openNpc({name:n.n,list,buy:(id,price,qty)=>{let done=0;for(let i=0;i<qty;i++){if((P.gold|0)<price)break;if(P.inv.length>=P.invSize&&!(typeof countItem==='function'&&countItem(id)))break;P.gold-=price;try{addItem({id,q:1})}catch(_){break}done++}try{saveGame()}catch(_){}return done}})}
+  return SW.openNpc({name:n.n,list,buy:(id,price,qty)=>{let done=0;for(let i=0;i<qty;i++){if((P.gold|0)<price)break;if((window.QBAG222?QBAG222.used(P):P.inv.length)>=P.invSize&&!(typeof countItem==='function'&&countItem(id)))break;P.gold-=price;try{addItem({id,q:1})}catch(_){break}done++}try{saveGame()}catch(_){}return done}})}
 try{const _i=interact;interact=function(){try{const it=G.interact;if(it&&it.k==='npc'&&it.n&&it.n.town&&it.n.tk==='shop'&&GOODS[it.n.id]!==undefined){if(openShop(it.n)){TN.opened++;return true}}}catch(e){TN.err='interact '+e.message}return _i.apply(this,arguments)}}catch(e){TN.err='hook '+e.message}
 })();
 
@@ -60834,7 +60835,7 @@ setInterval(()=>{try{hook();const lg=document.querySelector('#wMap .legend');if(
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3l11',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l12',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -60859,7 +60860,7 @@ console.info('[REAL] v3l6c');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l11';console.info('[REAL] v3l11')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l12';console.info('[REAL] v3l12')}catch(e){}
 })();
 </script>
 <script>
@@ -61054,7 +61055,7 @@ for(const ev of ['pointerdown','mousedown','touchstart','wheel'])win.addEventLis
 function doCook(){if(cooking)return;const r=C.recipes[selR];if(!r)return;let left=Math.min(qty,canMake(r));if(left<1)return;const total=left;const pg=win.querySelector('.pg'),bar2=pg.querySelector('i');pg.style.display='block';win.querySelector('.go').disabled=true;
   const step=()=>{if(!cookOpen()||!C.fire){cooking=null;pg.style.display='none';return}const t0=performance.now();bar2.style.transition='none';bar2.style.width='0';void bar2.offsetWidth;bar2.style.transition='width '+C.cfg.COOK_SEC+'s linear';bar2.style.width='100%';
     cooking={t:setTimeout(()=>{if(canMake(r)<1){cooking=null;pg.style.display='none';renderCook();return}
-      if(P.inv.length>=P.invSize&&!countItem(r.out)){log('กระเป๋าเต็ม ทำอาหารต่อไม่ได้','r');cooking=null;pg.style.display='none';renderCook();return}
+      if((window.QBAG222?QBAG222.used(P):P.inv.length)>=P.invSize&&!countItem(r.out)){log('กระเป๋าเต็ม ทำอาหารต่อไม่ได้','r');cooking=null;pg.style.display='none';renderCook();return}
       for(const [id,k] of r.ing)takeItem(id,k);addItem({id:r.out,q:1});C.stats.cooked++;try{textAt(P.x,P.y-60,'+ '+nm(r.out),'#ffd98a',16);log('ทำ '+nm(r.out)+' สำเร็จ','g')}catch(_){}
       left--;if(left>0&&canMake(r)>0)step();else{cooking=null;pg.style.display='none';qty=1;renderCook();try{if(G.win==='wInv')renderInv()}catch(_){}}},C.cfg.COOK_SEC*1000)}};step()}
 /* ---------------- eating: kit use, food buff / heal-over-time ---------------- */
@@ -61711,7 +61712,7 @@ H.reconcile=reconcile;
 H.pickup=function(){if(G.state!=='play'||P.dead||H.busy||H.place||!S.lantern||S.lantern.zone!==G.zone||G.zone===ZID)return false;if(!nearLantern())return false;
   const cl=H.calmLeft();if(cl>0){say('เก็บตะเกียงไม่ได้ขณะต่อสู้ · รออีก '+Math.ceil(cl)+' วินาที');return false}
   if(performance.now()-(H.placedAt||0)<600)return false;
-  const have=countItem('houseLantern');if(!have&&P.inv.length>=P.invSize){say('กระเป๋าเต็ม เก็บตะเกียงไม่ได้ · เคลียร์ช่องว่างก่อน');return false}
+  const have=countItem('houseLantern');if(!have&&(window.QBAG222?QBAG222.used(P):P.inv.length)>=P.invSize){say('กระเป๋าเต็ม เก็บตะเกียงไม่ได้ · เคลียร์ช่องว่างก่อน');return false}
   if(!have)addItem({id:'houseLantern',q:1});const L=S.lantern;S.lantern=null;S.owned=true;save();H.stats.picked=(H.stats.picked||0)+1;H.log.push({ev:'pickup',zone:L.zone,x:L.x,y:L.y});
   if(lanternProp){lanternProp.fade=time}try{ring(L.x,L.y,6,70,.5,'#ffd98a',3);log('เก็บตะเกียงบ้านแล้ว · กลับเป็นไอเท็มในกระเป๋า','g')}catch(_){}try{if(G.win==='wInv')renderInv()}catch(_){}try{saveGame()}catch(_){}
   setTimeout(()=>{try{if(!S.lantern)syncLanternProp()}catch(_){}},650);return true};
@@ -62069,7 +62070,7 @@ storeWin.addEventListener('click',e=>{if(e.target===storeWin||e.target.closest('
 H.openStorage=()=>{renderStore();storeWin.classList.add('in')};
 const sbtn=$('button','hStoreBtn','🏠 คลังของแต่งบ้าน');sbtn.type='button';stopAll(sbtn);sbtn.addEventListener('click',()=>H.openStorage());
 /* the button rides next to the bag window: placed at its top-right corner whatever the layout is */
-function placeStoreBtn(){try{const open=G.win==='wInv';if(!open){if(sbtn.style.display!=='none')sbtn.style.display='none';return}let r=null;for(const id of ['wInv','invWin','bagWin','win','iwin']){const e=document.getElementById(id);if(e&&e.offsetWidth>100&&e.offsetHeight>100){r=e.getBoundingClientRect();break}}
+function placeStoreBtn(){try{const open=G.win==='wInv'&&(G.zone===ZID||/[?&]storebtn=all\b/.test(location.search));/* r217: only on the sky house */if(!open){if(sbtn.style.display!=='none')sbtn.style.display='none';return}let r=null;for(const id of ['wInv','invWin','bagWin','win','iwin']){const e=document.getElementById(id);if(e&&e.offsetWidth>100&&e.offsetHeight>100){r=e.getBoundingClientRect();break}}
   if(!r){const e=[...document.querySelectorAll('.win,.panel,[id*=Inv],[id*=inv]')].filter(x=>x.offsetWidth>160&&x.offsetHeight>120&&getComputedStyle(x).position!=='static'&&x.id!=='hBox'&&x.id!=='hStore')[0];if(e)r=e.getBoundingClientRect()}
   const x=r?Math.max(8,r.left):12,y=r?Math.max(8,r.top-40):60;sbtn.style.left=x+'px';sbtn.style.top=y+'px';if(sbtn.style.display!=='block')sbtn.style.display='block'}catch(e){ERR('sbtn',e)}}
 /* ---------------- loop + GM ---------------- */
@@ -64283,7 +64284,7 @@ HP.hmSpawn=function(r){let s=SPAWN.get(r);if(s)return s;let x,y;try{const st=(HS
  if(x==null){const e=exitPt(),i=Math.max(0,HP.list().filter(inRoster).indexOf(r));x=e.x+(i-1.5)*60;y=e.y-62-(i%2)*26}
  s={x,y};SPAWN.set(r,s);return s};
 const inRoster=r=>!!r&&!!(r.out||r.hmr);const migrate=()=>{try{for(const r of HP.list())if(r.hmr==null)r.hmr=(r.out||r.cage)?1:0}catch(_){}};migrate();setInterval(migrate,1500);
-const bagFull=()=>P.inv.length>=P.invSize;
+const bagFull=()=>(window.QBAG222?QBAG222.used(P):P.inv.length)>=P.invSize;
 HP.hmBagFull=bagFull;
 function mkItem(r){return {id:'cap_'+r.id,q:1,rec:r}}
 /* a fresh capture (newRec in the helper module) goes into the bag; bag full = it waits in the roster as a resting helper (nothing is lost) */
@@ -64541,7 +64542,7 @@ function doCook(){if(cooking)return;const r=recList()[selR];if(!r)return;let lef
  const step=()=>{if(!open||!C.fire){cooking=null;return}bar.style.transition='none';bar.style.width='0';void bar.offsetWidth;bar.style.transition='width '+sec+'s linear';bar.style.width='100%';
   cooking={t:setTimeout(()=>{const res=resultOf(r);if(maxQty(r)<1){cooking=null;render();return}const out=F.cookNow(r,res);cooking=null;if(!out){render();return}left--;if(left>0&&maxQty(r)>0){cooking={};step()}else{qty=1;render()}},sec*1000)}};cooking={};step()}
 /* consume the picked stacks and add ONE dish (shared by the window and the tests) */
-F.cookNow=function(r,res){try{res=res||resultOf(r);if(P.inv.length>=P.invSize&&!P.inv.some(it=>it.id===res.id)){try{log('กระเป๋าเต็ม ทำอาหารต่อไม่ได้','r')}catch(_){}return null}
+F.cookNow=function(r,res){try{res=res||resultOf(r);if((window.QBAG222?QBAG222.used(P):P.inv.length)>=P.invSize&&!P.inv.some(it=>it.id===res.id)){try{log('กระเป๋าเต็ม ทำอาหารต่อไม่ได้','r')}catch(_){}return null}
  r.ing.forEach((a,i)=>{const p=res.ings[i].it;if(p){p.q-=a[1]}});for(let i=P.inv.length-1;i>=0;i--)if(P.inv[i]&&P.inv[i].q<=0)P.inv.splice(i,1);
  if(res.id!==r.out)regDerived(res.id);if(!addItem({id:res.id,q:1}))return null;F.stats.cooked++;F.last={dish:res.id,pool:res.pool};try{textAt(P.x,P.y-60,'+ '+(ITEMS[res.id]||{}).n,'#ffd98a',16);log('ทำ '+(ITEMS[res.id]||{}).n+' สำเร็จ','g')}catch(_){}try{if(G.win==='wInv')renderInv()}catch(_){}return res.id}catch(e){ERR('cookNow',e);return null}};
 win.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b){if(e.target===win)F.closeWin();return}if(b.disabled||cooking)return;const a=b.dataset.a;const L=recList(),sel=L[selR];try{
@@ -66670,6 +66671,656 @@ try{const _c=chDrawHero;chDrawHero=function(cv,look,a,t){
       if(im){const g=cv.getContext('2d');g.clearRect(0,0,cv.width,cv.height);cv.style.imageRendering='auto';g.drawImage(im,0,0);X.drawn++;return}}}
   catch(e){X.err='draw '+e.message}
   return _c.apply(this,arguments)}}catch(e){X.err='hook '+e.message}
+})();
+
+</script>
+
+<script>
+/* r215 QUESTEXP215 (?questexp2=off): Balance BALANCE_ch1_quest_rewards_v1 r2 (DeaRz OK 24 Nov 2026 13:25 UTC per Balance).
+   Early chapter-1 quest EXP raised, in memory, on the live quest records (gold / items / gap rule untouched).
+   Early level need (r2b, ?earlyexp=off) is a patch on expNeed in the combat kernel. */
+(function(){'use strict';
+const X=window.QUESTEXP215={on:!/[?&]questexp2=off\b/.test(location.search),set:0,miss:[],err:null,
+ tbl:{m1_01_spark:60,m1_02_potions:60,m1_03_forge:60,s1_01_cat:60,s1_02_letter:60,s2_01_herbs:153,m2_01_field:615,s2_02_spark_trail:615,m2_02_forge_gift:352,
+  m3_01_astoria:2196,s3_01_all_weapons:2196,s3_02_garden:915,m4_01_climb:2864,s4_01_traveler:4508,sp80_ora_legend:4508,sp80_ferro_recipe:4508,sp80_mali_rare:1878}};
+if(!X.on)return;
+try{const D=window.__QDATA2,by={};if(D&&Array.isArray(D.quests))for(const q of D.quests)by[q.id]=q;
+ for(const id in X.tbl){const q=by[id];if(!q||!q.reward){X.miss.push(id);continue}q.reward.exp215was=q.reward.exp;q.reward.exp=X.tbl[id];X.set++}
+}catch(e){X.err=e.message}
+})();
+
+</script>
+
+<script>
+/* r216 QTFIT216 (?qtfit=off): DeaRz 24 Nov 2026 21:08 BKK, phone held upright: the quest tracker (#qtL) covers the play area.
+   On a narrow upright screen the tracker becomes a small pill "เควส (n) ▸"; tap the pill to open the list, tap the header again to fold.
+   Opened list is narrower and more see-through. Landscape / desktop untouched. Own storage key, the round fold button keeps working. */
+(function(){'use strict';
+const X=window.QTFIT216={on:!/[?&]qtfit=off\b/.test(location.search),pt:false,fold:true,err:null,taps:0};
+if(!X.on)return;
+try{X.fold=localStorage.getItem('lanternfall_qtfit216')!=='0'}catch(_){}
+const st=document.createElement('style');st.textContent=
+ '#qtL.pt{width:auto;min-width:0;max-width:58vw;background:rgba(14,14,22,.62)}'
++'#qtL.pt .th{cursor:pointer;margin:0;font-size:12px;white-space:nowrap}'
++'#qtL.pt .th::after{content:" ▾";opacity:.8}'
++'#qtL.pt.pfold{padding:3px 10px;overflow:hidden;border-radius:999px;background:rgba(14,14,22,.78)}'
++'#qtL.pt.pfold>:not(.th){display:none!important}'
++'#qtL.pt.pfold .th::after{content:" (" attr(data-n) ") ▸"}';
+document.head.appendChild(st);
+const isPt=()=>innerWidth<innerHeight&&innerWidth<=640;
+function sync(){try{const b=document.getElementById('qtL');if(!b)return;X.pt=isPt();b.classList.toggle('pt',X.pt);b.classList.toggle('pfold',X.pt&&X.fold);
+  const h=b.querySelector('.th');if(h){const n=String((window.__QUESTHUD&&__QUESTHUD.rows||[]).length);if(h.dataset.n!==n)h.dataset.n=n}}catch(e){X.err=e.message}}
+function hook(){const b=document.getElementById('qtL');if(!b){setTimeout(hook,400);return}
+  b.addEventListener('click',e=>{try{if(!X.pt)return;const h=e.target.closest&&e.target.closest('.th');if(!h&&!X.fold)return;
+    X.fold=!X.fold;X.taps++;try{localStorage.setItem('lanternfall_qtfit216',X.fold?'1':'0')}catch(_){}e.stopPropagation();e.preventDefault();sync()}catch(er){X.err=er.message}},true);
+  new MutationObserver(sync).observe(b,{childList:true});addEventListener('resize',sync);addEventListener('orientationchange',()=>setTimeout(sync,300));sync();setInterval(sync,1500)}
+hook();
+})();
+
+</script>
+
+<script>
+/* r216 CHARWPN216 (?charwpn=off): DeaRz 24 Nov 2026 21:09 BKK: "uses a dagger but the character shows a long sword" on the character-select cards.
+   Each slot card now shows the slot's own look HOLDING ITS OWN WEAPON TYPE (sword / dagger / bow / staff / holy staff / scythe / spear / knuckle), idle pose,
+   measured from real pixels and fitted inside the box like CHARFIT214 (80 % height, 80 % width, feet at 93 %). Generic look per weapon type (no per-item look).
+   The puppet's weapon state is put back exactly after each snapshot. Falls through to CHARFIT214 on any error. */
+(function(){'use strict';
+const X=window.CHARWPN216={on:!/[?&]charwpn=off\b/.test(String(location.search)),err:null,drawn:0,cache:{},cap:.36,last:null,w:[]};
+if(!X.on)return;
+const DEF={gender:'boy',hair:'default',hairColor:'natural'};
+function wOf(P){try{const w=P&&P.weapon,t=w&&w.t;if(!t)return'sword';if(w.dg2||t==='dagger')return'dagger';if(t==='bow'||t==='gun')return'bow';if(t==='scythe')return'scythe';
+  if(t==='staff'){let path=null;try{path=CLASSES[P.cls].path}catch(_){}return path==='cleric'?'holy':'staff'}if(t==='book')return'staff';if(t==='spear')return'spear';if(t==='fist'||t==='knuckle')return'knuckle';return'sword'}catch(_){return'sword'}}
+function apply(U,w){if(w==='spear'){U.setWeapon('sword');U.cfg.WEAPON='dagger'}else if(w==='knuckle'&&U.WEAPON_KF&&U.WEAPON_KF.knuckle)U.setWeapon('knuckle');
+  else if(w==='knuckle'){U.setWeapon('sword');U.cfg.WEAPON='dagger';U.slots.sword='_none';U.slots.offhand='_none'}else U.setWeapon(w)}
+function snap(look,w,W,H){const U=window.PUPPET;if(!U||!U.draw||!U.pose||!U.setChar||!U.getChar||!U.setWeapon||!U.cfg||!U.slots)return null;
+  const keep=JSON.parse(JSON.stringify(U.getChar())),cfg=U.cfg,ss=cfg.showSword,sway=cfg.SWAY,wl=window.__WLHERO,kW=cfg.WEAPON,kS=Object.assign({},U.slots),CS=window.CHARSEL,kc=CS&&CS.curW;let out=null;
+  try{const ch={};for(const k of ['gender','hair','hairColor','race','catColor','face','eyeColor'])if(look[k]!=null)ch[k]=look[k];U.setChar(Object.assign({},DEF,ch));
+    cfg.SWAY=false;window.__WLHERO=false;apply(U,w);cfg.showSword=true;
+    const big=document.createElement('canvas');big.width=560;big.height=520;const g=big.getContext('2d',{willReadFrequently:true});U.draw(g,280,440,.5,-1,U.pose('idle',0,{}));
+    const d=g.getImageData(0,0,560,520).data;let x0=560,x1=-1,y0=520,y1=-1;for(let y=0;y<520;y++)for(let x=0;x<560;x++)if(d[(y*560+x)*4+3]>24){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+    if(x1<0)return null;const bw=x1-x0+1,bh=y1-y0+1,s=Math.min(H*.80/bh,W*.80/bw,X.cap*W/120);
+    out=document.createElement('canvas');out.width=W;out.height=H;const o=out.getContext('2d');o.imageSmoothingEnabled=true;o.imageSmoothingQuality='high';
+    o.drawImage(big,x0,y0,bw,bh,W/2-bw*s/2,H*.93-bh*s,bw*s,bh*s);X.last={w,bw,bh,s:+s.toFixed(3)}}
+  catch(e){X.err='snap '+e.message;out=null}
+  finally{try{U.setChar(keep)}catch(_){}
+    try{U.setWeapon(kW||'sword');cfg.WEAPON=kW;for(const k in U.slots)if(!(k in kS))delete U.slots[k];Object.assign(U.slots,kS)}catch(e){X.err='restore '+e.message}
+    cfg.showSword=ss;cfg.SWAY=sway;window.__WLHERO=wl;try{if(CS)CS.curW=kc}catch(_){}}
+  return out}
+try{const _c=chDrawHero;chDrawHero=function(cv,look,a,t){
+  try{if(cv&&cv.dataset&&cv.dataset.chcv!=null){const i=+cv.dataset.chcv,s=chSaveOf(i),pl=(s&&s.P&&s.P.pLook)||DEF,w=wOf(s&&s.P),key=JSON.stringify(pl)+'|'+w+'|'+cv.width+'x'+cv.height;
+      let im=X.cache[key];if(im===undefined){im=snap(pl,w,cv.width,cv.height)||null;X.cache[key]=im;X.w[i]=w}
+      if(im){const g=cv.getContext('2d');g.clearRect(0,0,cv.width,cv.height);cv.style.imageRendering='auto';g.drawImage(im,0,0);X.drawn++;return}}}
+  catch(e){X.err='draw '+e.message}
+  return _c.apply(this,arguments)}}catch(e){X.err='hook '+e.message}
+})();
+
+</script>
+
+<script>
+/* r217 PHONEHUD217 (DeaRz 25 Nov 2026 00:39 BKK, phone screenshot of REAL v3l11):
+   (1) ?gearmerge=off : the round gear button on the right edge (#hudxGear, HUD layout editor) is hidden; the same panel opens from the settings window (SET)
+       with a new button "🎛 จัดตำแหน่งปุ่มบนจอ".
+   (2) ?homequest=off : the house lantern (entrance to the sky house) is a reward of the early main quest m2_02_forge_gift "ตะเกียงกลับบ้าน" (Map 2, Lv 3).
+       Characters that already finished it get the lantern once when they next play. Code's choice of quest (DeaRz said "early game", no quest named).
+   The other two parts of the order are exact-string patches: touch slots R/F leave the joystick on an upright phone (?touchpt=off),
+   and the "คลังของแต่งบ้าน" button next to the bag / status window shows only on the sky house (?storebtn=all). */
+(function(){'use strict';
+const Q=String(location.search),X=window.PHONEHUD217={gear:!/[?&]gearmerge=off\b/.test(Q),quest:!/[?&]homequest=off\b/.test(Q),QID:'m2_02_forge_gift',err:null,granted:0,opened:0};
+if(X.gear){try{const st=document.createElement('style');st.textContent='#hudxGear{display:none!important}';document.head.appendChild(st);
+  const add=setInterval(()=>{try{const p=document.getElementById('camPanel'),g=document.getElementById('hudxGear');if(!p||!g||document.getElementById('hudxSetBtn'))return;
+    const b=document.createElement('button');b.id='hudxSetBtn';b.type='button';b.className='btn';b.textContent='🎛 จัดตำแหน่งปุ่มบนจอ';b.style.cssText='display:block;width:100%;margin:8px 0 2px';
+    b.addEventListener('click',e=>{e.stopPropagation();try{p.hidden=true;g.click();X.opened++}catch(er){X.err='open '+er.message}});
+    const ref=document.getElementById('benchBtn');if(ref&&ref.parentNode===p)p.insertBefore(b,ref);else p.appendChild(b);clearInterval(add)}catch(e){X.err='btn '+e.message}},600)}catch(e){X.err='gear '+e.message}}
+if(X.quest){try{
+  const D=window.__QDATA2,q=D&&Array.isArray(D.quests)&&D.quests.find(x=>x.id===X.QID);
+  if(q&&q.reward){q.reward.items=q.reward.items||[];if(!q.reward.items.some(i=>i.id==='houseLantern'))q.reward.items.push({id:'houseLantern',n:1})}else X.err='quest missing';
+  setInterval(()=>{try{if(typeof G==='undefined'||G.state!=='play'||typeof P==='undefined'||!P||P.dead||G.fade)return;const H=window.HOUSE,a=window.CH1Q&&CH1Q.api;if(!H||!H.give||!H.state||!a||!a.state)return;
+    const st=a.state(),r=st&&st.q&&st.q[X.QID];if(!r||r.s!=='d')return;const S=H.state();if(S.owned||S.lantern||countItem('houseLantern')>0)return;
+    if(P.inv.length>=Math.max(P.invSize||64,1))return;if(H.give()>0){X.granted++;try{notify('ได้รับ ตะเกียงบ้าน · ใช้จากกระเป๋าเพื่อตั้งทางขึ้นบ้านลอยฟ้า')}catch(_){}}}catch(e){X.err='grant '+e.message}},3000)}catch(e){X.err='quest '+e.message}}
+})();
+
+</script>
+
+<script>
+/* r218 AUTOSLOT218 (DeaRz 25 Nov 2026 00:51 BKK):
+   (1) ?autoslot=off : Auto play uses ONLY the skills the player has installed in the skill slots, i.e. what the slot shows.
+       Before: the auto brain cast the old class skills stored in P.slots (hidden under the weapon-skill icons) and never pressed the weapon skills shown in the slots.
+       Now: a slot that shows a weapon skill is pressed like a tap on that slot (same code path as the player's finger); a slot that shows an old skill keeps the old auto rule;
+       an old skill hidden under a weapon-skill / item icon is no longer cast. Item slots (hotkey items) are never used by Auto.
+   (2) ?autoring=off : farming ring. Settings (SET) gets "ระยะฟาร์มของ Auto". Ring centre = where Auto was switched on (re-centred on a map change). Auto only picks monsters inside the ring
+       (a monster within 180 px of the hero is always allowed = self defence), idles inside the ring, and the ring is drawn on the ground while Auto is on.
+       Slider at the far right = "ทั้งแมพ" (no ring, the old behaviour) = default. Quest auto-walk / guide walk ignore the ring. Saved in localStorage lanternfall_autoring218. */
+(function(){'use strict';
+const Q=String(location.search),X=window.AUTOSLOT218={on:!/[?&]autoslot=off\b/.test(Q),ring:!/[?&]autoring=off\b/.test(Q),err:null,presses:0,last:null,R:0,MIN:300,MAX:1200,c:null,gap:.45,stats:{skipOut:0,wp:0}};
+try{const v=+localStorage.getItem('lanternfall_autoring218');if(v>=X.MIN&&v<X.MAX)X.R=v}catch(_){}
+const DS=['ws','bs','dgs','ss','scs','hmk','knk','h2s'];
+const slotEl=i=>document.querySelector('#tSkills .tsk[data-ti="'+i+'"]')||document.querySelector('#bar .slot[data-i="'+i+'"]');
+const els=i=>[document.querySelector('#bar .slot[data-i="'+i+'"]'),document.querySelector('#tSkills .tsk[data-ti="'+i+'"]')].filter(Boolean);
+const wkey=el=>{if(!el||!el.classList.contains('wsk'))return null;for(const k of DS)if(el.dataset[k])return el.dataset[k];return null};
+const isItem=el=>!!(el&&el.dataset&&el.dataset.hk);
+function painted(i){for(const e of els(i))if(wkey(e)||isItem(e))return true;return false}
+X.legacy=function(){try{if(!X.on||typeof P==='undefined'||!P||!P.slots)return P.slots;return P.slots.map((id,i)=>painted(i)?null:id)}catch(e){X.err='legacy '+e.message;return P.slots}};
+function ready(el){if(el.classList.contains('wsoff')||el.classList.contains('nomp'))return false;const t=el.querySelector('.cdt');if(t&&t.textContent.trim())return false;
+  const c=el.querySelector('.cd');if(c){const v=parseFloat(c.style.getPropertyValue('--cd'));if(v>0)return false}return true}
+let lastT=-9,next=0,up=null;
+function press(el){const r=el.getBoundingClientRect(),o={bubbles:true,cancelable:true,pointerId:218,pointerType:'touch',isPrimary:true,clientX:r.left+r.width/2,clientY:r.top+r.height/2,button:0,buttons:1};
+  el.dispatchEvent(new PointerEvent('pointerdown',o));up=setTimeout(()=>{up=null;try{el.dispatchEvent(new PointerEvent('pointerup',Object.assign({},o,{buttons:0})))}catch(e){X.err='up '+e.message}},90)}
+function slots(dt){if(!X.on||up||P.dead||P.casting||time-lastT<X.gap)return;const t=G.autoT;if(!t||t.dead)return;
+  const W_=(typeof WEAPONS!=='undefined'&&P.weapon&&WEAPONS[P.weapon.t])||{},dT=Math.hypot(t.x-P.x,t.y-P.y);if(dT>Math.max(W_.range||0,130)+(t.sz||16)+40)return;
+  const n=P.slots.length;for(let k=0;k<n;k++){const i=(next+k)%n;let el=null;for(const e of els(i))if(wkey(e)){el=e;break}if(!el||isItem(el)||!ready(el))continue;
+    const vis=slotEl(i);press(vis&&wkey(vis)?vis:el);lastT=time;next=(i+1)%n;X.presses++;X.last=wkey(el);return}}
+/* ---------------- ring ---------------- */
+let wasAuto=false,zone0=null;
+const special=()=>{try{if(window.__QUESTHUD&&__QUESTHUD.cur)return true}catch(_){}try{if(typeof GUIDE!=='undefined'&&GUIDE&&GUIDE.walk)return true}catch(_){}return false};
+X.active=()=>X.ring&&X.R>0&&typeof G!=='undefined'&&!!G.auto&&!!X.c&&!special();
+X.out=function(e){try{if(!X.active()||!e)return false;if(Math.hypot(e.x-P.x,e.y-P.y)<180)return false;const o=Math.hypot(e.x-X.c.x,e.y-X.c.y)>X.R;if(o)X.stats.skipOut++;return o}catch(_){return false}};
+X.wp=function(){try{if(!X.active())return null;for(let k=0;k<14;k++){const a=Math.random()*6.283,r=X.R*(.15+.6*Math.random()),x=X.c.x+Math.cos(a)*r,y=X.c.y+Math.sin(a)*r;if(!blocked(x,y,(P.r||14)+4)){X.stats.wp++;return {x,y}}}return {x:X.c.x,y:X.c.y}}catch(_){return null}};
+try{const _a=autoPlay;autoPlay=function(dt){
+  try{const on=!!G.auto;if(on&&(!wasAuto||zone0!==G.zone||!X.c)){X.c={x:P.x,y:P.y};zone0=G.zone;G.autoWp=null}wasAuto=on;
+    if(X.active()&&G.autoT&&X.out(G.autoT))G.autoT=null}catch(e){X.err='pre '+e.message}
+  const v=_a.apply(this,arguments);try{if(G.auto&&G.state==='play')slots(dt)}catch(e){X.err='slots '+e.message}return v}}catch(e){X.err='hook '+e.message}
+setInterval(()=>{try{if(typeof G!=='undefined'&&!G.auto)wasAuto=false}catch(_){}},400);
+try{const ob=drawBeacons;drawBeacons=function(){try{if(X.active()&&typeof ctx!=='undefined'){const c=ctx;c.save();c.globalAlpha=.55;c.lineWidth=3;c.setLineDash([14,10]);c.lineDashOffset=-(time*18)%24;c.strokeStyle='#8dffc8';c.beginPath();c.arc(X.c.x,X.c.y,X.R,0,6.2832);c.stroke();
+    c.setLineDash([]);c.globalAlpha=.07;c.fillStyle='#8dffc8';c.fill();c.restore()}}catch(e){X.err='draw '+e.message}return ob.apply(this,arguments)}}catch(e){X.err='hook draw '+e.message}
+/* ---------------- settings row ---------------- */
+const lab=v=>v>=X.MAX?'ทั้งแมพ (ไม่จำกัดวง)':Math.round(v)+' px';
+const add=setInterval(()=>{try{const p=document.getElementById('camPanel');if(!p||document.getElementById('ar218'))return;if(!X.ring){clearInterval(add);return}
+  const d=document.createElement('div');d.id='ar218';d.style.cssText='margin:8px 0 2px;padding:8px;border-radius:8px;border:1px solid rgba(141,255,200,.45);background:rgba(10,30,26,.5)';
+  d.innerHTML='<div style="font-weight:700;margin-bottom:4px">∞ ระยะฟาร์มของ Auto: <span id="ar218v"></span></div><input type="range" id="ar218r" min="'+X.MIN+'" max="'+X.MAX+'" step="50" style="width:100%"><div style="font-size:11.5px;opacity:.8;margin-top:3px">Auto จะตีเฉพาะมอนสเตอร์ในวงรอบจุดที่กดเปิด Auto · เลื่อนขวาสุด = ทั้งแมพ</div>';
+  const ref=document.getElementById('hudxSetBtn')||document.getElementById('benchBtn');if(ref&&ref.parentNode===p)p.insertBefore(d,ref);else p.appendChild(d);
+  const r=d.querySelector('#ar218r'),v=d.querySelector('#ar218v');r.value=X.R||X.MAX;v.textContent=lab(+r.value);
+  r.addEventListener('input',()=>{const n=+r.value;X.R=n>=X.MAX?0:n;v.textContent=lab(n);try{localStorage.setItem('lanternfall_autoring218',String(X.R))}catch(_){}});
+  for(const ev of ['pointerdown','mousedown','touchstart'])d.addEventListener(ev,e=>e.stopPropagation());clearInterval(add)}catch(e){X.err='ui '+e.message}},700);
+})();
+
+</script>
+
+<script>
+/* r219 SKPAGE219 (?skpage=off): DeaRz 25 Nov 2026 01:09 BKK: on the phone the skill slots are two pages of 5.
+   Page 1 = slots 1-5, page 2 = slots 6, Q, E, R, F. The 5 buttons of the open page sit on one arc around the attack button (r 108, 172/144/116/88/60 deg);
+   a small round swap button "⇄ 1/2" just left of the dash button flips the page; the two camera-rotate touch buttons are removed (?camrot=on keeps them) (saved in localStorage lanternfall_skpage219). Only body.mobile; desktop bar unchanged.
+   Slots keep their index, keys and contents: only where the touch buttons are drawn changes. Auto play still presses skills of both pages. */
+(function(){'use strict';
+const X=window.SKPAGE219={on:!/[?&]skpage=off\b/.test(String(location.search)),page:0,err:null,flips:0,POS:[[108,172],[108,144],[108,116],[108,88],[108,60]],SW:[172,137]};
+if(!X.on)return;
+try{X.page=localStorage.getItem('lanternfall_skpage219')==='1'?1:0}catch(_){}
+const st=document.createElement('style');st.textContent='#skPg219{position:absolute;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:1px solid #c9a86a;background:radial-gradient(circle at 45% 30%,#2a3f78,#0a1228 75%);color:#f3e2b0;font:700 15px/1 system-ui,sans-serif;display:grid;place-items:center;padding:0;z-index:6}'
+ +'#skPg219 small{position:absolute;left:0;right:0;bottom:-13px;text-align:center;font:700 10px system-ui,sans-serif;color:#ffe9b0;text-shadow:0 1px 2px #000}#skPg219.fl{filter:brightness(1.5);transform:scale(.92)}body:not(.mobile) #skPg219{display:none}';
+if(!/[?&]camrot=on\b/.test(String(location.search)))st.textContent+='body.mobile #tRotL,body.mobile #tRotR{display:none!important}';   /* r219b: DeaRz 01:17 BKK, camera-rotate touch buttons removed (not used) */
+document.head.appendChild(st);
+function apply(){try{const box=document.getElementById('tSkills');if(!box)return;const mob=document.body.classList.contains('mobile');
+  for(const el of box.querySelectorAll('.tsk[data-ti]')){const i=+el.dataset.ti;if(!mob){el.style.removeProperty('display');continue}
+    if(((i/5)|0)!==X.page){el.style.display='none';continue}el.style.removeProperty('display');const [r,dg]=X.POS[i%5],a=dg*Math.PI/180;el.style.left=(Math.cos(a)*r)+'px';el.style.top=(-Math.sin(a)*r)+'px'}
+  let b=document.getElementById('skPg219');if(!b||b.parentNode!==box){b=document.createElement('button');b.id='skPg219';b.type='button';b.setAttribute('aria-label','สลับหน้าสกิล');
+    b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();X.page=X.page?0:1;X.flips++;try{localStorage.setItem('lanternfall_skpage219',String(X.page))}catch(_){}b.classList.add('fl');setTimeout(()=>b.classList.remove('fl'),200);apply()});
+    for(const ev of ['pointerup','click','mousedown','touchstart'])b.addEventListener(ev,e=>e.stopPropagation());box.appendChild(b)}
+  let sx=null,sy=null;try{const d=document.getElementById('tDash'),o=box.getBoundingClientRect();if(d){const q=d.getBoundingClientRect();if(q.width>4){sx=q.left-o.left-30;sy=q.top+q.height/2-o.top}}}catch(_){}   /* r219b: swap button sits just left of the dash button */
+  if(sx===null){const a=X.SW[1]*Math.PI/180;sx=Math.cos(a)*X.SW[0];sy=-Math.sin(a)*X.SW[0]}b.style.left=sx+'px';b.style.top=sy+'px';const h='⇄<small>'+(X.page+1)+'/2</small>';if(b.innerHTML!==h)b.innerHTML=h}catch(e){X.err=e.message}}
+X.apply=apply;
+try{const _b=buildTouchSkills;buildTouchSkills=function(){const r=_b.apply(this,arguments);apply();return r}}catch(e){X.err='hook '+e.message}
+let obs=null;setInterval(()=>{try{const box=document.getElementById('tSkills');if(!box)return;if(!obs){obs=new MutationObserver(()=>{if(!X._in){X._in=1;try{apply()}finally{X._in=0}}});obs.observe(box,{childList:true})}apply()}catch(_){}},1000);
+})();
+
+</script>
+
+<script>
+/* r220 DEATHUI220 (?deathui=off): DeaRz 25 Nov 2026 01:35 BKK: "redo the death screen, and the town name it returns to is wrong".
+   The button said "Capital City" but revive really loads Map 1 (sylva_lab, the start village); the text now names the real place.
+   New look (code-drawn, no new art): dark vignette, a small lantern whose flame has gone out with a rising wisp, title and description = DeaRz's own words (01:39 BKK: "พ่ายแพ้ต่อความมืด" / "ความตายไม่ใช่จุดจบ แต่เป็นบทเรียน... จงลุกขึ้นสู้อีกครั้ง", button = town name),
+   01:41 BKK: "the description should tell how to grow, e.g. refine gear, raise status, wear defence gear, upgrade skills, as a list of tips the player picks" -> 4 tip rows (TIPS); tapping one revives and opens the matching window (status/equipment = wInv, skills = wSkill; refine = hint to the smith). Wording and the tap behaviour are Code's own choice.
+   where you fell (Thai map name) + level, the EXP cost shown as a number, one clear button. The revive rule itself (5 % of the level's EXP, full HP/MP, Map 1) is unchanged. */
+(function(){'use strict';
+const X=window.DEATHUI220={on:!/[?&]deathui=off\b/.test(String(location.search)),err:null,shown:0,TOWN:'หมู่บ้านซิลวา',TITLE:'พ่ายแพ้ต่อความมืด',DESC:'ความตายไม่ใช่จุดจบ แต่เป็นบทเรียน... จงลุกขึ้นสู้อีกครั้ง'};
+if(!X.on)return;
+function thName(zid){try{const N=window.__ZONE_NAMES_22,W=window.__WORLDMAP;if(N&&W&&W.nodes){const i=W.nodes.findIndex(n=>n[0]===zid);if(i>=0&&N[i+1]&&N[i+1][1])return N[i+1][1]}}catch(_){}try{return ZONES[zid].n}catch(_){return ''}}
+const css=document.createElement('style');css.textContent=
+ '#over.d220{background:radial-gradient(ellipse at 50% 42%,rgba(20,14,34,.55),rgba(4,3,10,.93) 70%)!important;animation:d220in .9s ease both}'
++'@keyframes d220in{from{opacity:0}to{opacity:1}}'
++'#over.d220 .ovc{display:flex;flex-direction:column;align-items:center;gap:10px;max-width:min(92vw,460px);padding:0 14px;text-align:center}'
++'#over.d220 h1.dead{font:800 clamp(26px,7.4vw,44px)/1.2 Sarabun,"Noto Sans Thai",sans-serif;letter-spacing:.02em;margin:0;background:linear-gradient(180deg,#fff3d2,#e7b867 55%,#a8652c);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 10px rgba(0,0,0,.8));overflow-wrap:normal}'
++'#over.d220 #overSub{margin:0;font:600 15px/1.5 Sarabun,"Noto Sans Thai",sans-serif;color:#e9e2d0;letter-spacing:0;text-shadow:0 1px 4px #000}'
++'#d220cost{font:600 13.5px/1.4 Sarabun,"Noto Sans Thai",sans-serif;color:#ffb0a0;padding:4px 14px;border-radius:999px;background:rgba(60,14,14,.55);border:1px solid rgba(255,140,120,.35)}'
++'#d220lan{width:92px;height:118px;margin-bottom:2px}#d220lan .wisp{animation:d220w 3.2s ease-in-out infinite;transform-origin:46px 60px}@keyframes d220w{0%{opacity:0;transform:translateY(6px)}35%{opacity:.75}100%{opacity:0;transform:translateY(-16px)}}'
++'#d220lan .ember{animation:d220e 2.4s ease-in-out infinite}@keyframes d220e{0%,100%{opacity:.25}50%{opacity:.8}}'
++'#over.d220 #bRevive{margin-top:8px;min-width:min(78vw,300px);min-height:50px;font:800 17px/1.2 Sarabun,"Noto Sans Thai",sans-serif;letter-spacing:0;white-space:normal;padding:10px 20px}'
++'#over.d220 #bRevive small{display:block;font:600 12px/1.2 Sarabun,"Noto Sans Thai",sans-serif;opacity:.85;margin-bottom:2px}#d220where{font:500 12.5px/1.4 Sarabun,"Noto Sans Thai",sans-serif;color:#a9b3c8}';
+css.textContent+='body:has(#over.d220:not([hidden])) #qtL,body:has(#over.d220:not([hidden])) #qTrack{visibility:hidden!important}'
++'#d220tips{display:grid;grid-template-columns:1fr;gap:6px;width:min(92vw,420px);margin-top:2px}#d220tipsH{font:700 13px/1.3 Sarabun,"Noto Sans Thai",sans-serif;color:#f1d08a;margin-top:4px}'
++'#d220tips button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:9px;min-height:44px;padding:6px 12px;border-radius:10px;background:rgba(30,26,48,.78);border:1px solid rgba(231,184,103,.38);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}#d220tips button:active{background:rgba(70,54,30,.9)}'
++'#d220tips .ic{font-size:19px;width:24px;text-align:center;flex:none}#d220tips b{display:block;font:700 14px/1.25 Sarabun,"Noto Sans Thai",sans-serif;color:#fff1cf}#d220tips i{display:block;font:500 11.5px/1.3 Sarabun,"Noto Sans Thai",sans-serif;font-style:normal;color:#b9c0d2}#d220tips .go{margin-left:auto;color:#e7b867;font-size:15px;flex:none}'
++'@media (orientation:landscape){#over.d220 .ovc{max-width:min(94vw,640px);gap:6px}#d220tips{grid-template-columns:1fr 1fr;width:min(94vw,620px)}}@media (max-height:700px){#d220lan{width:56px!important;height:72px!important}}'
+;
+document.head.appendChild(css);
+const LAN='<svg id="d220lan" viewBox="0 0 92 118" aria-hidden="true"><defs><linearGradient id="d220g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a6a36"/><stop offset="1" stop-color="#4a3418"/></linearGradient></defs>'
+ +'<path class="wisp" d="M46 52c-6-7 5-10 0-18c-4-6 3-9 0-14" fill="none" stroke="#cfd6e6" stroke-width="2.2" stroke-linecap="round"/>'
+ +'<path d="M34 22a12 12 0 0 1 24 0" fill="none" stroke="#8a6a36" stroke-width="3"/><rect x="30" y="22" width="32" height="8" rx="3" fill="url(#d220g)"/>'
+ +'<path d="M26 32h40l6 56H20z" fill="rgba(18,22,40,.85)" stroke="#8a6a36" stroke-width="3" stroke-linejoin="round"/><path d="M46 32v56M33 32l-5 56M59 32l5 56" stroke="#5c4522" stroke-width="2"/>'
+ +'<ellipse class="ember" cx="46" cy="76" rx="5" ry="3" fill="#ff7a3a"/><rect x="16" y="88" width="60" height="9" rx="3" fill="url(#d220g)"/><rect x="24" y="97" width="44" height="6" rx="2" fill="#3a2912"/></svg>';
+
+X.TIPS=[
+ {k:'refine',ic:'⚒️',t:'ตีบวกอาวุธและชุด',d:()=>'ไปหาช่างตีเหล็กใน'+X.TOWN+' ของที่ตีบวกแล้วแรงและทนขึ้น'},
+ {k:'stat',ic:'📈',t:'อัปสเตตัส',d:()=>{let n=0;try{n=P.statPts|0}catch(_){}return n>0?'มีแต้มสเตตัสเหลือ '+n+' แต้ม ยังไม่ได้ใช้':'ได้แต้มทุกครั้งที่เลเวลขึ้น อย่าลืมกดเพิ่ม'}},
+ {k:'gear',ic:'🛡️',t:'สวมใส่ชุดป้องกัน',d:()=>'ใส่หมวก เสื้อ รองเท้าให้ครบทุกช่อง จะรับดาเมจน้อยลง'},
+ {k:'skill',ic:'✨',t:'อัปสกิล',d:()=>{let n=0;try{n=P.skillPts|0}catch(_){}return n>0?'มีแต้มสกิลเหลือ '+n+' แต้ม ยังไม่ได้ใช้':'เพิ่มเลเวลสกิลและติดตั้งลงช่องสกิล'}}];
+X.after=null;X.picked=null;
+function pick(k){try{X.picked=k;X.after=k;document.getElementById('bRevive').click();let n=0;const iv=setInterval(()=>{n++;try{const ov=document.getElementById('over');if(ov&&ov.hidden&&G.zone==='sylva_lab'){clearInterval(iv);setTimeout(()=>{try{const a=X.after;X.after=null;
+   if(a==='stat'||a==='gear')openWin('wInv');else if(a==='skill')openWin('wSkill');else if(a==='refine')log('⚒️ ช่างตีเหล็กอยู่หน้าโรงตีเหล็กใน'+X.TOWN+' เข้าไปคุยเพื่อตีบวกของ')}catch(e){X.err='after '+e.message}},1400)}else if(n>60)clearInterval(iv)}catch(_){}},250)}catch(e){X.err='pick '+e.message}}
+function tips(anchor){let h=document.getElementById('d220tipsH');if(!h){h=document.createElement('div');h.id='d220tipsH';h.textContent='หนทางแข็งแกร่งขึ้น แตะเพื่อคืนชีพแล้วไปทำเลย';anchor.insertAdjacentElement('afterend',h)}
+ let t=document.getElementById('d220tips');if(!t){t=document.createElement('div');t.id='d220tips';h.insertAdjacentElement('afterend',t);X.TIPS.forEach(q=>{const b=document.createElement('button');b.type='button';b.dataset.k=q.k;b.innerHTML='<span class="ic">'+q.ic+'</span><span><b>'+q.t+'</b><i></i></span><span class="go">›</span>';b.addEventListener('click',ev=>{ev.stopPropagation();pick(q.k)});t.appendChild(b)})}
+ X.TIPS.forEach(q=>{const i=t.querySelector('button[data-k="'+q.k+'"] i'),v=q.d();if(i&&i.textContent!==v)i.textContent=v});return t}
+function dress(){try{const ov=document.getElementById('over');if(!ov||ov.hidden)return;const c=ov.querySelector('.ovc'),h=ov.querySelector('h1.dead'),sub=document.getElementById('overSub'),b=document.getElementById('bRevive');if(!c||!h||!sub||!b)return;
+  ov.classList.add('d220');if(!document.getElementById('d220lan'))c.insertAdjacentHTML('afterbegin',LAN);
+  if(h.textContent!==X.TITLE)h.textContent=X.TITLE;
+  let lvl=1,z='',cost=0;try{lvl=P.lvl|0;z=thName(G.zone);cost=Math.min(P.exp|0,Math.round(need(P.lvl)*.05))}catch(_){}
+  const s=X.DESC;if(sub.textContent!==s)sub.textContent=s;let wz=document.getElementById('d220where');if(!wz){wz=document.createElement('div');wz.id='d220where';sub.insertAdjacentElement('afterend',wz)}const wt='ล้มลงที่ '+z+' · Lv '+lvl;if(wz.textContent!==wt)wz.textContent=wt;
+  const tp=tips(wz);let k=document.getElementById('d220cost');if(!k){k=document.createElement('div');k.id='d220cost';tp.insertAdjacentElement('afterend',k)}
+  const kt=cost>0?'คืนชีพแล้วเสีย EXP '+cost.toLocaleString('en-US')+' (5% ของเลเวลนี้)':'คืนชีพครั้งนี้ไม่เสีย EXP';if(k.textContent!==kt)k.textContent=kt;
+  const bt='<small>คืนชีพที่</small>'+X.TOWN;if(b.dataset.d220!==bt){b.dataset.d220=bt;b.innerHTML=bt}
+  X.shown++}catch(e){X.err=e.message}}
+setInterval(dress,250);
+try{const _l=log;log=function(m){try{if(typeof m==='string'&&/^คืนชีพที่ (Capital City|Map 1)/.test(m))arguments[0]=m.replace(/^คืนชีพที่ (Capital City|Map 1)/,'คืนชีพที่'+X.TOWN)}catch(_){}return _l.apply(this,arguments)}}catch(e){X.err='log '+e.message}
+try{const h=document.getElementById('setKillHint');if(h)h.textContent=h.textContent.replace('คืนชีพที่เมืองหลวง','คืนชีพที่'+X.TOWN)}catch(_){}
+})();
+
+</script>
+
+<script>
+/* r221 NOORB221 (?noorb=off): DeaRz 25 Nov 2026 03:46 BKK "ลูกแก้วดรอปม้อนเอาออกจากเกม" (remove the orbs monsters drop).
+   Monsters dropped 0-2 orbs (elite 5, boss 14) + a chance of a "power" orb: hp orb = +8% HP, mp orb = +12% MP, power orb = Spirit Power +1 (already zeroed by p209, so it gave nothing).
+   Now every orb is cleared before it is updated or drawn, so none shows and none can be picked up. Gold, items, potions and EXP drops are unchanged. */
+(function(){'use strict';
+const X=window.NOORB221={on:!/[?&]noorb=off\b/.test(String(location.search)),cleared:0,err:null};
+if(!X.on)return;
+try{const _u=updOrbs;updOrbs=function(dt){try{if(orbs.length){X.cleared+=orbs.length;orbs.length=0}}catch(e){X.err=e.message}return _u.apply(this,arguments)}}catch(e){X.err='hook '+e.message}
+})();
+
+</script>
+
+<script>
+/* r221 POTFLAT221 (?potflat=off): DeaRz 25 Nov 2026 03:48 BKK "ยาให้ฟื้นเลือดเป็นตัวเลข ไม่เอา% มันเยอะเกินไป" (HP potions heal a fixed number, not a percent);
+   03:55 "แก้ mp เป็นตัวเลขด้วย" (MP potion too); 03:56 "เพิ่มยาอีก3ระดับ" (3 more potion tiers; Code's reading: +3 tiers for HP AND +3 for MP, unconfirmed).
+   ALL numbers, prices and names below are PLACEHOLDERS chosen by Code (not approved); Balance proposes the real ones -> edit HP / MP only.
+   New tiers: sold by Mali (Map 1 shop), icon = the old potion icon recoloured in code (Art may draw real icons later).
+   Potion button / auto-potion "auto" use the HIGHEST tier you own (Balance's recommendation); HUD counts add all tiers. */
+(function(){'use strict';
+const HP=[['hpPot','Spirit Tonic',120,30],['hpPot2','Greater Spirit Tonic',350,120],['hpPot3','Superior Spirit Tonic',700,350,'#e0306a',-25],['hpPot4','Grand Spirit Tonic',1400,800,'#c02a9a',-55],['hpPot5','Divine Spirit Tonic',2500,1600,'#ffb347',40]];
+const MP=[['mpPot','Mana Draught',60,30],['mpPot2','Greater Mana Draught',150,100,'#3fb8ff',25],['mpPot3','Superior Mana Draught',300,300,'#6a7dff',55],['mpPot4','Grand Mana Draught',600,700,'#b07cff',95]];
+const X=window.POTFLAT221={on:!/[?&]potflat=off\b/.test(String(location.search)),HP,MP,err:null,
+  ids(kind){const L=kind==='mp'?MP:HP;return L.map(r=>r[0]).reverse()},
+  cnt(kind){let n=0;try{for(const r of (kind==='mp'?MP:HP))n+=countItem(r[0])|0}catch(_){}return n}};
+if(!X.on)return;
+const fmtN=v=>Number(v).toLocaleString('en-US');
+try{for(const [id,n,v,p,col] of HP){const it=ITEMS[id]||(ITEMS[id]={k:'pot',heal:.01,col:col||'#ff3d7b'});it.n=n;it.healN=v;it.price=p;it.d='ฟื้นฟู HP '+fmtN(v);if(!it.heal)it.heal=.01}
+    for(const [id,n,v,p,col] of MP){const it=ITEMS[id]||(ITEMS[id]={k:'pot',mana:.01,col:col||'#5ef0e0'});it.n=n;it.manaN=v;it.price=p;it.d='ฟื้นฟู MP '+fmtN(v);if(!it.mana)it.mana=.01}}catch(e){X.err='items '+e.message}
+/* recoloured icons for the new tiers */
+const ICO={};
+function mk(id,base,hue){try{const src=itemIcon({id:base});if(!src)return;const im=new Image();im.onload=()=>{try{const c=document.createElement('canvas');c.width=im.naturalWidth||64;c.height=im.naturalHeight||64;const g=c.getContext('2d');g.filter='hue-rotate('+hue+'deg) saturate(1.25)';g.drawImage(im,0,0,c.width,c.height);ICO[id]=c.toDataURL('image/png');try{if(G.win==='wInv')renderInv()}catch(_){}}catch(e){X.err='ico '+e.message}};im.src=src}catch(e){X.err='mk '+e.message}}
+try{const _i=itemIcon;itemIcon=function(it){try{if(it&&it.id&&!it.kind&&ICO[it.id])return ICO[it.id];if(it&&it.id&&!it.kind&&/^(hpPot[345]|mpPot[234])$/.test(it.id))return _i.call(this,{id:it.id[0]==='h'?'hpPot2':'mpPot'})}catch(_){}return _i.apply(this,arguments)}}catch(e){X.err='icon '+e.message}
+setTimeout(()=>{for(const r of HP)if(r[5]!=null)mk(r[0],'hpPot2',r[5]);for(const r of MP)if(r[5]!=null)mk(r[0],'mpPot',r[5])},1500);
+/* Mali's shop (Map 1) sells every tier */
+function shop(){try{const Q=window.__QDATA2,m=Q&&Q.npcs.find(n=>n.id==='npc_mali');if(!m||!m.shop)return;for(const L of [HP,MP])for(const [id,,,p] of L){const s=m.shop.find(x=>x.id===id);if(s)s.price=p;else{const k=m.shop.findIndex(x=>/^(hp|mp)Pot/.test(x.id)&&x.id.slice(0,2)===id.slice(0,2));const at=m.shop.map(x=>x.id.slice(0,2)===id.slice(0,2)&&/Pot/.test(x.id)).lastIndexOf(true);m.shop.splice(at>=0?at+1:m.shop.length,0,{id,price:p})}}}catch(e){X.err='shop '+e.message}}
+shop();setTimeout(shop,3000);
+})();
+
+</script>
+
+<script>
+/* r222 LOOT222 (?lootstay=off, ?lootglow=off): DeaRz 25 Nov 2026 04:00 BKK: monster item drops no longer fly to the hero, you walk over them (or press F / the pick-up button within 120 px);
+   a light on the ground by item grade; quest items still fly in as before. 04:03: Auto also walks to the items, it does not pull them in.
+   Auto order (he said "Ok" 04:04): fight first while a monster is on you or you were just hit; target dead and nobody on you -> walk to nearby drops (inside the farming ring); then next monster; hit while collecting -> back to fighting.
+   06:23 BKK: "gold too, must walk to it" -> gold stays on the ground as well (?goldfly=on = old pull). Code's own choices: items stay 120 s on the ground (was 15 s); beam sizes/colours.
+   Pet collector hook (he plans "a pet that runs and collects", 04:01): LOOT222.list() = drops on the ground, LOOT222.take(l) = pick one up from any distance, l.claim = free field for the collector. */
+(function(){'use strict';
+const q=String(location.search);
+const X=window.LOOT222={on:!/[?&]lootstay=off\b/.test(q),glow:!/[?&]lootglow=off\b/.test(q),goldStay:!/[?&]goldfly=on\b/.test(q),LIFE:120,hurtT:-99,colT:-99,lastT:null,err:null,stats:{touch:0,taken:0},
+  isQ(it){try{if(!it||!it.id)return false;if(/^(qi_|ki_)/.test(it.id))return true;const d=ITEMS[it.id];return !!(d&&typeof d.d==='string'&&d.d.indexOf('ไอเทมเควส')===0)}catch(_){return false}},
+  flies(l){return !X.on||(!!l.gold&&!X.goldStay)||(!l.gold&&X.isQ(l.item))},
+  stay(l){try{if(X.flies(l))return false;if(d2(l.x,l.y,P.x,P.y)<34){if(pickLoot(l))X.stats.touch++}return true}catch(e){X.err=e.message;return false}},
+  skip(l){try{return !!(X.on&&window.AUTOSLOT218&&AUTOSLOT218.out&&AUTOSLOT218.out(l))}catch(_){return false}},
+  autoGo(lt,t,dT){try{if(t!==X.lastT){if(X.lastT&&X.lastT.dead)X.colT=time+8;X.lastT=t}
+    if(time-X.hurtT<2.5){X.colT=-99;return false}   /* being hit: fight */
+    if(!t)return true;if(time<X.colT)return true;      /* the monster we fought just died: pick up the drops before the next one */
+    const W=WEAPONS[P.weapon.t]||{},eng=(W.ranged||P.weapon.t==='staff')?420:240;return dT>eng}catch(_){return !t||dT>240}},
+  list(){try{return loot.filter(l=>!l.dead&&!X.flies(l))}catch(_){return []}},
+  take(l){try{if(!l||l.dead)return false;const ok=pickLoot(l);if(ok)X.stats.taken++;return ok}catch(e){X.err=e.message;return false}},
+  tier(l){try{if(!l||l.gold||!l.item)return -1;const it=l.item;if(it.kind==='wpn'||it.kind==='eq')return it.rar|0;const d=ITEMS[it.id]||{};if(d.k==='card')return 5;if(typeof d.rar==='number')return d.rar|0;return 0}catch(_){return 0}}};
+let hp0=null;setInterval(()=>{try{if(typeof P==='undefined'||!P)return;if(hp0!=null&&P.hp<hp0-.5)X.hurtT=time;hp0=P.hp}catch(_){}},100);
+if(X.glow)try{const _d=drawLoot;drawLoot=function(l){try{const k=X.tier(l);if(k>=1){const col=lootColor(l),H=46+k*24,w=5+k*2.2,a=Math.min(.85,.28+k*.09)*(.85+.15*Math.sin(time*3+(l.ph||0)));
+    ctx.save();ctx.globalCompositeOperation='lighter';
+    const g=ctx.createLinearGradient(0,l.y-H,0,l.y);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.55,col);g.addColorStop(1,'#ffffff');
+    ctx.globalAlpha=a*.55;ctx.fillStyle=g;ctx.fillRect(l.x-w,l.y-H,w*2,H);ctx.globalAlpha=a;ctx.fillRect(l.x-w*.35,l.y-H,w*.7,H);
+    if(k>=2){const r=14+k*3+3*Math.sin(time*2.4+(l.ph||0));ctx.globalAlpha=a*.7;ctx.strokeStyle=col;ctx.lineWidth=1.6;ctx.beginPath();ctx.ellipse(l.x,l.y+2,r,r*.36,0,0,Math.PI*2);ctx.stroke()}
+    if(k>=4){for(let i=0;i<3;i++){const u=((time*.6+i/3+(l.ph||0))%1),sx=l.x+Math.sin((l.ph||0)+i*2.1+time)*w*1.6,sy=l.y-u*H;ctx.globalAlpha=a*(1-u);ctx.fillStyle='#fff';ctx.fillRect(sx-1.2,sy-1.2,2.4,2.4)}}
+    ctx.restore()}}catch(e){X.err='glow '+e.message;try{ctx.restore()}catch(_){}}return _d.apply(this,arguments)}}catch(e){X.err='hook '+e.message}
+})();
+
+</script>
+
+<script>
+/* r222 QBAG222 (?qbag=off): DeaRz 25 Nov 2026 04:00 BKK: "the bag gets slots for quest items only, so quest items do not clutter the item slots".
+   Quest items (id qi_* / ki_* or description starting "ไอเทมเควส") stay in P.inv (quests, gifts and saves read them there) but:
+   they never use up bag capacity (used() is patched into every "bag full" check and they always fit), the normal bag tabs hide them, and a new tab "เควส" shows only them. */
+(function(){'use strict';
+const X=window.QBAG222={on:!/[?&]qbag=off\b/.test(String(location.search)),tab:false,err:null,
+  isQ(it){try{if(!it||!it.id||it.kind)return false;if(/^(qi_|ki_)/.test(it.id))return true;const d=ITEMS[it.id];return !!(d&&typeof d.d==='string'&&d.d.indexOf('ไอเทมเควส')===0)}catch(_){return false}},
+  nQ(p){let n=0;try{for(const it of p.inv)if(X.isQ(it))n++}catch(_){}return n},
+  used(p){try{return X.on?p.inv.length-X.nQ(p):p.inv.length}catch(_){return p.inv.length}}};
+if(!X.on)return;
+try{const _a=addItemTo;addItemTo=function(p,it){try{if(X.isQ(it)){const ex=p.inv.find(x=>x.id===it.id&&!x.st&&!it.st);if(ex){ex.q+=it.q;return true}p.inv.push(it);return true}}catch(e){X.err='add '+e.message}return _a.apply(this,arguments)}}catch(e){X.err='hook add '+e.message}
+const css=document.createElement('style');css.textContent='.invtabs button[data-qb222].on{border-color:#7fe8ff;color:#7fe8ff;background:rgba(127,232,255,.12)}#invBody.qb222 .pager,#invBody.qb222 .dcbar,#invBody.qb222 .invtabs .isb,#invBody.qb222 .invtabs .isep{display:none!important}.qb222empty{grid-column:1/-1;text-align:center;color:#8fa4cc;font-size:12px;padding:14px 0}';document.head.appendChild(css);
+function cellHTML(it,i){return '<div class="cell" data-inv="'+i+'" data-tip="'+i+'"><img src="'+itemIcon(it)+'" alt="">'+(it.q>1?'<span class="q">'+it.q+'</span>':'')+'</div>'}
+function post(){try{const body=document.getElementById('invBody');if(!body)return;const grid=body.querySelector('.invg'),tabs=body.querySelector('.invtabs');if(!grid||!tabs)return;
+  const nq=X.nQ(P);if(!nq&&X.tab)X.tab=false;
+  if(!tabs.querySelector('[data-qb222]')){const b=document.createElement('button');b.dataset.qb222='1';b.innerHTML='เควส<small>'+nq+'</small>';const fash=tabs.querySelector('[data-ivt="fash"]');(fash||tabs.lastElementChild).insertAdjacentElement('afterend',b)}
+  const qb=tabs.querySelector('[data-qb222]');qb.classList.toggle('on',X.tab);body.classList.toggle('qb222',X.tab);
+  const all=tabs.querySelector('[data-ivt="all"] small');if(all){const n=(+all.textContent||0)-nq;all.textContent=Math.max(0,n)}
+  if(X.tab){tabs.querySelectorAll('[data-ivt]').forEach(b=>b.classList.remove('on'));let h='';P.inv.forEach((it,i)=>{if(X.isQ(it))h+=cellHTML(it,i)});const n=grid.children.length||16;for(let k=nq;k<Math.max(8,Math.ceil(nq/4)*4);k++)h+='<div class="cell"></div>';grid.innerHTML=h}
+  else{let rm=0;grid.querySelectorAll('.cell[data-inv]').forEach(c=>{if(X.isQ(P.inv[+c.dataset.inv])){c.remove();rm++}});for(let k=0;k<rm;k++)grid.insertAdjacentHTML('beforeend','<div class="cell"></div>')}
+  /* capacity text "กระเป๋า n/m" without quest items */
+  const w=document.getElementById('wInv');if(w&&nq){const tw=document.createTreeWalker(w,NodeFilter.SHOW_TEXT);let nd;const re=new RegExp('กระเป๋า '+P.inv.length+'/'+P.invSize);while((nd=tw.nextNode())){if(re.test(nd.nodeValue)){nd.nodeValue=nd.nodeValue.replace(re,'กระเป๋า '+X.used(P)+'/'+P.invSize);break}}}
+ }catch(e){X.err='post '+e.message}}
+try{const _r=renderInv;renderInv=function(){const r=_r.apply(this,arguments);post();return r}}catch(e){X.err='hook render '+e.message}
+document.addEventListener('click',e=>{try{const t=e.target.closest&&e.target.closest('#invBody .invtabs button');if(!t)return;if(t.dataset.qb222){e.stopPropagation();e.preventDefault();X.tab=!X.tab||true;renderInv()}else if(t.dataset.ivt&&X.tab){X.tab=false}}catch(er){X.err='click '+er.message}},true);
+})();
+
+</script>
+
+<script>
+/* r223 LANTERNGROUND223 (?lanternground=off): DeaRz 25 Nov 2026 06:39 BKK: "the planted house lantern looks like it is floating, make it look stuck in the ground".
+   The art (houseLantern_world.png) has no ground contact: stake tip sits exactly on the point with no shadow. Added in code, art untouched:
+   (1) a soft cast shadow of the lantern on the ground, (2) a dark contact spot at the stake, (3) the stake sunk 7 px and a small earth mound with grass blades drawn OVER its foot.
+   Light, prompt, pick-up, collision and the planted point are unchanged. */
+(function(){'use strict';
+const X=window.LANTERNGROUND223={on:!/[?&]lanternground=off\b/.test(String(location.search)),SINK:7,err:null,n:0};
+try{const H=window.HOUSE;if(!X.on||!H||!H.drawLantern)return;const _d=H.drawLantern;
+H.drawLantern=function(c,x,y,t,o){if(!X.on)return _d.apply(this,arguments);const al=(o&&o.alpha!=null)?o.alpha:1;
+  try{c.save();c.globalAlpha=al*.30;c.fillStyle='#0a0c06';c.beginPath();c.ellipse(x+17,y+5,27,7.5,-.08,0,Math.PI*2);c.fill();      /* cast shadow of the lantern head */
+    c.globalAlpha=al*.42;c.beginPath();c.ellipse(x+1,y+2,9,3.6,0,0,Math.PI*2);c.fill();c.restore()}catch(e){X.err='pre '+e.message;try{c.restore()}catch(_){}}
+  const a=Array.prototype.slice.call(arguments);a[2]=y+X.SINK;const r=_d.apply(this,a);
+  try{c.save();c.globalAlpha=al;                                                         /* earth mound over the stake foot */
+    const g=c.createLinearGradient(0,y-4,0,y+7);g.addColorStop(0,'#8a6b3e');g.addColorStop(1,'#4d3a1f');c.fillStyle=g;
+    c.beginPath();c.moveTo(x-10,y+5);c.quadraticCurveTo(x-7,y-3,x-1,y-4);c.quadraticCurveTo(x+6,y-4.5,x+10,y+5);c.quadraticCurveTo(x,y+8.5,x-10,y+5);c.fill();
+    c.strokeStyle='rgba(40,28,12,.55)';c.lineWidth=1;c.stroke();
+    c.fillStyle='rgba(255,230,170,.22)';c.beginPath();c.ellipse(x-3,y-1.2,3.2,1.3,-.3,0,Math.PI*2);c.fill();
+    c.fillStyle='#3a2a14';for(const [dx,dy,rr] of [[-12,6,1.6],[11,6.5,1.4],[6,8,1.1],[-6,8.5,1.2]]){c.beginPath();c.arc(x+dx,y+dy,rr,0,Math.PI*2);c.fill()}
+    c.lineCap='round';c.lineWidth=1.6;for(const [dx,h,l,col] of [[-9,9,-3,'#5f9a3c'],[-6,7,-1,'#79b84a'],[8,8,3,'#5f9a3c'],[11,6,4,'#79b84a']]){c.strokeStyle=col;c.beginPath();c.moveTo(x+dx,y+5);c.quadraticCurveTo(x+dx+l*.3,y+5-h*.6,x+dx+l,y+5-h);c.stroke()}
+    c.restore();X.n++}catch(e){X.err='post '+e.message;try{c.restore()}catch(_){}}
+  return r}}catch(e){X.err='hook '+e.message}
+})();
+
+</script>
+
+<script>
+/* r224 ICONFIX224 (?iconfix=off): DeaRz 25 Nov 2026 07:19 BKK, phone screenshot of the live game: several bag cells show no picture (only the count or the SEAL tag).
+   Likely cause (Code's diagnosis, not reproduced on a real phone): the icon pack images are created with decoding='async'; on a phone short of memory an image can report "complete" while its
+   pixels are not decoded, drawImage then paints nothing, and the EMPTY 64x64 canvas is turned into a data URL and cached for the whole session, so the cell stays blank.
+   Fix: every icon URL the game hands out is checked once (is anything painted?). A blank one is rebuilt here from the pack source after an explicit decode(), retried up to 12 times over about 30 s (and checked again later if that fails),
+   then the bag is redrawn. Icons that are fine are untouched. Debug: ICONFIX224.stats. */
+(function(){'use strict';
+const X=window.ICONFIX224={on:!/[?&]iconfix=off\b/.test(String(location.search)),err:null,stats:{checked:0,blank:0,fixed:0,failed:0},bad:{}};
+if(!X.on)return;
+const SRC=window.__ITEM_ICONS_R1B||{},MY={},STATE=new Map();/* url -> 1 ok / 2 blank */
+const ALIAS={gateRandBox:'gate_random_box'};
+function packKey(it){if(!it)return null;
+  if(it.kind==='wpn'){if(it.t==='fist')return null;const kind=(it.t==='staff'&&it.hs)?'holy':it.t;return 'w_'+kind+'_'+Math.max(0,Math.min(6,it.rar|0))}
+  if(it.kind==='eq'){if(it.set)return 'set_'+it.set+'_'+it.type;return 'e_'+it.type+'_'+Math.max(0,Math.min(6,it.rar|0))}
+  if(it.kind==='fash')return it.cid?(/^c_/.test(it.cid)?it.cid:'c_'+it.cid):null;
+  const id=it.id;if(!id)return null;if(ALIAS[id])return ALIAS[id];
+  if(/^it_weapon_book_shard_/.test(id))return 'it_weapon_book_shard';if(/^it_weapon_book_/.test(id))return 'it_weapon_book';return id}
+const myKey=it=>{try{return (typeof iconKey==='function'?iconKey(it):'')+'|'+packKey(it)+'|'+(it.rar|0)+'|'+(it.sty|0)}catch(_){return null}};
+const painted=cv=>{try{const d=cv.getContext('2d').getImageData(0,0,cv.width,cv.height).data;let n=0;for(let i=3;i<d.length;i+=16)if(d[i]>20&&++n>6)return true;return false}catch(_){return true}};
+let redrawT=null;const redraw=()=>{clearTimeout(redrawT);redrawT=setTimeout(()=>{try{if(G.win==='wInv')renderInv()}catch(_){}try{document.querySelectorAll('img').forEach(im=>{const k=im.dataset&&im.dataset.if224;if(k&&MY[k])im.src=MY[k]})}catch(_){}},120)};
+function glowCol(it){try{if(it.kind==='wpn'||it.kind==='eq'||it.kind==='fash')return RARITY[it.rar|0].c;const d=ITEMS[it.id];return d&&d.col||null}catch(_){return null}}
+async function rebuild(it,k,n){try{const key=packKey(it),src=key&&SRC[key];if(!src){X.stats.failed++;X.bad[k]='no pack source';return}
+  const im=new Image();im.src=src;try{await im.decode()}catch(_){await new Promise(r=>{im.onload=r;im.onerror=r;setTimeout(r,1500)})}
+  const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const col=glowCol(it);
+  if(col&&typeof glowSprite==='function'){try{g.globalCompositeOperation='lighter';g.drawImage(glowSprite(col),0,0,64,64)}catch(_){}g.globalCompositeOperation='source-over'}
+  const t=document.createElement('canvas');t.width=t.height=64;const tg=t.getContext('2d');tg.imageSmoothingEnabled=true;tg.imageSmoothingQuality='high';tg.drawImage(im,2,2,60,60);
+  if(!painted(t)){if(n<12){setTimeout(()=>rebuild(it,k,n+1),Math.min(3000,400*(n+1)));return}X.stats.failed++;X.bad[k]='decode failed';setTimeout(()=>{try{for(const [u,v] of STATE)if(v===2)STATE.delete(u)}catch(_){}},20000);return}
+  g.drawImage(t,0,0);MY[k]=c.toDataURL();X.stats.fixed++;delete X.bad[k];redraw()}catch(e){X.err='rebuild '+e.message}}
+const GLOW={};function glowOnly(it){try{const col=glowCol(it);if(!col||typeof glowSprite!=='function')return null;if(GLOW[col])return GLOW[col];const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');g.globalCompositeOperation='lighter';g.drawImage(glowSprite(col),0,0,64,64);return GLOW[col]=c.toDataURL()}catch(_){return null}}
+function check(url,it,k){STATE.set(url,0);X.stats.checked++;
+  /* art missing but the grade glow painted: the URL equals a glow-only icon */
+  try{const key=packKey(it);if(key&&SRC[key]&&(url===glowOnly(it)||url.length<200)){STATE.set(url,2);X.stats.blank++;X.bad[k]='art missing';rebuild(Object.assign({},it),k,0);return}}catch(_){}
+  const im=new Image();im.onload=()=>{try{const c=document.createElement('canvas');c.width=c.height=32;c.getContext('2d').drawImage(im,0,0,32,32);
+    if(painted(c)){STATE.set(url,1)}else{STATE.set(url,2);X.stats.blank++;X.bad[k]='blank';rebuild(Object.assign({},it),k,0)}}catch(e){X.err='check '+e.message}};im.onerror=()=>{STATE.set(url,2);X.stats.blank++;rebuild(Object.assign({},it),k,0)};im.src=url}
+try{const _i=itemIcon;itemIcon=function(it){const url=_i.apply(this,arguments);try{if(!it||typeof url!=='string')return url;const k=myKey(it);if(k&&MY[k])return MY[k];if(!STATE.has(url))check(url,it,k)}catch(e){X.err=e.message}return url}}catch(e){X.err='hook '+e.message}
+})();
+
+</script>
+
+<script>
+/* r225 AIMPTR225 (?aimptr=off): DeaRz 25 Nov 2026 07:23 BKK: "the monster-catching book follows where the mouse points; on the phone it follows the finger drag".
+   While the soul book is aiming (__HELPER.aim): PC = the aim line turns to the mouse pointer; phone = touch the play field and drag, the line points from the hero to the finger.
+   Throwing is unchanged (button "ปาลูกไฟ" / F). Walking while aiming hands the direction back to the movement until the pointer moves again.
+   Code's own choice: on the phone the finger only aims, it does not throw on release. */
+(function(){'use strict';
+const X=window.AIMPTR225={on:!/[?&]aimptr=off\b/.test(String(location.search)),ang:null,tid:null,err:null,n:0};
+if(!X.on)return;
+const HP=()=>window.__HELPER;const aiming=()=>{try{const h=HP();return !!(h&&h.aim&&G.state==='play'&&!P.dead)}catch(_){return false}};
+function setFrom(cx,cy){try{const w=s2w(cx,cy),dx=w[0]-P.x,dy=w[1]-(P.y-22);if(dx*dx+dy*dy<64)return;X.ang=Math.atan2(dy,dx);P.face=X.ang;X.n++}catch(e){X.err=e.message}}
+/* the play field = anything that is not a control (a passing toast or label over the field still counts as the field) */
+const CTRL='button,a,input,select,textarea,[role="button"],#hpAim,#joyBase,#joyKnob,#joyZone,#tAtk,#tDash,#tInt,#tSkills,.tsk,#actPad,#bar,.slot,.win,#camPanel,#hudxPanel,#mmWrap,#minimap';
+const onField=e=>{try{const t=e.target;if(!t||!t.closest)return false;if(t.id==='cv'||t.tagName==='CANVAS')return true;return !t.closest(CTRL)}catch(_){return false}};
+addEventListener('mousemove',e=>{if(aiming())setFrom(e.clientX,e.clientY)},true);
+addEventListener('pointerdown',e=>{try{if(!aiming()||e.pointerType==='mouse'||!onField(e))return;X.tid=e.pointerId;setFrom(e.clientX,e.clientY);e.stopImmediatePropagation();e.preventDefault()}catch(er){X.err=er.message}},true);
+addEventListener('pointermove',e=>{try{if(X.tid==null||e.pointerId!==X.tid)return;if(!aiming()){X.tid=null;return}setFrom(e.clientX,e.clientY);e.stopImmediatePropagation();e.preventDefault()}catch(er){X.err=er.message}},true);
+for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{if(X.tid!=null&&e.pointerId===X.tid){X.tid=null;try{e.stopImmediatePropagation()}catch(_){}}},true);
+/* the same finger must not also drive the game's own touch handlers */
+for(const ev of ['touchstart','touchmove','touchend'])addEventListener(ev,e=>{try{if(aiming()&&onField(e)&&(X.tid!=null||ev==='touchstart')){e.stopImmediatePropagation();if(e.cancelable)e.preventDefault();if(ev!=='touchend'){const t=e.touches[0]||e.changedTouches[0];if(t)setFrom(t.clientX,t.clientY)}}}catch(er){X.err=er.message}},{capture:true,passive:false});
+let lx=null,ly=null;(function tick(){try{if(aiming()){if(lx!=null&&Math.hypot(P.x-lx,P.y-ly)>.6&&X.tid==null)X.ang=null;if(X.ang!=null)P.face=X.ang;lx=P.x;ly=P.y}else{X.ang=null;X.tid=null;lx=null}}catch(_){}requestAnimationFrame(tick)})();
+})();
+
+</script>
+
+<script>
+/* r226 GEMDROP226 (?gemdrop=off): DeaRz 25 Nov 2026 BKK, refine items drop from EVERY monster:
+   10:26 "หิน+1-4 ดรอปม้อนทุกตัว 1%"  -> Smithing Gem (+1..+4) 1 %
+   10:27 "หิน+5-10 ดรอปทุกตัว 0.5%"   -> Smithing Gem Upgrade (+5..+10) 0.5 %
+   10:27 "ใบกันแตกดรอปทุกตัว 0.1%"    -> Steadfast Scroll (safeScroll: a failed refine does not lower the level; gear never breaks in this game) 0.1 %
+   10:29 "ม่อนต่ำกว่าเวลผู้เล่นมากๆโอกาสดรอปน้อยลงไปอีก" -> these 3 items drop less from monsters far below the hero (GAP table, all monsters incl. elite/boss); gap table numbers are Code's own placeholders.
+   10:33 "หินออฟชั่นก็เช่นกัน ให้เท่าหินตี+เลย" -> Option Stone (optStone) 1 % from every monster, same level-gap cut.
+   Code's reading: the number is the MINIMUM for every monster; where a monster already had a higher chance it keeps it
+   (elite gem upgrade 1.2 %, elite steadfast 0.75 %, boss gem 2 %, boss steadfast 4.5 %). Raid, dev and summoned monsters excluded as before. */
+(function(){'use strict';
+const X=window.GEMDROP226={on:!/[?&]gemdrop=off\b/.test(String(location.search)),P:.01,UP:.005,SAFE:.001,OPT:.01,err:null,stats:{up:0,safe:0,opt:0,cut:0},cur:null,IDS:new Set(['smithGem','smithGemUp','safeScroll','optStone']),
+  GAP:[[30,0],[20,.2],[10,.5]],   /* hero Lv - monster Lv >= 30: none, >= 20: x0.2, >= 10: x0.5, below 10: x1 (PLACEHOLDER) */
+  gapMul(e){try{const g=(P.lvl|0)-(e.L|0);for(const [t,m] of X.GAP)if(g>=t)return m;return 1}catch(_){return 1}}};
+if(!X.on)return;
+try{const _dl=dropLoot;dropLoot=function(x,y,o){try{const e=X.cur,id=o&&o.item&&o.item.id;if(e&&id&&X.IDS.has(id)){const m=X.gapMul(e);if(m<1&&rng()>=m){X.stats.cut++;return}}}catch(er){X.err='gap '+er.message}return _dl.apply(this,arguments)}}catch(e){X.err='hook drop '+e.message}
+try{const _k=killEnemy;killEnemy=function(e){const prev=X.cur;X.cur=e;const was=e&&e.dead;let r;try{r=_k.apply(this,arguments);
+  try{if(e&&!was&&e.dead&&e.m&&!e.m.raid&&!e.raidB&&!e.dev&&!e.summoned){const dm=G.dropMul||1,el=!!(e.m.elite||e.eliteX),bo=!!e.m.boss;
+    if(!el&&rng()<X.UP*dm){dropLoot(e.x,e.y,{item:{id:'smithGemUp',q:1},rare:1});X.stats.up++}          /* elite already 1.2 % */
+    if(!el&&!bo&&rng()<Math.max(0,X.OPT-.004)*dm){dropLoot(e.x,e.y,{item:{id:'optStone',q:1}});X.stats.opt++}   /* normal mobs already roll 0.4 %: top up to 1 % (elite 5 %, boss 30 % already) */
+    if(!el&&!bo&&rng()<X.SAFE*dm){dropLoot(e.x,e.y,{item:{id:'safeScroll',q:1},rare:1});X.stats.safe++}}  /* elite 0.75 %, boss 4.5 % already */
+  }catch(er){X.err=er.message}}finally{X.cur=prev}return r}}catch(e){X.err='hook '+e.message}
+})();
+
+</script>
+
+<script>
+/* SETTAB227 r227: settings page split into tabs (กราฟิก / เสียง / ควบคุม / กล้อง / ตัวละคร). ?settab=off */
+(function(){const X=window.SETTAB227={on:true,err:null,tab:null,ver:'r227'};
+try{if(/[?&]settab=off/.test(location.search)){X.on=false;return}}catch(e){}
+const TABS=[['gfx','🖥 กราฟิก'],['snd','🔊 เสียง'],['ctl','🎮 ควบคุม'],['cam','🎥 กล้อง'],['gen','👤 ตัวละคร']];
+const KEY='lf_settab227';
+try{const st=document.createElement('style');st.textContent=`
+#st227bar{clear:both;flex-wrap:nowrap!important;position:sticky;top:-1px;z-index:5;display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px;padding:8px 0;background:rgba(12,22,44,.98);border-bottom:1px solid rgba(255,215,120,.25)}
+#st227bar button{flex:1 1 0;min-width:0;padding:8px 2px;border-radius:10px;border:1px solid rgba(160,200,255,.3);background:rgba(30,50,90,.7);color:#cfe0ff;font:inherit;font-size:13px;letter-spacing:0;cursor:pointer;white-space:nowrap}
+#st227bar button.on{background:linear-gradient(#ffd77a,#e0a840);color:#2a1a00;border-color:#ffe2a0;font-weight:bold}
+.st227sec[hidden]{display:none!important}
+.st227sec>h4:first-child{margin-top:0}
+#st227snd .sl span b{color:#ffd77a}
+#st227snd .st227row{display:flex;align-items:center;gap:10px;margin:10px 0}
+#st227snd .st227row span{flex:0 0 120px}
+#st227snd .st227row input[type=range]{flex:1}
+#st227snd .st227row b{flex:0 0 44px;text-align:right;color:#ffd77a}
+`;document.head.appendChild(st)}catch(e){X.err='css '+e.message}
+function save(t){try{localStorage.setItem(KEY,t)}catch(e){}}
+function load(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+function aud(){try{return typeof AUD!=='undefined'&&AUD&&AUD.cfg?AUD:null}catch(e){return null}}
+function buildSnd(sec){const A=aud();const c=A?A.cfg:{master:.7,bgm:.45,sfx:.8,mute:false};
+  sec.innerHTML='<h4>เสียง · Sound</h4>'+[['master','เสียงรวม'],['bgm','ดนตรี (BGM)'],['sfx','เอฟเฟกต์ (SFX)']].map(([k,n])=>`<div class="st227row"><span>${n}</span><input type="range" min="0" max="100" value="${Math.round((c[k]??0)*100)}" data-st227v="${k}"><b id="st227v_${k}">${Math.round((c[k]??0)*100)}%</b></div>`).join('')
+   +`<label class="chk"><input type="checkbox" id="st227mute" ${c.mute?'checked':''}> ปิดเสียงทั้งหมด</label>`+(A?'':'<p class="hint">ระบบเสียงยังไม่พร้อม</p>');
+  sec.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.st227v;if(!k)return;const A=aud();if(!A)return;A.cfg[k]=+e.target.value/100;const o=document.getElementById('st227v_'+k);if(o)o.textContent=e.target.value+'%';try{audSave();audVol()}catch(_){}});
+  sec.addEventListener('change',e=>{if(e.target.id!=='st227mute')return;const A=aud();if(!A)return;A.cfg.mute=e.target.checked;try{audSave();audVol();if(!e.target.checked&&typeof audRestart==='function')audRestart()}catch(_){}});}
+function syncSnd(){const A=aud();if(!A)return;for(const k of ['master','bgm','sfx']){const i=document.querySelector(`[data-st227v="${k}"]`);if(i&&document.activeElement!==i){i.value=Math.round(A.cfg[k]*100);const o=document.getElementById('st227v_'+k);if(o)o.textContent=i.value+'%'}}const m=document.getElementById('st227mute');if(m)m.checked=!!A.cfg.mute}
+function show(t){X.tab=t;save(t);const p=document.getElementById('camPanel');if(!p)return;
+  p.querySelectorAll('#st227bar button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  p.querySelectorAll('.st227sec').forEach(s=>s.hidden=s.dataset.t!==t);if(t==='snd')syncSnd();}
+function classify(ch,cur){const id=ch.id||'',tx=(ch.textContent||'').trim();
+  if(id==='apSec'||id==='hudxSetBtn'||id==='ar218'||(ch.querySelector&&ch.querySelector('#camTouch,#hudxSetBtn,#ar218,#apOn')))return 'ctl';
+  if(id==='benchBtn')return 'gfx';
+  if(ch.tagName==='DETAILS')return 'gen';
+  if(/Camera shake|กล้องสั่น/i.test(tx))return 'cam';
+  return cur;}
+function sort(){const p=document.getElementById('camPanel');if(!p)return;
+  let bar=document.getElementById('st227bar'),secs={};
+  if(!bar){bar=document.createElement('div');bar.id='st227bar';bar.innerHTML=TABS.map(([k,n])=>`<button type="button" data-t="${k}">${n}</button>`).join('');
+    bar.addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(b)show(b.dataset.t)});
+    const title=[...p.children].find(c=>c.tagName==='H4'&&/ตั้งค่า|Settings/i.test(c.textContent));
+    if(title)title.after(bar);else p.prepend(bar);
+    let after=bar;for(const [k] of TABS){const s=document.createElement('div');s.className='st227sec';s.dataset.t=k;s.id='st227'+k;after.after(s);after=s;if(k==='snd')buildSnd(s);}}
+  for(const [k] of TABS)secs[k]=document.getElementById('st227'+k);
+  const title=[...p.children].find(c=>c.tagName==='H4'&&/ตั้งค่า|Settings/i.test(c.textContent));
+  let cur='gen',moved=0;const kids=[...p.children];
+  for(const ch of kids){if(ch===bar||ch===title||ch.id==='obCamClose'||ch.classList.contains('st227sec'))continue;
+    if(ch.tagName==='H4'){if(/CAMERA|กล้อง/i.test(ch.textContent))cur='cam';else if(/กราฟิก|ความลื่น/.test(ch.textContent))cur='gfx';else if(/เสียง/.test(ch.textContent))cur='snd';}
+    if(ch.classList.contains('setsec')||ch.id==='apSec'){const tx=ch.textContent||'';if(ch.id==='apSec'||/ยา|ควบคุม|Auto/i.test(tx))cur='ctl';else if(/ออร่า/.test(tx))cur='gfx';else if(/ตัวละคร/.test(tx))cur='gen';else if(/เสียง/.test(tx))cur='snd';}
+    const k=classify(ch,cur);secs[k].appendChild(ch);moved++;}
+  // touch-controls row lives inside the camera block: move it to controls
+  const tc=document.getElementById('camTouch');if(tc){const row=tc.closest('label')||tc.parentNode;if(row&&secs.cam.contains(row)){secs.ctl.prepend(row);moved++}}
+  if(secs.ctl&&!secs.ctl.querySelector('h4.st227h')){const h=document.createElement('h4');h.className='st227h';h.textContent='ควบคุม · Controls';secs.ctl.prepend(h)}
+  if(secs.gen&&!secs.gen.querySelector('h4.st227h')){const h=document.createElement('h4');h.className='st227h';h.textContent='ตัวละคร · ทั่วไป';secs.gen.prepend(h)}
+  if(!X.tab||moved){const t=X.tab||load();show(TABS.some(a=>a[0]===t)?t:'gfx')}
+  X.n=(X.n||0)+1;}
+X.sort=sort;X.show=show;
+let wasVis=false;
+setInterval(()=>{try{const p=document.getElementById('camPanel');if(!p)return;const vis=p.offsetParent!==null||getComputedStyle(p).display!=='none'&&!p.hidden;
+  sort();if(vis&&!wasVis&&X.tab==='snd')syncSnd();wasVis=vis}catch(e){X.err='sort '+e.message}},700);
+})();
+
+</script>
+
+<script>
+/* CASH228 r228: Cash Shop with Crystals (💎). ?cashshop=off. TEST: top-up is a FREE placeholder (no real payment yet). All prices are Code placeholders until Balance + DeaRz approve. */
+(function(){const X=window.CASH228={on:true,err:null,ver:'r228',log:[]};
+try{if(/[?&]cashshop=off/.test(location.search)){X.on=false;return}}catch(e){}
+const TABS=[['top','💎 เติมคริสตัล'],['cloth','👕 ชุดแต่งตัว'],['home','🏠 ของแต่งบ้าน'],['pot','🧪 ยา'],['ref','🔨 ตีบวก'],['conv','🎒 ของสะดวก']];
+/* top-up packs: crystals (+bonus); baht labels are placeholders, payment is NOT connected */
+const PACKS=[[60,0,'฿35'],[300,30,'฿169'],[900,135,'฿499'],[1800,360,'฿999'],[3000,750,'฿1,690']];/* Balance cashshop_v1, approved for now by DeaRz 25 Nov 05:48 UTC */
+const SHOP={
+ cloth:[{id:'c_soon1',n:'ชุดอัศวินตะเกียง',soon:1,ic:'🛡'},{id:'c_soon2',n:'ชุดนักเดินทางลอยฟ้า',soon:1,ic:'🧥'},{id:'c_soon3',n:'ชุดผจญภัยฤดูหนาว',soon:1,ic:'🧣'}],
+ home:[['hangingLanternPost',60],['wovenRug',90],['youngTree',100],['bookshelf',120],['simpleBed',150]].map(([d,c])=>({id:'h_'+d,decor:d,q:1,c})),
+ pot:[['hpPot3',10,20],['hpPot4',10,40],['hpPot5',10,60],['mpPot3',10,20],['mpPot4',10,40],['mpPot5',10,60]].map(([i,q,c])=>({id:'p_'+i,item:i,q,c})),
+ ref:[['smithGem',5,30,3],['optStone',3,30,3],['smithGemUp',1,40,5],['safeScroll',1,100,1],['luckScroll',1,120,1]].map(([i,q,c,day])=>({id:'r_'+i,item:i,q,c,day})),
+ conv:[{id:'v_bag',n:'ขยายกระเป๋า +16 ช่อง',bag:16,c:150,ic:'🎒'}]};
+X.SHOP=SHOP;X.PACKS=PACKS;
+/* wallet: per character name in localStorage (real money must later live on a server) */
+const key=()=>'lf_cash228_'+((window.P&&P.name)||'_');
+function bal(){try{return Math.max(0,parseInt(localStorage.getItem(key())||'0',10)||0)}catch(e){return 0}}
+function setBal(v){try{localStorage.setItem(key(),String(Math.max(0,Math.floor(v))))}catch(e){X.err='save '+e.message}chip()}
+X.bal=bal;X.add=n=>{setBal(bal()+n);return bal()};
+const dkey=()=>'lf_cash228d_'+((window.P&&P.name)||'_');
+function today(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function dayRec(){let r=null;try{r=JSON.parse(localStorage.getItem(dkey())||'null')}catch(e){}if(!r||r.d!==today())r={d:today(),n:{}};return r}
+function left(it){if(!it.day)return Infinity;return Math.max(0,it.day-(dayRec().n[it.id]||0))}
+function useDay(it){if(!it.day)return;const r=dayRec();r.n[it.id]=(r.n[it.id]||0)+1;try{localStorage.setItem(dkey(),JSON.stringify(r))}catch(e){}}
+X.left=id=>{for(const k in SHOP)for(const x of SHOP[k])if(x.id===id)return left(x)};
+function itemN(id){try{return (ITEMS[id]&&ITEMS[id].n)||id}catch(e){return id}}
+function decorN(id){try{return HOUSE.items[id].n}catch(e){return id}}
+function decorPng(id){try{const a=window.__HOUSE_DECOR&&__HOUSE_DECOR.items[id];if(!a)return null;let src=a.png;if((!src||src.length<200)&&a.facings){const f=a.facings[a.default]||Object.values(a.facings)[0];src=f&&(f.png||f.src)}return src&&src.length>200?src:null}catch(e){return null}}
+function icon(it){try{if(it.decor){const s=decorPng(it.decor);if(s)return `<img src="${s}" alt="" style="object-fit:contain">`}if(it.item)return `<img src="${itemIcon({id:it.item})}" alt="">`}catch(e){}return `<span class="cs228e">${it.ic||(it.decor?'🪑':'🎁')}</span>`}
+function name(it){return it.n||(it.item?itemN(it.item):it.decor?decorN(it.decor):it.id)}
+function canGive(it){if(it.soon)return 'เร็วๆ นี้';
+ if(it.decor){try{if(!HOUSE||!HOUSE.items||!HOUSE.items[it.decor]||typeof HOUSE.storageAdd!=='function')return 'ระบบบ้านยังไม่พร้อม'}catch(e){return 'ระบบบ้านยังไม่พร้อม'}}
+ if(it.item){try{if(!ITEMS[it.item])return 'ไม่มีไอเท็มนี้'}catch(e){return 'ไม่มีไอเท็มนี้'}}
+ if(it.bag&&P.invSize>=192)return 'กระเป๋าเต็มสุดแล้ว (192)';if(it.day&&left(it)<=0)return 'วันนี้ครบแล้ว';return null}
+function give(it){
+ if(it.decor)return !!HOUSE.storageAdd(it.decor,it.q||1);
+ if(it.item)return !!addItem({id:it.item,q:it.q||1});
+ if(it.bag){P.invSize=Math.min(192,P.invSize+it.bag);try{if(G.win==='wInv')renderInv()}catch(_){}return true}
+ return false}
+function buy(id){let it=null;for(const k in SHOP)for(const x of SHOP[k])if(x.id===id)it=x;if(!it)return 'no item';
+ const why=canGive(it);if(why)return why;if(bal()<it.c)return 'คริสตัลไม่พอ';
+ const b0=bal();setBal(b0-it.c);let ok=false;try{ok=give(it)}catch(e){X.err='give '+e.message}
+ if(!ok){setBal(b0);return 'กระเป๋าเต็ม · คืนคริสตัลแล้ว'}
+ useDay(it);X.log.push({t:Date.now(),id,c:it.c});try{if(typeof saveGame==='function')saveGame()}catch(_){}
+ try{toast('ซื้อ '+name(it)+(it.q>1?' ×'+it.q:'')+' แล้ว','#bfe8ff')}catch(_){}return true}
+X.buy=buy;
+function topup(i){const p=PACKS[i];if(!p)return;setBal(bal()+p[0]+p[1]);X.log.push({t:Date.now(),topup:p[0]+p[1]});try{toast('ทดสอบ: ได้ 💎'+(p[0]+p[1])+' (ไม่ได้จ่ายเงินจริง)','#bfe8ff')}catch(_){}}
+X.topup=topup;
+/* ---------- UI ---------- */
+try{const st=document.createElement('style');st.textContent=`
+#cCash228{cursor:pointer;pointer-events:auto!important;background:linear-gradient(#2b3f7a,#1a2a58)!important;border-color:#8fd0ff!important;color:#dff4ff!important}
+#cs228{position:fixed;inset:0;z-index:9000;background:rgba(4,8,20,.72);display:flex;align-items:center;justify-content:center;padding:10px;box-sizing:border-box}
+#cs228[hidden]{display:none}
+#cs228 .w{width:min(760px,100%);max-height:100%;display:flex;flex-direction:column;background:linear-gradient(#14224a,#0c1530);border:1px solid rgba(255,215,120,.45);border-radius:16px;color:#e6efff;box-shadow:0 10px 40px rgba(0,0,0,.6);overflow:hidden;font-size:14px}
+#cs228 .hd{display:flex;align-items:center;gap:8px;padding:12px 14px 6px}
+#cs228 .hd h3{margin:0;flex:1;font-size:18px;color:#ffe08a;letter-spacing:.5px}
+#cs228 .bal{background:rgba(120,190,255,.15);border:1px solid #8fd0ff;border-radius:20px;padding:4px 12px;font-weight:bold;color:#cfeeff;white-space:nowrap}
+#cs228 .x{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:10px;padding:6px 12px;font:inherit;cursor:pointer}
+#cs228 .tb{display:flex;gap:6px;padding:6px 12px 10px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(255,215,120,.2)}
+#cs228 .tb button{flex:0 0 auto;padding:8px 10px;border-radius:10px;border:1px solid rgba(160,200,255,.3);background:rgba(30,50,90,.7);color:#cfe0ff;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+#cs228 .tb button.on{background:linear-gradient(#ffd77a,#e0a840);color:#2a1a00;border-color:#ffe2a0;font-weight:bold}
+#cs228 .bd{overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+#cs228 .cd{background:rgba(255,255,255,.05);border:1px solid rgba(160,200,255,.22);border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+#cs228 .cd img,#cs228 .cs228e{width:44px;height:44px;font-size:34px;line-height:44px;image-rendering:auto}
+#cs228 .cd .n{font-weight:bold;min-height:2.4em;display:flex;align-items:center}
+#cs228 .cd .q{color:#9fb6dd;font-size:12px}
+#cs228 .cd button{width:100%;padding:8px 4px;border-radius:10px;border:1px solid #8fd0ff;background:linear-gradient(#3a6bc0,#22468a);color:#fff;font:inherit;font-weight:bold;cursor:pointer}
+#cs228 .cd button.cf{background:linear-gradient(#ffd77a,#e0a840);color:#2a1a00;border-color:#ffe2a0}
+#cs228 .cd button:disabled{opacity:.45;cursor:default}
+#cs228 .cd.soon{opacity:.6}
+#cs228 .note{grid-column:1/-1;font-size:12px;color:#ffd0a0;background:rgba(255,160,60,.1);border:1px solid rgba(255,160,60,.35);border-radius:10px;padding:8px 10px;margin:0}
+#cs228 .msg{min-height:1.2em;font-size:12px;color:#ffb4b4}
+`;document.head.appendChild(st)}catch(e){X.err='css '+e.message}
+let tab='top',armed=null,armT=0;
+function card(it){const why=canGive(it),poor=!why&&bal()<it.c;
+ return `<div class="cd${it.soon?' soon':''}">${icon(it)}<div class="n">${name(it)}</div><div class="q">${it.q>1?'×'+it.q:it.bag?'+'+it.bag+' ช่อง (สูงสุด 192)':it.decor?'เข้าคลังของแต่งบ้าน':'&nbsp;'}${it.day?`<br><span style="color:#ffd77a">วันนี้ซื้อได้อีก ${left(it)}/${it.day}</span>`:''}</div>
+ <button data-buy="${it.id}" ${why?'disabled':''} class="${armed===it.id?'cf':''}">${why?why:armed===it.id?'ยืนยัน 💎'+it.c:'💎 '+it.c}</button><div class="msg" id="cs228m_${it.id}">${poor?'คริสตัลไม่พอ':''}</div></div>`}
+function render(){const w=document.getElementById('cs228');if(!w||w.hidden)return;
+ w.querySelector('.bal').textContent='💎 '+bal().toLocaleString();
+ w.querySelectorAll('.tb button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+ const bd=w.querySelector('.bd');
+ if(tab==='top')bd.innerHTML=`<p class="note">ทดสอบ: ยังไม่ได้ต่อระบบจ่ายเงินจริง กดแล้วได้คริสตัลฟรี ราคาเงินบาทเป็นตัวอย่าง</p>`+PACKS.map((p,i)=>`<div class="cd"><span class="cs228e">💎</span><div class="n">${p[0].toLocaleString()} คริสตัล</div><div class="q">${p[1]?'แถม +'+p[1]:'&nbsp;'}</div><button data-top="${i}">${p[2]}</button><div class="msg"></div></div>`).join('');
+ else bd.innerHTML=(tab==='cloth'?'<p class="note">ชุดแต่งตัวต้องให้ Art วาดก่อน ตอนนี้เป็นช่องตัวอย่าง</p>':'')+(tab==='ref'?'<p class="note">ของตีบวกจำกัดจำนวนต่อวัน รีเซ็ตตอนเที่ยงคืน</p>':'')+SHOP[tab].filter(it=>{try{return !it.item||ITEMS[it.item]}catch(e){return false}}).map(card).join('')}
+function open(t){let w=document.getElementById('cs228');if(!w){w=document.createElement('div');w.id='cs228';w.hidden=true;
+  w.innerHTML=`<div class="w"><div class="hd"><h3>💎 ร้านคริสตัล</h3><span class="bal"></span><button class="x" type="button">✕</button></div><div class="tb">${TABS.map(([k,n])=>`<button type="button" data-t="${k}">${n}</button>`).join('')}</div><div class="bd"></div></div>`;
+  document.body.appendChild(w);
+  w.addEventListener('click',e=>{if(e.target===w||e.target.closest('.x')){close();return}
+   const tb=e.target.closest('[data-t]');if(tb){tab=tb.dataset.t;armed=null;render();return}
+   const tp=e.target.closest('[data-top]');if(tp){topup(+tp.dataset.top);render();return}
+   const bb=e.target.closest('[data-buy]');if(bb&&!bb.disabled){const id=bb.dataset.buy;
+    if(armed!==id||Date.now()-armT>5000){armed=id;armT=Date.now();render();return}
+    armed=null;const r=buy(id);render();if(r!==true){const m=document.getElementById('cs228m_'+id);if(m)m.textContent=r}}});
+  ['pointerdown','touchstart','mousedown','wheel'].forEach(ev=>w.addEventListener(ev,e=>e.stopPropagation(),{passive:true}))}
+ if(t)tab=t;armed=null;w.hidden=false;X.open_=true;render()}
+function close(){const w=document.getElementById('cs228');if(w)w.hidden=true;X.open_=false}
+X.open=open;X.close=close;X.render=render;
+function chip(){const c=document.getElementById('cCash228');if(c)c.textContent='💎 '+bal().toLocaleString()}
+setInterval(()=>{try{const g=document.getElementById('cGold');if(!g)return;let c=document.getElementById('cCash228');
+  if(!c){c=document.createElement('span');c.className='chip';c.id='cCash228';c.title='ร้านคริสตัล';g.after(c);c.addEventListener('click',e=>{e.stopPropagation();open()})}
+  chip()}catch(e){X.err='chip '+e.message}},800);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&X.open_)close()});
+})();
+
+</script>
+
+<script>
+/* BAGCASH229 r229: bag expansion only from the crystal shop (DeaRz 25 Nov 06:07 UTC "เอาข้อ1กับ2ออก"). Removes the gold "+16 ช่อง" button in the bag and the gold Bag Expansion Scroll in the shop; scrolls already owned still work. ?bagcash=off */
+(function(){const X=window.BAGCASH229={on:true,err:null,ver:'r229'};
+try{if(/[?&]bagcash=off/.test(location.search)){X.on=false;return}}catch(e){}
+try{const st=document.createElement('style');st.textContent='#bBag{display:none!important}#bBag229{margin-left:6px}';document.head.appendChild(st)}catch(e){X.err='css '+e.message}
+function tick(){try{
+ const b=document.getElementById('bBag');
+ if(b&&!document.getElementById('bBag229')&&window.CASH228&&CASH228.on){const n=document.createElement('button');n.id='bBag229';n.type='button';n.className=b.className.replace('gold','');n.textContent='💎 +16';n.title='ขยายกระเป๋าที่ร้านคริสตัล';
+  n.addEventListener('click',e=>{e.stopPropagation();try{CASH228.open('conv')}catch(_){}});b.after(n)}
+ document.querySelectorAll('[data-buy="bagScroll"]').forEach(x=>{const row=x.closest('.tp')||x.closest('.row')||x.parentNode;if(row&&row.id!=='shopBody'&&!row.closest('#cs228'))row.remove();else x.remove()});
+}catch(e){X.err='tick '+e.message}}
+setInterval(tick,400);
+/* safety: a click on the old button or scroll buy does nothing */
+document.addEventListener('click',e=>{const t=e.target;if(t&&(t.id==='bBag'||(t.closest&&t.closest('[data-buy="bagScroll"]')&&!t.closest('#cs228')))){e.stopImmediatePropagation();e.preventDefault()}},true);
 })();
 
 </script>
