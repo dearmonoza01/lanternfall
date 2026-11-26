@@ -5973,7 +5973,7 @@ function initAdmUI(){
    ===================================================================== */
 const SHELL_HEAD='<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n';
 const HOSTED=!!(window.claude&&typeof window.claude.use==='function');
-let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l16: admin only with ?gm=on (v3l10) (local file / tests): developer mode
+let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l17: admin only with ?gm=on (v3l10) (local file / tests): developer mode
 function setAdmin(v){ADMIN=!!v;document.body.classList.toggle('noadmin',!ADMIN);if(!ADMIN){if(G.win==='wGM')closeWin();const d=$('#dev');if(d&&!d.hidden)toggleDev();if(G.edit)toggleEditor(false);}}
 setAdmin(ADMIN);
 (async()=>{if(!HOSTED)return;try{const u=await window.claude.use('user');setAdmin(u?await u.canEdit():false);}catch(e){setAdmin(false);}})();
@@ -43248,7 +43248,7 @@ function npcHere(){return typeof G==='undefined'||!live()?[]:NP.filter(n=>n.at.z
 function mark(n){if(!live())return null;for(const q of QS){const r=qs(q.id);if(r&&r.s==='r'&&q.receiver===n.id)return '?';
     const o=curObj(q);if(o&&(o.kind==='talk'||o.kind==='deliver')&&o.npc===n.id&&(o.kind==='talk'||countItem(o.item)>=need(o)))return '?';}
   for(const q of QS)if(q.giver===n.id&&avail(q)&&!q.auto)return '!';return null;}
-function talk(n){C1.stats.talks++;say('talk '+n.id);
+function talk(n){C1.stats.talks++;try{if(window.NPCAFF254&&n)NPCAFF254.cur=n.id}catch(_){}say('talk '+n.id);try{if(window.TRAINWPN246&&TRAINWPN246.on)TRAINWPN246.talk(n)}catch(_){}
   // 1) turn in, 2) talk/deliver objective, 3) offer a quest, 4) quest in progress, 5) idle talk (affinity lines, shop, gift)
   for(const q of QS){const r=qs(q.id);if(r&&r.s==='r'&&q.receiver===n.id){finish(q);return;}}
   for(const q of active()){const o=curObj(q);if(!o||o.npc!==n.id)continue;
@@ -43271,8 +43271,8 @@ function giftMenu(n){const A=AFF[n.id]||{},liked=A.likedIds||[],busy=questNeeds(
   const inv=(P.inv||[]).filter(x=>x&&x.id&&ITEMS[x.id]&&!ITEMS[x.id].c1q&&!ITEMS[x.id].key&&!ITEMS[x.id].keep&&!busy.has(x.id)&&x.q>0);
   const pick=[...inv.filter(x=>liked.includes(x.id)),...inv.filter(x=>!liked.includes(x.id))].slice(0,3);
   const ch=pick.map(x=>({label:itemName(x.id),k:'g',id:x.id}));ch.push({label:t('bye'),k:'bye'});
-  dlgLines(n.id,[t('giftLine')],c=>{if(!c||c.k!=='g')return;if(!takeItem(c.id,1))return;const got=affAdd(n.id,liked.includes(c.id)?'like':'other');C1.stats.gifts++;
-    dlgLines(n.id,[got>0?t('giftThanks'):t('giftCap')]);save();},ch);}
+  dlgLines(n.id,[t('giftLine')],c=>{if(!c||c.k!=='g')return;if(!takeItem(c.id,1))return;const lk254=liked.includes(c.id),got=affAdd(n.id,lk254?'like':'other');C1.stats.gifts++;let th254=t('giftThanks');try{if(window.NPCAFF254&&NPCAFF254.on&&got>0)th254=NPCAFF254.gift(n,got,lk254)||th254}catch(_){}
+    dlgLines(n.id,[got>0?th254:t('giftCap')]);save();},ch);}
 /* ---------- points (reach / interact / collect / cutscene) + training dummies ---------- */
 function pointsHere(){const out=[];if(!live())return out;for(const q of active()){const o=curObj(q);if(!o)continue;
   const ids=o.point?[o.point]:(o.points||[]);for(const id of ids){const p=PT[id];if(p&&p.zone===G.zone&&!(o.kind==='collect'&&(qs(q.id).got||{})[id]))out.push({p,q,o});}}return out;}
@@ -43286,12 +43286,12 @@ function tickPoints(dt){if(dlgOpen()||CUT)return;
     else if(o.kind==='cutscene'){cutscene(q,o);return;}}
   if(HOLD){if(Math.hypot(P.x-HOLD.x,P.y-HOLD.y)>40){HOLD=null;thought(t('holdBroken'));}else if((HOLD.t-=dt)<=0){const h=HOLD;HOLD=null;ev('interact',{point:h.id});}}}
 const DUMS=[];function dummies(){try{if(G.zone!=='astoria_capital')return;safeLift(true);for(const e of enemies)if(e.c1Dummy)return;
-  for(const p of (D.dummySpots||[])){const e=makeEnemy('devdummy',1,p[0],p[1]);if(!e){say('dummy null');continue;}e.c1Dummy=1;e.sx0=e.x;e.sy0=e.y;e.maxHp=e.hp=1e9;e.sp=0;e.aggro=false;e.atk=0;enemies.push(e);DUMS.push(e);}say('dummies '+DUMS.length+' '+G.zone);}catch(er){C1.err='dummy '+er.message;say('dummy err '+er.message);}}
+  for(const p of ((window.DUMMYTEST247&&DUMMYTEST247.on&&DUMMYTEST247.spots)||D.dummySpots||[])){const e=makeEnemy('devdummy',1,p[0],p[1]);if(!e){say('dummy null');continue;}e.c1Dummy=1;if(window.DUMMYTEST247&&DUMMYTEST247.on){e.dt247=1;e.x=p[0];e.y=p[1];}e.sx0=e.x;e.sy0=e.y;e.maxHp=e.hp=1e9;e.sp=0;e.aggro=false;e.atk=0;enemies.push(e);DUMS.push(e);}say('dummies '+DUMS.length+' '+G.zone);}catch(er){C1.err='dummy '+er.message;say('dummy err '+er.message);}}
 // safe towns sweep every enemy each frame (szSweep, not reachable from outside): while a dummy objective runs, the town's fullSafe flag is
 // lifted (nothing hostile spawns in towns; quest dummies have atk 0 and no aggro) and put back as soon as the objective ends or the zone changes
 let SAFE0=null;function safeLift(on){try{const Z=ZONES.astoria_capital;if(!Z)return;if(on&&SAFE0==null){SAFE0=!!Z.fullSafe;Z.fullSafe=false;}else if(!on&&SAFE0!=null){Z.fullSafe=SAFE0;SAFE0=null;}}catch(_){}}
 function keepDummies(){for(const e of enemies)if(e.c1Dummy){e.x=e.sx0;e.y=e.sy0;e.sx=e.x;e.sy=e.y;e.vx=0;e.vy=0;e.hp=e.maxHp;e.dead=false;}}
-function needDummies(){return active().some(q=>{const o=curObj(q);return o&&o.kind==='hit_dummy';});}
+function needDummies(){try{if(window.DUMMYTEST247&&DUMMYTEST247.want())return true}catch(_){}return active().some(q=>{const o=curObj(q);return o&&o.kind==='hit_dummy';});}
 /* ---------- story variant of a mob (the mist-possessed Warden): same numbers, extra black mist drawn on top ---------- */
 function variantWanted(){for(const q of active()){const r=qs(q.id),o=curObj(q);if(!o)continue;const nx=q.objectives[r.i+1];
   if(o.kind==='kill'&&o.variant)return {q,o};if(o.kind==='cutscene'&&nx&&nx.kind==='kill'&&nx.variant)return {q,o:nx};}return null;}
@@ -44725,7 +44725,8 @@ function stateOf(c){const s=c.s,w=why(c),d=Math.hypot(P.x-c.x,P.y-c.y),now=time;
 let lastT=0;
 function vis(c,m){try{return inView(c.x,c.y-60,m);}catch(_){return true;}}
 function nearest(){let b=null,bd=1e9;for(const c of C){if(c.z!==G.zone||c.off)continue;const d=Math.hypot(P.x-c.x,P.y-c.y);if(d<bd){bd=d;b=c;}}return b;}
-function groundPass(){if(window.MAPWARP213&&MAPWARP213.on){try{return MAPWARP213.ground(C,stateOf,nearest,vis)}catch(e){MAPWARP213.err='ground '+e.message;MAPWARP213.on=false}}const dt=Math.min(.05,Math.max(0,time-lastT));lastT=time;const nb=nearest();
+function groundPass(){const f257=(window.WARPPAD257&&WARPPAD257.on)?WARPPAD257.f():1;if(f257<.02){WARPPAD257.skips++;return}if(f257<.999){const g0=ctx,fo=g0.filter;g0.filter='opacity('+(f257*100).toFixed(1)+'%)';try{return groundPass0()}finally{g0.filter=fo}}return groundPass0()}
+function groundPass0(){if(window.MAPWARP213&&MAPWARP213.on){try{return MAPWARP213.ground(C,stateOf,nearest,vis)}catch(e){MAPWARP213.err='ground '+e.message;MAPWARP213.on=false}}const dt=Math.min(.05,Math.max(0,time-lastT));lastT=time;const nb=nearest();
   for(const c of C){if(c.z!==G.zone||c.off||!vis(c,260))continue;const st=stateOf(c),s=c.s,full=c===nb;
     s.lvl+=(st.tgt-s.lvl)*Math.min(1,dt*3);c._st=st;c._full=full;
     const t=time,go=st.go,surge=go>=0?Math.sin(Math.min(1,go/2.2)*Math.PI):0,L=s.lvl*(1+surge*.7),cc=COL[st.colk];
@@ -59767,7 +59768,7 @@ function nearest(x,y,r){const g=grid(),Z=zone();if(!Z)return null;if(!isFinite(x
       const cx=a*C+C/2,cy=b*C+C/2;if(!ok(cx,cy,r))continue;const d=(cx-x)*(cx-x)+(cy-y)*(cy-y);if(d<bd){bd=d;best={x:cx,y:cy};if(found<0)found=k}}}
   return best}
 MG.ok=ok;MG.nearest=nearest;MG.grid=grid;
-const skip=e=>!e||e.dead||G.zone==='gate_inst'||e.sprGhost||e.mnnGhost;
+const skip=e=>!e||e.dead||G.zone==='gate_inst'||e.sprGhost||e.mnnGhost||e.dt247;
 function fixOne(e,why){const r=(e.sz||16)*.5,q=nearest(e.x,e.y,r);if(!q)return false;e.x=q.x;e.y=q.y;e.vx=e.vy=0;e.strikeT=0;e.wind=0;e.tele=null;
   if(e.sx==null||!ok(e.sx,e.sy,r)){e.sx=q.x;e.sy=q.y;MG.stats.home++}if(e.wx==null||!ok(e.wx,e.wy,r)){e.wx=q.x;e.wy=q.y;MG.stats.wander++}
   MG.stats.relocated++;try{(MG.log=MG.log||[]).push({t:+time.toFixed(1),z:G.zone,type:e.type,why,x:Math.round(q.x),y:Math.round(q.y)});if(MG.log.length>40)MG.log.shift()}catch(_){}return true}
@@ -60836,7 +60837,7 @@ setInterval(()=>{try{hook();const lg=document.querySelector('#wMap .legend');if(
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3l16',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l17',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -60861,7 +60862,7 @@ console.info('[REAL] v3l6c');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l16';console.info('[REAL] v3l16')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l17';console.info('[REAL] v3l17')}catch(e){}
 })();
 </script>
 <script>
@@ -61745,7 +61746,7 @@ function keyH(e){try{const k=e.key;if(k==='Escape'&&H.place){cancelPlace();e.sto
     if(nearLantern()||nearExit()){e.stopImmediatePropagation();e.preventDefault();doPrompt();return true}
     try{const C=window.COOK;if(C&&C.fire&&C.fire.lit&&C.fire.zone===G.zone&&Math.hypot(C.fire.x-P.x,C.fire.y-P.y)<95&&!C.place){e.stopImmediatePropagation();e.preventDefault();C.open();return true}}catch(_){}}}catch(er){ERR('key',er)}return false}
 if(window.__EK)window.__EK.push(keyH);else addEventListener('keydown',e=>{keyH(e)},true);
-document.addEventListener('click',e=>{try{if(H.place||G.state!=='play'||H.busy)return;if(e.target.closest&&e.target.closest('#housePrompt,#houseGm,.mbtn,#bar,#tSkills,#hpMgr,#hpMgrPrompt,#hpMenu,#hpConfirm,#lt233,#la236'))return;const [wx,wy]=s2w(e.clientX,e.clientY);
+document.addEventListener('click',e=>{try{if(H.place||G.state!=='play'||H.busy)return;if(window.HUDTAP253&&HUDTAP253.on&&(e.target!==cv||(H.build&&H.build.on))){HUDTAP253.skipped++;return}if(e.target.closest&&e.target.closest('#housePrompt,#houseGm,.mbtn,#bar,#tSkills,#hpMgr,#hpMgrPrompt,#hpMenu,#hpConfirm,#lt233,#la236'))return;const [wx,wy]=s2w(e.clientX,e.clientY);
   if(nearLantern()&&Math.hypot(wx-(S.lantern.x+10),wy-(S.lantern.y-40))<56){e.stopImmediatePropagation();H.enter()}else if(nearExit()&&Math.abs(wx-EXIT.x)<70&&Math.abs(wy-(EXIT.y-10))<70){e.stopImmediatePropagation();H.exit()}}catch(er){ERR('tap',er)}},true);
 /* ---------------- ghost + loop ---------------- */
 try{const _o=drawEditorOverlay;drawEditorOverlay=function(){const r=_o.apply(this,arguments);try{if(H.place){const bad=H.valid(ghostXY[0],ghostXY[1])||H.calmLeft()>0,ok=!bad,pu=.5+.5*Math.sin(time*6),c=ctx;c.save();c.globalAlpha=.35+.45*pu;c.strokeStyle=ok?'#b8ffd0':'#ffb0b0';c.lineWidth=4;c.beginPath();c.ellipse(ghostXY[0],ghostXY[1]+2,36+4*pu,15+2*pu,0,0,7);c.stroke();c.globalAlpha=.16;c.beginPath();c.ellipse(P.x,P.y+2,H.cfg.placeRange,H.cfg.placeRange*.55,0,0,7);c.stroke();c.globalAlpha=.6;c.fillStyle=ok?'rgba(80,255,130,.35)':'rgba(255,80,80,.35)';c.beginPath();c.ellipse(ghostXY[0],ghostXY[1]+2,24,9,0,0,7);c.fill();c.restore();H.drawLantern(c,ghostXY[0],ghostXY[1],time,{alpha:.7})}}catch(e){ERR('ghost',e)}return r}}catch(e){ERR('hook overlay',e)}
@@ -61834,6 +61835,8 @@ const BY={};for(const d of IT)BY[d.id]=d;H.items=BY;H.itemList=IT;B.cats=CATS;
 /* r154c: facings by direction, clockwise s,sw,w,nw,n,ne,e,se (s = faces the camera). An item with a 'facings' map {key:{png|src,foot_poly,w,h}} + default uses ONLY that map; items without one keep today's two sprites as 'se' ('') and 'sw' ('_b'). o.f = index into d.fkeys, o.fk = saved key. */
 const DIRS=['s','sw','w','nw','n','ne','e','se'],DIRN={s:'หน้า',sw:'หน้าซ้าย',w:'ซ้าย',nw:'หลังซ้าย',n:'หลัง',ne:'หลังขวา',e:'ขวา',se:'หน้าขวา'};
 function setFacings(d,fm,def,dw,dh,fallback){const ks=DIRS.filter(k=>fm[k]);if(!ks.length)return false;d.fkeys=ks;d.fimg={};d.fac=[];d.fnames=ks.map(k=>DIRN[k]);d.defKey=(def&&fm[def])?def:ks[0];d.facingMap=true;d.two=ks.length>1;const sp0=P=>{const cx=P.reduce((s,p)=>s+p[0],0)/P.length,cy=P.reduce((s,p)=>s+p[1],0)/P.length;return {ax:cx,ay:cy,foot:P.map(p=>[p[0]-cx,p[1]-cy]),pts:P}};ks.forEach((k,i)=>{const o=fm[k],src=o.png||o.src||o.file;if(src&&typeof src==='string'&&src.indexOf('data:')===0){const im=new Image();im.src=src;ARTIMG[d.id+'_'+k]=im}else if(src&&typeof src==='object')ARTIMG[d.id+'_'+k]=src;d.fimg[k]='_'+k;const A=sp0(o.foot_poly||o.foot||fallback);A.sw=o.w||dw||d.sw;A.sh=o.h||dh||d.sh;d.fac[i]=A});const dA=d.fac[ks.indexOf(d.defKey)];d.ax=dA.ax;d.ay=dA.ay;d.foot=dA.foot;d.footPng=dA.pts;d.sw=dA.sw;d.sh=dA.sh;delete d.footB;try{for(const k in BASE)if(k.indexOf(d.id+'|')===0)delete BASE[k]}catch(_){}return true}
+/* r251 tank prop art (TEST): Art tank_r1 (ChatGPT row 289, cut + QA by Art 26 Nov): fishTank picture front ('s') + 3/4 front-right ('se'), drawn at 1x from the 2x pictures, placement / collision = Art's foot_poly per facing; bag/shop/storage icon = fishTank_icon48. Not mirrored (the housing code draws every facing from its own picture). ?tankart=off = the code-drawn placeholder. */
+try{if(window.__HOUSE_DECOR&&__HOUSE_DECOR.items&&!/[?&]tankart=off\b/.test(Q)){__HOUSE_DECOR.items.fishTank={"png":"assets/f22871dcd7d64be0.png","w":60.5,"h":101.5,"fp":[54.7,7.2],"a":[30.35,96.3],"foot":[[3.0,92.7],[57.7,92.7],[57.7,99.9],[3.0,99.9]],"default":"s","facings":{"s":{"png":"assets/f22871dcd7d64be0.png","w":60.5,"h":101.5,"foot_poly":[[3.0,92.7],[57.7,92.7],[57.7,99.9],[3.0,99.9]]},"se":{"png":"assets/33d3668a47ac912d.png","w":63,"h":108,"foot_poly":[[2.7,94.5],[15.6,104.8],[59.3,95.8],[46.5,85.5]]}},"glass":{"s":[30.2,50.8],"se":[31.5,54.0]}};__HOUSE_DECOR.icons=__HOUSE_DECOR.icons||{};__HOUSE_DECOR.icons.fishTank="assets/fa4920eccab3dae7.png";window.__TANKART251={on:true}}}catch(e){window.__TANKART251={on:false,err:e.message}}
 /* r191 pond art (TEST): Art fishing_r1/pond_r1 (ChatGPT row 288, Art QA 23 Nov; DeaRz has not approved the look yet) replaces the code-drawn fishing pond. Drawn 125 x 71 (farmPlot scale) from the 250 x 142 picture; placement polygon = Art's foot_poly (rim). ?pondart=off = the code placeholder. */
 try{if(window.__HOUSE_DECOR&&__HOUSE_DECOR.items&&!/[?&]pondart=off\b/.test(Q)){__HOUSE_DECOR.items.fishPond={"png": "assets/1e87da99de2c97d8.png", "w": 125, "h": 71, "fp": [125, 71], "a": [62.13, 35.77], "foot": [[124.8, 35.8], [117.9, 50.7], [105.5, 60.8], [92.9, 66.5], [81.5, 69.2], [71.4, 70.2], [62.2, 70.6], [53.0, 70.0], [42.9, 69.2], [31.6, 66.4], [18.1, 61.3], [5.2, 51.1], [-0.1, 35.8], [5.6, 20.6], [18.3, 10.5], [31.6, 5.2], [43.0, 2.6], [53.0, 1.6], [62.2, 0.2], [71.4, 1.5], [81.4, 2.5], [92.9, 5.1], [106.1, 10.4], [118.8, 20.6]], "water_poly": [[110.0, 34.0], [101.3, 46.9], [86.3, 52.0], [77.1, 55.5], [68.8, 56.6], [61.5, 56.8], [53.9, 57.3], [45.3, 56.2], [34.6, 53.5], [22.6, 46.6], [13.4, 34.0], [21.5, 21.0], [34.1, 14.1], [45.3, 11.7], [54.2, 11.5], [61.5, 12.1], [68.7, 11.6], [77.3, 12.2], [87.7, 14.9], [101.8, 20.9]], "water_centre": [61.5, 34.0]};__HOUSE_DECOR.icons=__HOUSE_DECOR.icons||{};__HOUSE_DECOR.icons.fishPond="assets/bec509afce417046.png";window.__POND191={on:true,cx:62.13,cy:35.77}}}catch(e){window.__POND191={on:false,err:e.message}}
 const DEC_ART=(window.__HOUSE_DECOR&&!/[?&]decorart=off\b/.test(Q))?window.__HOUSE_DECOR:null;const ARTIMG={},ARTICON={},ICIMG={};
@@ -62921,7 +62924,7 @@ FT.frames={prop(g,f,d){const W=84;g.fillStyle='rgba(0,0,0,.28)';ell(g,42,94,36,5
  glass(g,r){const p=14;g.save();g.beginPath();g.rect(r.x-p,r.y-p,r.w+2*p,r.h+2*p);g.roundRect?g.roundRect(r.x,r.y,r.w,r.h,10):g.rect(r.x,r.y,r.w,r.h);const gr=g.createLinearGradient(0,r.y-p,0,r.y+r.h+p);gr.addColorStop(0,'#7a4e1c');gr.addColorStop(1,'#4a2e10');g.fillStyle=gr;g.fill('evenodd');
   g.strokeStyle='rgba(255,230,170,.55)';g.lineWidth=2;g.beginPath();g.rect(r.x-p+1,r.y-p+1,r.w+2*p-2,r.h+2*p-2);g.stroke();
   g.strokeStyle='rgba(220,245,255,.65)';g.lineWidth=3;g.beginPath();g.roundRect?g.roundRect(r.x+1.5,r.y+1.5,r.w-3,r.h-3,9):g.rect(r.x+1.5,r.y+1.5,r.w-3,r.h-3);g.stroke();
-  g.fillStyle='rgba(255,255,255,.10)';g.beginPath();g.moveTo(r.x+r.w*.06,r.y+3);g.lineTo(r.x+r.w*.16,r.y+3);g.lineTo(r.x+r.w*.07,r.y+r.h-3);g.lineTo(r.x+3,r.y+r.h-3);g.lineTo(r.x+3,r.y+r.h*.2);g.fill();g.restore()}};
+  g.fillStyle=(window.TANKBG250&&TANKBG250.on)?'rgba(255,255,255,0)':'rgba(255,255,255,.10)';g.beginPath();g.moveTo(r.x+r.w*.06,r.y+3);g.lineTo(r.x+r.w*.16,r.y+3);g.lineTo(r.x+r.w*.07,r.y+r.h-3);g.lineTo(r.x+3,r.y+r.h-3);g.lineTo(r.x+3,r.y+r.h*.2);g.fill();g.restore()}};
 window.__FISHTANK_DRAW=(g,f,d)=>{try{FT.frames.prop(g,f,d)}catch(e){ERR('propdraw',e)}};
 /* ---- backgrounds (design size 1920 x 1080, drawn once into a 960 x 540 cache, cover-fit; back = behind the fish, front = strip in front of the fish) ---- */
 const rnd=seed=>{let a=seed|0;return()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}};
@@ -62945,7 +62948,7 @@ FT.bgs=[
    for(let i=0;i<22;i++){const x=R()*W,y=Hh*(.3+R()*.55),r=2+R()*3,gr=g.createRadialGradient(x,y,0,x,y,r*5);gr.addColorStop(0,'rgba(140,240,255,.85)');gr.addColorStop(1,'rgba(80,200,255,0)');g.fillStyle=gr;ell(g,x,y,r*5,r*5);g.fill()}},
   front(g,W,Hh){g.fillStyle='#030a1c';g.beginPath();g.moveTo(0,Hh);g.lineTo(0,Hh*.93);g.lineTo(W*.07,Hh*.95);g.lineTo(W*.14,Hh*.9);g.lineTo(W*.22,Hh*.96);g.lineTo(W*.4,Hh*.975);g.lineTo(W*.62,Hh*.965);g.lineTo(W*.78,Hh*.92);g.lineTo(W*.86,Hh*.95);g.lineTo(W,Hh*.91);g.lineTo(W,Hh);g.fill()}}];
 const BGC={};
-function bgCache(id){let c=BGC[id];if(c)return c;const d=FT.bgs.find(b=>b.id===id)||FT.bgs[0];const mk=fn=>{if(!fn)return null;const cv=document.createElement('canvas');cv.width=960;cv.height=540;const g=cv.getContext('2d');g.scale(.5,.5);try{fn(g,1920,1080)}catch(e){ERR('bg '+d.id,e)}return cv};return BGC[id]={back:mk(d.back),front:mk(d.front)}}
+function bgCache(id){let c=BGC[id];if(c&&!(window.TANKBG250&&TANKBG250.on&&!TANKBG250.ready(id)))return c;const d=FT.bgs.find(b=>b.id===id)||FT.bgs[0];const mk=fn=>{if(!fn)return null;const cv=document.createElement('canvas');cv.width=960;cv.height=540;const g=cv.getContext('2d');g.scale(.5,.5);try{fn(g,1920,1080)}catch(e){ERR('bg '+d.id,e)}return cv};return BGC[id]={back:mk(d.back),front:mk(d.front)}}
 /* ---------------- save block ---------------- */
 function uidF(){return 'f'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3)}
 function tankSave(create){const S=S0();let t=S.tank;if(!t||typeof t!=='object'||t.v!==1){if(!create&&!t)return null;t=S.tank={v:1,bg:'sand',fish:[]}}
@@ -63031,9 +63034,9 @@ let last=0,tmAcc=0;
 function draw(tm){g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,vw,vh);const r=RC,k=r.k;
  g.save();g.beginPath();g.roundRect?g.roundRect(r.x,r.y,r.w,r.h,10):g.rect(r.x,r.y,r.w,r.h);g.clip();
  const q=bgCache(FT.bg());const cs=Math.max(r.w/960,r.h/540),bw=960*cs,bh=540*cs,bx=r.x+(r.w-bw)/2,by=r.y+(r.h-bh)/2;
- if(q.back)g.drawImage(q.back,bx,by,bw,bh);
+ if(!(window.TANKBG250&&TANKBG250.on&&TANKBG250.draw(g,r,FT.bg()))&&q.back)g.drawImage(q.back,bx,by,bw,bh);
  /* light rays (behind the fish) */
- for(let i=0;i<4;i++){const x0=r.x+r.w*(.12+i*.24)+Math.sin(tm*.25+i*1.7)*r.w*.04,w0=r.w*.05,w1=r.w*.14;const gr=g.createLinearGradient(0,r.y,0,r.y+r.h*.85);gr.addColorStop(0,'rgba(255,255,230,'+(.13+.05*Math.sin(tm*.6+i)).toFixed(3)+')');gr.addColorStop(1,'rgba(255,255,230,0)');g.fillStyle=gr;g.beginPath();g.moveTo(x0,r.y);g.lineTo(x0+w0,r.y);g.lineTo(x0+w1+r.w*.08,r.y+r.h*.85);g.lineTo(x0+r.w*.08-w1*.2,r.y+r.h*.85);g.fill()}
+ for(let i=0;i<((window.TANKBG250&&TANKBG250.on)?0:4);i++){const x0=r.x+r.w*(.12+i*.24)+Math.sin(tm*.25+i*1.7)*r.w*.04,w0=r.w*.05,w1=r.w*.14;const gr=g.createLinearGradient(0,r.y,0,r.y+r.h*.85);gr.addColorStop(0,'rgba(255,255,230,'+(.13+.05*Math.sin(tm*.6+i)).toFixed(3)+')');gr.addColorStop(1,'rgba(255,255,230,0)');g.fillStyle=gr;g.beginPath();g.moveTo(x0,r.y);g.lineTo(x0+w0,r.y);g.lineTo(x0+w1+r.w*.08,r.y+r.h*.85);g.lineTo(x0+r.w*.08-w1*.2,r.y+r.h*.85);g.fill()}
  /* fish (far-to-near by size so the big ones are in front) */
  const order=FT.rt.slice().sort((a,b)=>sz(a).len-sz(b).len);
  for(const f of order){const sp=sz(f),spr=FT.sprites[f.rec.sp]||FT.sprites[FT.speciesIds[0]];g.save();g.translate(r.x+f.x,r.y+f.y);const gp=1+.14*Math.sin(f.gulp*3.1416);g.scale(f.fx*k*gp,k*gp);try{spr.draw(g,f.t,sp,f)}catch(e){ERR('fishdraw',e)}g.restore()}
@@ -63041,9 +63044,9 @@ function draw(tm){g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,vw,vh);const r
  for(const p of FT.pellets){g.save();g.globalAlpha=p.a;const px=r.x+p.x,py=r.y+p.y,pr=Math.max(4,4.6*k);g.fillStyle='#8a5a2a';g.beginPath();g.arc(px,py,pr,0,6.2832);g.fill();g.fillStyle='#d8a05a';g.beginPath();g.arc(px-pr*.25,py-pr*.3,pr*.5,0,6.2832);g.fill();g.restore()}
  try{if(window.__FISHEXTRA&&__FISHEXTRA.draw)__FISHEXTRA.draw(g,r,k,tm)}catch(_){}if(q.front)g.drawImage(q.front,bx,by,bw,bh);
  /* water tint, surface, bubbles */
- g.fillStyle='rgba(40,130,190,.10)';g.fillRect(r.x,r.y,r.w,r.h);
+ if(!(window.TANKBG250&&TANKBG250.on)){g.fillStyle='rgba(40,130,190,.10)';g.fillRect(r.x,r.y,r.w,r.h);
  const sy=r.y+r.h*FT.cfg.surface;const gs=g.createLinearGradient(0,r.y,0,sy+10);gs.addColorStop(0,'rgba(200,240,255,.45)');gs.addColorStop(1,'rgba(200,240,255,0)');g.fillStyle=gs;g.fillRect(r.x,r.y,r.w,sy-r.y+10);
- g.strokeStyle='rgba(235,250,255,.7)';g.lineWidth=2;g.beginPath();for(let x=0;x<=r.w;x+=8){const y=sy+Math.sin(x*.03+tm*1.6)*2;x?g.lineTo(r.x+x,y):g.moveTo(r.x,y)}g.stroke();
+ g.strokeStyle='rgba(235,250,255,.7)';g.lineWidth=2;g.beginPath();for(let x=0;x<=r.w;x+=8){const y=sy+Math.sin(x*.03+tm*1.6)*2;x?g.lineTo(r.x+x,y):g.moveTo(r.x,y)}g.stroke();}
  g.fillStyle='rgba(235,250,255,.55)';for(const b of bubbles){g.beginPath();g.arc(r.x+b.x+Math.sin(tm*1.4+b.ph)*5,r.y+b.y,b.r*Math.max(.7,k),0,6.2832);g.fill()}
  g.restore();
  try{FT.frames.glass(g,r)}catch(e){ERR('glass',e)}
@@ -63161,15 +63164,15 @@ let cardT=0;
 const pondList=()=>{try{return (S0().placed||[]).filter(o=>o&&o.id==='fishPond')}catch(_){return[]}};
 function distTo(o){const d=IT.fishPond,Q=B.poly(d,o.x,o.y,o.f);let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const p of Q){x0=Math.min(x0,p[0]);y0=Math.min(y0,p[1]);x1=Math.max(x1,p[0]);y1=Math.max(y1,p[1])}const fx=P.x,fy=P.y+10,dx=Math.max(x0-fx,0,fx-x1),dy=Math.max(y0-fy,0,fy-y1);return Math.hypot(dx,dy*1.4)}
 function nearestPond(){let best=null,bd=1e9;for(const o of pondList()){const d=distTo(o);if(d<bd){bd=d;best=o}}return best?{o:best,d:bd}:null}
-const blocked=()=>{try{const FT=window.__FISHTANK;return G.zone!==ZID||G.state!=='play'||!P||P.dead||H.busy||B.on||H.roomOn||!!G.win||!!G.interact||(FT&&FT.open)}catch(_){return true}};
-FS.nearPond=()=>{try{if(blocked())return null;const n=nearestPond();return n&&n.d<FS.cfg.promptR?n.o:null}catch(_){return null}};
+const blocked=()=>{try{const FT=window.__FISHTANK;return (G.zone!==ZID&&!(window.WATERFISH249&&WATERFISH249.zoneOn()))||G.state!=='play'||!P||P.dead||H.busy||B.on||H.roomOn||!!G.win||!!G.interact||(FT&&FT.open)}catch(_){return true}};
+FS.nearPond=()=>{try{if(blocked())return null;if(window.WATERFISH249&&WATERFISH249.zoneOn())return WATERFISH249.near();const n=nearestPond();return n&&n.d<FS.cfg.promptR?n.o:null}catch(_){return null}};
 /* hero pose hook (placeholder: face the pond; Motion poses plug in here) */
 FS.pose={apply(ph,st){try{if(st&&st.bob&&P)P.face=Math.atan2(st.bob.y-(P.y-4),st.bob.x-P.x)}catch(_){}},release(){}};
 /* ---------------- state machine ---------------- */
 const now=()=>performance.now()/1000;
 function setPhase(ph){const st=FS.st;if(!st)return;st.ph=ph;st.t=now();try{FS.pose.apply(ph,st)}catch(_){}}
 FS.cast=function(){try{if(FS.st)return false;if(blocked())return false;const o=FS.nearPond();if(!o){say('เดินไปยืนข้างบ่อตกปลาก่อน',true);return false}if(now()<(FS.coolUntil||0))return false;
-  const d=IT.fishPond,rx=d.w*.30,ry=d.h*.26,side=(P.y>o.y?1:-1);const bob={x:o.x+(Math.random()-.5)*2*rx*.9,y:o.y+side*ry*(.2+Math.random()*.6)};
+  const d=IT.fishPond,rx=d.w*.30,ry=d.h*.26,side=(P.y>o.y?1:-1);const bob={x:o.x+(Math.random()-.5)*2*rx*.9,y:o.y+side*ry*(.2+Math.random()*.6)};if(o.wf249){bob.x=o.bx;bob.y=o.by}
   const w=FS.cfg.waitFixed!=null?FS.cfg.waitFixed:FS.cfg.waitMin+Math.random()*(FS.cfg.waitMax-FS.cfg.waitMin);
   FS.st={ph:'wait',t:now(),tCast:now(),uid:o.uid,bob,start:[P.x,P.y],wait:w,sp:null,rar:null,good:0,miss:0,tReel:0,flash:0,flashK:'',last:0};FS.stats.casts++;try{keys.a=keys.d=keys.w=keys.s=false}catch(_){}
   setPhase('wait');return true}catch(e){ERR('cast',e);return false}};
@@ -63196,7 +63199,7 @@ function tick(){const st=FS.st;const near=FS.cfg&&!st?FS.nearPond():null;const p
  if(blocked()||st.cancelMe){FS.cancel(G.win||G.interact?'เปิดหน้าต่าง · เลิกตกปลา':'เลิกตกปลา');return}
  const k=(()=>{try{return keys.a||keys.d||keys.w||keys.s||keys.ArrowLeft||keys.ArrowRight||keys.ArrowUp||keys.ArrowDown}catch(_){return false}})();
  if(k||Math.hypot(P.x-st.start[0],P.y-st.start[1])>10){FS.cancel('ขยับแล้ว · เลิกตกปลา');return}
- if(!pondList().some(o=>o.uid===st.uid)){FS.cancel('บ่อหายไป · เลิกตกปลา');return}
+ if(!(window.WATERFISH249&&WATERFISH249.isSt(st))&&!pondList().some(o=>o.uid===st.uid)){FS.cancel('บ่อหายไป · เลิกตกปลา');return}
  const t=now();
  if(st.ph==='wait'){if(t-st.t>=st.wait)startBite()}
  else if(st.ph==='bite'){if(t-st.tBite>FS.cfg.biteWindow){FS.stats.escaped++;endTo('ช้าไป ปลาหนีไปแล้ว',true);return}}
@@ -63211,7 +63214,7 @@ function tick(){const st=FS.st;const near=FS.cfg&&!st?FS.nearPond():null;const p
 /* bar needle at display rate between game updates (the game's update can be slow) */
 (function loop(){requestAnimationFrame(loop);try{const st=FS.st;if(st&&st.ph==='reel'&&bar.style.display==='block')bN.style.left=(needleAt(st,now())*100)+'%'}catch(_){}})();
 /* ---------------- world drawing: rod line, bobber, ripples, bite sign (above the props) ---------------- */
-try{const _o=drawEditorOverlay;drawEditorOverlay=function(){const r=_o.apply(this,arguments);try{const st=FS.st;if(st&&G.zone===ZID&&P){const c=ctx,t=now(),bx=st.bob.x,face=Math.cos(P.face||0)>=0?1:-1;let by=st.bob.y;const hx=P.x+face*13,hy=P.y-26,tipx=hx+Math.cos(P.face||0)*26,tipy=hy-34;
+try{const _o=drawEditorOverlay;drawEditorOverlay=function(){const r=_o.apply(this,arguments);try{const st=FS.st;if(st&&(G.zone===ZID||(window.WATERFISH249&&WATERFISH249.isSt(st)))&&P){const c=ctx,t=now(),bx=st.bob.x,face=Math.cos(P.face||0)>=0?1:-1;let by=st.bob.y;const hx=P.x+face*13,hy=P.y-26,tipx=hx+Math.cos(P.face||0)*26,tipy=hy-34;
    let dip=0;if(st.ph==='wait')dip=Math.sin(t*2.6)*1.2;else if(st.ph==='bite')dip=3+Math.sin(t*24)*2.2;else dip=1.5+Math.sin(t*9)*2;by+=dip;
    c.save();c.lineCap='round';c.strokeStyle='#5a3a1a';c.lineWidth=2.6;c.beginPath();c.moveTo(hx,hy);c.lineTo(tipx,tipy);c.stroke();
    c.strokeStyle='rgba(255,255,255,.85)';c.lineWidth=1;c.beginPath();c.moveTo(tipx,tipy);if(st.ph==='reel'){c.lineTo(bx,by)}else{c.quadraticCurveTo((tipx+bx)/2,Math.min(tipy,by)-10+Math.sin(t*2)*1.5,bx,by)}c.stroke();
@@ -63225,7 +63228,7 @@ try{const _o=drawEditorOverlay;drawEditorOverlay=function(){const r=_o.apply(thi
 const keyF=e=>{try{if(e.key==='Escape'){if(FS.st){FS.cancel('เลิกตกปลา');e.stopImmediatePropagation();e.preventDefault();return true}return false}
   if((e.key==='f'||e.key==='F')&&!e.repeat){if(FS.st){FS.press('key');e.stopImmediatePropagation();e.preventDefault();return true}if(FS.nearPond()){FS.cast();e.stopImmediatePropagation();e.preventDefault();return true}}}catch(er){ERR('key',er)}return false};
 if(window.__EK)window.__EK.unshift(keyF);else addEventListener('keydown',e=>{keyF(e)},true);
-document.addEventListener('pointerdown',e=>{try{if(G.state!=='play'||G.zone!==ZID)return;const t=e.target;if(t.closest&&t.closest(UI))return;
+document.addEventListener('pointerdown',e=>{try{if(G.state!=='play'||(G.zone!==ZID&&!(window.WATERFISH249&&WATERFISH249.isSt(FS.st))))return;const t=e.target;if(t.closest&&t.closest(UI))return;
   if(FS.st){e.stopImmediatePropagation();if(e.cancelable)e.preventDefault();FS.press('tap');return}
   if(blocked())return;const [wx,wy]=s2w(e.clientX,e.clientY);const o=B.itemAt(wx,wy);if(o&&o.id==='fishPond'){const d=distTo(o);if(d<=FS.cfg.tapR){e.stopImmediatePropagation();if(e.cancelable)e.preventDefault();if(d>=FS.cfg.promptR)say('เดินไปยืนข้างบ่อก่อน แล้วแตะอีกครั้ง',true);else FS.cast()}else say('เดินไปยืนข้างบ่อก่อน',true)}}catch(er){ERR('tap',er)}},true);
 /* ---------------- tank view: put fish from the bag / take them back ---------------- */
@@ -65419,7 +65422,7 @@ function motion(){const f=FS();if(!R.pose||!f||typeof P==='undefined'||!P)return
   else if(M.st==='cast'&&t-M.t0>=FISH.CAST.dur){M.st='wait';M.t0=t}
   const rodSt=(s.ph==='bite'&&M.st==='wait')?'bite':M.st;return {st:M.st,tt:t-M.t0,rodSt,bob:M.bob,ph:s.ph}}
  if(lastSt){lastSt=null;if(M&&cnt){const c=snap(f);if(c.c>cnt.c){M={st:'win',t0:t,bob:M.bob,fish:f.last&&f.last.fish};R.stats.win++}else if(c.f>cnt.f||c.e>cnt.e||c.s>cnt.s){M={st:'lose',t0:t,bob:M.bob};R.stats.lose++}else M=null}else M=null;if(M)M.P0=[P.x,P.y]}
- if(M&&(M.st==='win'||M.st==='lose')){const dur=M.st==='win'?FISH.WIN.dur:FISH.LOSE.dur;if(t-M.t0>=dur||Math.hypot(P.x-M.P0[0],P.y-M.P0[1])>2||G.zone!==(window.HOUSE&&HOUSE.ZID)){M=null;return null}return {st:M.st,tt:t-M.t0,rodSt:M.st,bob:M.bob,fish:M.fish}}
+ if(M&&(M.st==='win'||M.st==='lose')){const dur=M.st==='win'?FISH.WIN.dur:FISH.LOSE.dur;if(t-M.t0>=dur||Math.hypot(P.x-M.P0[0],P.y-M.P0[1])>2||(G.zone!==(window.HOUSE&&HOUSE.ZID)&&!(window.WATERFISH249&&WATERFISH249.zoneOn()))){M=null;return null}return {st:M.st,tt:t-M.t0,rodSt:M.st,bob:M.bob,fish:M.fish}}
  if(M&&M.dry){const tt=t-M.t0;if(tt>=FISH.CAST.dur||Math.hypot(P.x-M.P0[0],P.y-M.P0[1])>2){M=null;return null}if(tt>=FISH.CAST.water&&!M.said){M.said=1;say(M.msg||'ตรงนั้นไม่มีน้ำ · สายเบ็ดกับทุ่นหายไป',true)}return {st:'cast',tt,rodSt:'cast',bob:M.bob,dry:1}}
  M=null;return null}
 R.motion=motion;
@@ -65460,7 +65463,7 @@ function hookShop(){try{const SW=window.__SHOPWIN;if(!SW||!SW.openNpc)return fal
 /* ---- click / tap while holding the rod = cast toward that point (DeaRz 23 Nov 17:08: "เมื่อกดคริกจะเหวี่ยงเบ็ด ... ถ้าไม่มีบ่อน้ำหรือแม่น้ำสายกับทุ่นก็จะหายไป ถ้ามีน้ำ ก็ตกปกติ").
    Water = a placed pond in the yard (ellipse of the pond water). No water = the line flies out, lands and vanishes. Rivers on the maps: not yet (no water outlines on the maps except Map 4's stream), they count as no water for now. ---- */
 R.cfg={minD:70,maxD:240,rx:.34,ry:.30};
-function pondAt(x,y){try{const H=window.HOUSE;if(!H||G.zone!==H.ZID||H.roomOn)return null;const d=H.items.fishPond;if(!d)return null;for(const o of (H.state().placed||[])){if(!o||o.id!=='fishPond')continue;const dx=(x-o.x)/(d.w*R.cfg.rx),dy=(y-o.y)/(d.h*R.cfg.ry);if(dx*dx+dy*dy<=1)return o}}catch(e){ERR('pondAt',e)}return null}
+function pondAt(x,y){try{if(window.WATERFISH249&&WATERFISH249.zoneOn())return WATERFISH249.at(x,y);const H=window.HOUSE;if(!H||G.zone!==H.ZID||H.roomOn)return null;const d=H.items.fishPond;if(!d)return null;for(const o of (H.state().placed||[])){if(!o||o.id!=='fishPond')continue;const dx=(x-o.x)/(d.w*R.cfg.rx),dy=(y-o.y)/(d.h*R.cfg.ry);if(dx*dx+dy*dy<=1)return o}}catch(e){ERR('pondAt',e)}return null}
 function riverAt(x,y){try{return !!(window.__M4T&&typeof __M4T.inWater==='function'&&G.zone==='w22_map4_test'&&__M4T.inWater(x,y))}catch(_){return false}}
 function castAt(wx,wy){const f=FS();if(!f||f.st||(M&&(M.dry||M.st==='win'||M.st==='lose')))return false;let dx=wx-P.x,dy=wy-P.y;const d=Math.hypot(dx,dy)||1;
  let o=pondAt(wx,wy),tx=wx,ty=wy;if(!o||d>R.cfg.maxD){const k=Math.max(R.cfg.minD,Math.min(R.cfg.maxD,d))/d;tx=P.x+dx*k;ty=P.y+dy*k;o=pondAt(tx,ty)}
@@ -67805,4 +67808,412 @@ function hookFly(){try{const HP=HPf();if(!HP||!HP.frames||!HP.frames.cageDraw)re
 {let n=0;const iv=setInterval(()=>{if(hookFly()||++n>120)clearInterval(iv)},500);hookFly()}
 })();
 
+</script>
+
+<script>
+/* TRAINWPN246 r246 (?trainwpn=off): DeaRz 26 Nov 2026 13:25 BKK (screenshot: main quest "ลานฝึกและศิษย์ที่หายไป", step "สลับอาวุธ", ครูทอร์ at the Astoria training yard):
+   "เควสสลับอาวุธเมื่อคุยกับครูทอร์ ให้ add อาวุธ อีกชิ้นที่ไม่ใช่ชิ้นที่ใส่อยู่ให้1 อัน เมื่อเควสจบให้เอาอาวุธนั้นออก".
+   The step (objective switch_weapon of m3_01_astoria) completes when the equipped weapon TYPE changes, so a player with one weapon could not finish it.
+   Now: talking to ครูทอร์ (npc_astoria_trainer) while that step is current gives ONE practice weapon of another type (sword; bow if the hero already holds a sword),
+   r246b: the type is the first of sword / bow / staff / dagger / scythe (not the one held) that canEquip() allows for the hero's class;
+   marked tw246 (name "<type> ฝึกของครูทอร์", no sell). Given once per character (remembered on the quest record); given again only if it is gone.
+   When m3_01_astoria is finished, every tw246 weapon is removed; if it is the one in the hero's hand, the original weapon (remembered by uid) goes back on first. */
+(function(){'use strict';
+const X=window.TRAINWPN246={on:!/[?&]trainwpn=off\b/.test(String(location.search)),ver:'r246',given:0,removed:0,err:null};
+if(!X.on)return;
+const QID='m3_01_astoria',NPC='npc_astoria_trainer',STEP='switch_weapon';
+const api=()=>{try{return window.CH1Q&&CH1Q.api}catch(_){return null}};
+const rec=()=>{try{const a=api(),s=a&&a.state();return s&&s.q?s.q[QID]:null}catch(_){return null}};
+const isTW=it=>!!(it&&it.kind==='wpn'&&it.tw246);
+const has=()=>{try{return isTW(P.weapon)||P.inv.some(isTW)}catch(_){return false}};
+function curKind(){try{const a=api(),q=a&&a.QBY&&a.QBY[QID],r=rec();if(!q||!r||r.s!=='a')return null;const o=q.objectives[r.i|0];return o?o.kind:null}catch(_){return null}}
+X.talk=function(n){try{if(!n||n.id!==NPC||curKind()!==STEP)return false;if(has())return false;
+  const cur=P.weapon&&P.weapon.t;let w=null;for(const ty of ['sword','bow','staff','dagger','scythe']){if(ty===cur)continue;let c=null;try{c=makeWeapon(ty,Math.max(1,P.lvl|0),0)}catch(_){c=null}if(!c)continue;let ok=true;try{if(typeof canEquip==='function')ok=!!canEquip(c)}catch(_){}if(ok){w=c;break}}if(!w){X.err='no equippable type';return false}const t=w.t;
+  w.name=(t==='bow'?'ธนู':'ดาบ')+'ฝึกของครูทอร์';w.tw246=1;w.noSell=1;w.bound=1;
+  const r=rec();if(r){r.tw246orig=P.weapon&&P.weapon.uid;r.tw246=1}
+  if(typeof addItem==='function')addItem(w);else P.inv.push(w);X.given++;
+  try{if(G.win==='wInv')renderInv()}catch(_){}
+  try{notify('ครูทอร์ให้ '+w.name+' · เปิดกระเป๋า (I) แล้วใส่อาวุธนี้เพื่อสลับอาวุธ')}catch(_){}
+  try{saveGame()}catch(_){}
+  return true}catch(e){X.err='talk '+e.message;return false}};
+/* quest finished -> take the practice weapon back */
+setInterval(()=>{try{if(typeof G==='undefined'||G.state!=='play'||!P)return;const r=rec();if(!r||r.s!=='d'||!has())return;
+  if(isTW(P.weapon)){let i=P.inv.findIndex(it=>it&&it.kind==='wpn'&&!isTW(it)&&(r.tw246orig==null||it.uid===r.tw246orig));if(i<0)i=P.inv.findIndex(it=>it&&it.kind==='wpn'&&!isTW(it));
+    if(i>=0){const o=P.inv[i];P.inv.splice(i,1);P.weapon=o}else{P.weapon=null}try{recalc()}catch(_){}}
+  const before=P.inv.length;P.inv=P.inv.filter(it=>!isTW(it));X.removed+=before-P.inv.length+(isTW(P.weapon)?1:0);
+  try{if(G.win==='wInv')renderInv()}catch(_){}try{if(typeof buildBar==='function')buildBar()}catch(_){}
+  try{notify('คืน อาวุธฝึก ให้ครูทอร์แล้ว')}catch(_){}try{saveGame()}catch(_){}}catch(e){X.err='done '+e.message}},1000);
+})();
+</script>
+
+<script>
+/* r247 Thor's training yard, Astoria (DeaRz 26 Nov 2026 13:26 BKK: "กำหนดให้ ดัมมี่ หุ่นไล่กา เป็นที่ลองดาเมจ กำแพงหน้าครูทอเอาไปตั้งตรงอื่น").
+   (1) DUMMYTEST247 (?dummytest=off): the 3 scarecrow props (m3Tr_dummy / DS3 z11.dummy.1-3) are a permanent damage-test spot. While the hero is in Astoria within
+       ~700 px of the yard, the quest's own training targets (devdummy, flag c1Dummy: hp 1e9 kept full every frame, atk 0, no aggro, never move, never die) are kept
+       alive (before: only while a hit_dummy objective ran) and now stand exactly ON the scarecrow props; their own body is not drawn (the scarecrow picture is the body),
+       damage numbers show as usual, quest hit_dummy steps still count on them. Away from the yard they are removed and the town's safe flag returns (CH1Q logic unchanged).
+   (2) TALLYWALL247 (?tallywall=off): the tally-mark wall (story prop 'wall' at point p_astoria_tally_wall, also the side-quest interact spot) stood right in front of ครูทอร์
+       (2690,3140). It moves, prop and interact point together, to open grass east of him in the same yard. */
+(function(){'use strict';
+const Q=String(location.search);
+const X=window.DUMMYTEST247={on:!/[?&]dummytest=off\b/.test(Q),ver:'r247',err:null,
+  spots:[[2640,2995],[2639,3050],[2638,3126]],   // the scarecrow props (m3Tr_dummy) as placed in Astoria
+  yard:{x:2690,y:3060,r:700}};
+X.want=function(){try{return X.on&&typeof G!=='undefined'&&G.zone==='astoria_capital'&&G.state==='play'&&typeof P!=='undefined'&&P&&Math.hypot(P.x-X.yard.x,P.y-X.yard.y)<X.yard.r}catch(_){return false}};
+if(X.on){try{const _d=drawEnemy;drawEnemy=function(e){if(e&&e.dt247)return;return _d.apply(this,arguments)}}catch(e){X.err='draw '+e.message}}
+const W=window.TALLYWALL247={on:!/[?&]tallywall=off\b/.test(Q),ver:'r247',from:{x:2690,y:3140},to:{x:2860,y:3080},moved:false,err:null};
+if(W.on){const t=setInterval(()=>{try{const a=window.CH1Q&&CH1Q.api,p=a&&a.PT&&a.PT.p_astoria_tally_wall;if(!p)return;if(Math.abs(p.x-W.from.x)<2&&Math.abs(p.y-W.from.y)<2){p.x=W.to.x;p.y=W.to.y}W.moved=true;clearInterval(t)}catch(e){W.err=e.message}},500)}
+})();
+</script>
+
+<script>
+/* NOSWAP248 r248 (?noswap=off): DeaRz 26 Nov 2026 13:34 BKK "ระหว่างต่อสู้ห้ามสลับอาวุธ".
+   "In a fight" = the hero hit a monster or was hit within the last 5 s (same window as the house lantern's combat gate). Hits on Thor's training scarecrows
+   (c1Dummy) do NOT count, so the "สลับอาวุธ" quest step still works in the yard.
+   How: one guard after every game update, so every way of changing the weapon is covered (bag double-click / equip, unequip, quick-swap buttons, hotkeys, menus):
+   if the equipped weapon changed during a fight, the old weapon goes back on, the bag is put back exactly as it was, and a toast says why. Armour / accessories untouched.
+   Always allowed: while dead, when the old weapon did not go back into the bag (it broke, was removed, GM tools), returning Thor's practice weapon (tw246),
+   and any system code that sets window.__WSWAP_SYS = true around its swap. */
+(function(){'use strict';
+const X=window.NOSWAP248={on:!/[?&]noswap=off\b/.test(String(location.search)),ver:'r248',sec:5,combatT:-1e9,blocked:0,allowed:0,err:null};
+if(!X.on)return;
+const now=()=>performance.now()/1000;
+X.inFight=()=>now()-X.combatT<X.sec;
+try{const _h=hurtPlayer;hurtPlayer=function(){X.combatT=now();return _h.apply(this,arguments)}}catch(e){X.err='hurt '+e.message}
+try{const _e=hitEnemy;hitEnemy=function(e){const r=_e.apply(this,arguments);try{if(e&&!e.c1Dummy&&!e.dt247)X.combatT=now()}catch(_){}return r}}catch(e){X.err='hit '+e.message}
+let lastW=null,lastT=0;
+function guard(){try{if(typeof P==='undefined'||!P)return;const w=P.weapon;if(w===lastW)return;const old=lastW;lastW=w;
+  if(!old||!X.inFight()||P.dead||window.__WSWAP_SYS||old.tw246)return void X.allowed++;
+  const j=P.inv.indexOf(old);if(j<0)return void X.allowed++;          // old weapon not in the bag: broken / removed / system
+  const isFist=!w||w.t==='fist';
+  if(isFist)P.inv.splice(j,1);else{const k=P.inv.indexOf(w);if(k>=0&&k!==j)P.inv.splice(k,1);P.inv[P.inv.indexOf(old)]=w}
+  P.weapon=old;lastW=old;X.blocked++;try{recalc()}catch(_){}try{if(G.win==='wInv')renderInv()}catch(_){}try{if(typeof buildBar==='function')buildBar()}catch(_){}
+  const left=Math.ceil(X.sec-(now()-X.combatT));const t=performance.now();if(t-lastT>800){lastT=t;try{notify('สลับอาวุธไม่ได้ระหว่างต่อสู้ · รออีก '+left+' วินาที',true)}catch(_){}}
+ }catch(e){X.err='guard '+e.message}}
+try{const _u=update;update=function(){const r=_u.apply(this,arguments);guard();return r}}catch(e){X.err='update '+e.message}
+setInterval(guard,250);   // also while the bag window pauses updates
+})();
+</script>
+
+<script>
+window.WATERFISH256=window.WATERFISH256||{ver:'waterfish-r256',on:!/[?&]waterfish1=off\b/.test(String(location.search)),err:null};
+/* ---- r249 WATERFISH249 (TEST ONLY). DeaRz 26 Nov 13:32 BKK "ให้น้ำตรงนี้ตกปลาได้ แมพ4 แมพ5 ตรงที่มีลำธาร ตกปลาได้".
+   Fishing with the existing r175 fishing (same rod rule, same fish table, same numbers) at real water on three maps:
+     - astoria_capital: the Riverside Garden water (zone 9, wooden bridge + garden stones), shape = __M3RIVER.pond.water_outline
+     - w22_map4_test:   the Map 4 stream, shape = __M4T.inWater (the same test the map already uses)
+     - w22_map5_test:   the Map 5 pool + stream = blue pixels of the Map 5 ground painting that are also not walkable;
+                        the waterfall (below the cliff lip, y > fall.top-40) does not count.
+   F prompt shows only when the hero stands at a bank and faces water (rays from the feet along P.face, +-20/40 deg, up to 96 px);
+   the bobber lands on water 34 px past the bank. With the rod held, a click on water (within the rod's 240 px reach) casts there.
+   Home pond untouched. Off: ?waterfish=off. Debug: window.WATERFISH249 ---- */
+(function(){'use strict';
+const Q=String(location.search);
+const R=window.WATERFISH249={ver:'waterfish-r249',on:!/[?&]waterfish=off\b/.test(Q),err:null,
+  cfg:{reach:96,step:6,into:34,cone:[0,.35,-.35,.7,-.7],m5k:.25},stats:{near:0,at:0,m5mask:0}};
+const ERR=(w,e)=>{R.err=w+': '+((e&&e.message)||e);try{console.error('[WATERFISH249]',w,e)}catch(_){}};
+const ZS={astoria_capital:'astoria',w22_map4_test:'map4',w22_map5_test:'map5'};try{if(window.WATERFISH256&&WATERFISH256.on)ZS.sylva_lab='sylva'}catch(_){}
+R.zones=ZS;
+R.zoneOn=()=>{try{return R.on&&typeof G!=='undefined'&&!!ZS[G.zone]}catch(_){return false}};
+function pip(poly,x,y){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c}return c}
+/* Map 5: water mask from the ground painting (built once, on the first look) */
+let m5=null,m5busy=false;
+function buildM5(){if(m5||m5busy)return;try{const A=window.__M5_ART,D=window.__M5_DATA;if(!A||!A.ground||!D)return;m5busy=true;const im=new Image();
+  im.onload=()=>{try{const k=R.cfg.m5k,w=Math.round(D.W*k),h=Math.round(D.H*k),c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0,w,h);
+    const px=g.getImageData(0,0,w,h).data,M=new Uint8Array(w*h);let n=0;for(let i=0;i<w*h;i++){const r=px[i*4],gg=px[i*4+1],b=px[i*4+2];if(b>r+45&&b>gg+8){M[i]=1;n++}}
+    m5={w,h,k,M};R.stats.m5mask=n}catch(e){ERR('m5mask',e)}m5busy=false};
+  im.onerror=()=>{m5busy=false};im.src=A.ground.src}catch(e){m5busy=false;ERR('buildM5',e)}}
+function walk5(x,y){try{const D=__M5_DATA,row=D.walk[Math.floor(y/D.g4)];if(!row||x<0)return false;const c=Math.floor(x/D.g4);for(let i=0;i<row.length;i+=2)if(c>=row[i]&&c<row[i+1])return true}catch(_){}return false}
+function water(x,y){try{const z=ZS[G.zone];if(!z)return false;
+  if(z==='sylva'){return !!(window.WATERFISH256&&WATERFISH256.water(x,y))}if(z==='astoria'){const o=window.__M3RIVER&&__M3RIVER.pond&&__M3RIVER.pond.water_outline;return !!(o&&pip(o,x,y))}
+  if(z==='map4'){return !!(window.__M4T&&typeof __M4T.inWater==='function'&&__M4T.inWater(x,y))}
+  if(z==='map5'){const D=window.__M5_DATA;if(!D)return false;if(!m5){buildM5();return false}if(D.fall&&y>D.fall.top-40)return false;
+    const u=Math.floor(x*m5.k),v=Math.floor(y*m5.k);if(u<0||v<0||u>=m5.w||v>=m5.h||!m5.M[v*m5.w+u])return false;return !walk5(x,y)}
+ }catch(e){ERR('water',e)}return false}
+R.water=water;
+const mk=(bx,by)=>({uid:'wf249_'+G.zone,wf249:1,id:'fishPond',x:bx,y:by,bx,by});
+/* standing at a bank, facing water -> a spot on the water */
+R.near=()=>{try{if(!R.zoneOn()||typeof P==='undefined'||!P)return null;const C=R.cfg,fx=P.x,fy=P.y+6,base=+P.face||0;
+  for(const da of C.cone){const a=base+da,cx=Math.cos(a),sy=Math.sin(a);for(let d=C.step;d<=C.reach;d+=C.step){if(!water(fx+cx*d,fy+sy*d))continue;
+    let bd=d+C.into;while(bd>d&&!water(fx+cx*bd,fy+sy*bd))bd-=4;R.stats.near++;return mk(fx+cx*bd,fy+sy*bd)}}}catch(e){ERR('near',e)}return null};
+/* rod click: the clicked (clamped) point is water -> fish there */
+R.at=(x,y)=>{try{if(R.zoneOn()&&water(x,y)){R.stats.at++;return mk(x,y)}}catch(e){ERR('at',e)}return null};
+R.isSt=st=>!!(st&&String(st.uid||'').indexOf('wf249')===0);
+/* warm the Map 5 mask as soon as the map is entered */
+setInterval(()=>{try{if(R.on&&typeof G!=='undefined'&&G.zone==='w22_map5_test')buildM5()}catch(_){}},1000);
+})();
+
+</script>
+
+<script>
+/* ---- r250 TANKBG250 (TEST ONLY). DeaRz 26 Nov 13:45 BKK (via coordinator), tank view:
+   1) the three passed tank background paintings (ChatGPT PR318 / PR319 / PR320 calm r2, recompressed to 1200x800 JPEG q84, about 90 KB each)
+      replace the code-drawn backgrounds in the "ฉากหลัง" picker, same ids so old saves keep their choice: sand = bg1 (default), garden = bg2, deep = bg3.
+      Drawn cover-fit straight into the tank (not through the 960x540 cache). DeaRz tank rules: no code light rays, no caustics, minimal waves ->
+      with the paintings on, the code rays, the blue tint, the surface glow and the wavy surface line are not drawn. Fish, pellets, bubbles, reward bubbles unchanged.
+   2) "ใส่/เอาปลา" panel: an empty list shows ONE empty slot with ❌ (no sentence), for both "ปลาในกระเป๋า" and "ปลาในตู้".
+   Off: ?tankbg=off (both parts). Debug: window.TANKBG250 ---- */
+(function(){'use strict';
+const T=window.TANKBG250={ver:'tankbg-r250',on:!/[?&]tankbg=off\b/.test(String(location.search)),err:null,stats:{draws:0,empty:0}};
+if(!T.on)return;
+const ERR=(w,e)=>{T.err=w+': '+((e&&e.message)||e);try{console.error('[TANKBG250]',w,e)}catch(_){}};
+const SRC={sand:'assets/3f06f579ab8610a6.jpg',garden:'assets/4371ad7ed26f1e7f.jpg',deep:'assets/b184088d091e368b.jpg'};
+const NAME={sand:'ทะเลปะการัง',garden:'ทะเลลึกยามค่ำ',deep:'บ่อเกาะลอยฟ้า'};
+const IM={};for(const id in SRC){const im=new Image();im.decoding='async';im.src=SRC[id];IM[id]=im}
+T.ready=id=>{const im=IM[id];return !!(im&&im.complete&&im.naturalWidth)};
+const cover=(g,im,x,y,w,h)=>{const s=Math.max(w/im.naturalWidth,h/im.naturalHeight),dw=im.naturalWidth*s,dh=im.naturalHeight*s;g.drawImage(im,x+(w-dw)/2,y+(h-dh)/2,dw,dh)};
+/* tank view: painting straight into the tank rect */
+T.draw=(g,r,id)=>{try{const im=IM[id]||IM.sand;if(!im||!im.complete||!im.naturalWidth)return false;cover(g,im,r.x,r.y,r.w,r.h);T.stats.draws++;return true}catch(e){ERR('draw',e);return false}};
+/* picker thumbnails (and any cache use): the same painting */
+function wire(){try{const FT=window.__FISHTANK;if(!FT||!Array.isArray(FT.bgs))return false;for(const b of FT.bgs){if(!SRC[b.id]||b._t250)continue;b._t250=1;b.name=NAME[b.id]||b.name;const id=b.id;b.back=function(g,W,Hh){const im=IM[id];if(im&&im.complete&&im.naturalWidth)cover(g,im,0,0,W,Hh)};b.front=null}return true}catch(e){ERR('wire',e);return true}}
+{let n=0;const iv=setInterval(()=>{if(wire()||++n>120)clearInterval(iv)},250)}wire();
+/* empty list -> one ❌ slot */
+const fixEmpty=()=>{try{const pn=document.getElementById('ftFish');if(!pn)return;for(const x of pn.querySelectorAll('.x')){if(x.dataset.e250)continue;x.dataset.e250='1';x.title=x.textContent;x.textContent='❌';x.classList.add('e250');T.stats.empty++}}catch(e){ERR('empty',e)}};
+try{const c=document.createElement('style');c.textContent='#ftFish .x.e250{width:48px;height:48px;min-width:48px;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;padding:0;margin:4px 0 8px;overflow:hidden;white-space:nowrap;box-sizing:border-box}';document.head.appendChild(c)}catch(e){ERR('css',e)}
+{let mo=null;const iv=setInterval(()=>{const pn=document.getElementById('ftFish');if(!pn)return;clearInterval(iv);fixEmpty();mo=new MutationObserver(fixEmpty);mo.observe(pn,{childList:true,subtree:true})},400)}
+})();
+</script>
+
+<script>
+/* ---- r251 TANKART251 helper (TEST ONLY). The tank prop picture itself is wired by the r251 patch (window.__TANKART251, ?tankart=off).
+   Here: the "ใส่/เอาปลา" panel refreshes its two lists whenever the bag fish or the tank fish change while it is open (coordinator 26 Nov: it stayed stale until reopened). ?fishlive=off = old behaviour. ---- */
+(function(){'use strict';
+const R=window.FISHLIVE251={on:!/[?&]fishlive=off\b/.test(String(location.search)),err:null,refresh:0};if(!R.on)return;
+let last='';
+const sig=()=>{const FS=window.__FISHING,FT=window.__FISHTANK;let s='';try{for(const id of FS.fishIds){const it=FS.cfg.fish[id].item;s+=id+':'+((typeof countItem==='function')?countItem(it):0)+','}}catch(_){}try{s+='|'+FT.fishList().map(f=>f.u||f.sp).join(',')}catch(_){}return s};
+setInterval(()=>{try{const pn=document.getElementById('ftFish'),FS=window.__FISHING;if(!pn||!pn.classList.contains('in')||!FS||!FS.renderFishPanel){last='';return}const s=sig();if(!last){last=s;return}if(s!==last){last=s;const sc=pn.scrollTop;FS.renderFishPanel();pn.scrollTop=sc;R.refresh++}}catch(e){R.err=String(e&&e.message||e)}},350);
+})();
+</script>
+
+<script>
+
+/* ---- WARPFX252 (TEST): map warp effect (DeaRz 26 Nov 13:52 BKK). Walking into a warp: the hero becomes a ball of light and a light
+   pillar shoots up; on the other map a pillar comes down with the ball and the hero appears. Works on every zone change during play:
+   the old map is kept as a still picture (hero hidden) for the first half while the new map loads underneath. Off: ?warpfx=off ---- */
+(function(){'use strict';
+const X=window.WARPFX252={ver:'warpfx-r252',on:!/[?&]warpfx=off\b/.test(String(location.search)),err:null,seq:null,hide:false,n:0,cfg:{out:.85,inn:.9,show:.6}};
+if(!X.on)return;
+const now=()=>performance.now()/1000,cl=(v,a,b)=>Math.max(a,Math.min(b,v)),ez=t=>t*t*(3-2*t);
+function cvs(){try{return ctx.canvas}catch(_){return null}}
+/* hero hidden while he is the ball */
+try{const _d=drawPlayer;drawPlayer=function(){if(X.hide)return;return _d.apply(this,arguments)}}catch(e){X.err='dp '+e.message}
+function begin(){const c=cvs();if(!c||!c.width)return null;let s;try{X.hide=true;render()}catch(e){X.err='snap '+e.message}
+ try{const o=document.createElement('canvas');o.width=c.width;o.height=c.height;o.getContext('2d').drawImage(c,0,0);const p=w2s(P.x,P.y);s={snap:o,sx:p[0],sy:p[1]}}catch(e){X.err='copy '+e.message;s=null}
+ return s}
+try{const _l=loadZone;loadZone=function(zid,arrive){let s=null;
+  try{if(X.on&&!X.seq&&typeof G!=='undefined'&&G.state==='play'&&typeof P!=='undefined'&&P&&!P.dead&&G.zone&&zid&&zid!==G.zone&&!document.hidden)s=begin()}catch(e){X.err='pre '+e.message;s=null}
+  let r;try{r=_l.apply(this,arguments)}catch(e){X.hide=false;throw e}
+  if(s){s.t0=0;s.made=now();s.lock=null;s.from=null;X.seq=s;X.n++}else if(!X.seq)X.hide=false;
+  return r}}catch(e){X.err='lz '+e.message}
+/* hold the hero in place while the effect plays */
+try{const _u=update;update=function(dt){const r=_u.apply(this,arguments);try{const s=X.seq;if(s&&P){if(!s.lock)s.lock={x:P.x,y:P.y};else{P.x=s.lock.x;P.y=s.lock.y}P.dash=null;if(!(P.invT>.3))P.invT=.3}}catch(e){X.err='upd '+e.message}return r}}catch(e){X.err='uh '+e.message}
+function orb(c,x,y,r,a){if(r<=0||a<=0)return;c.save();c.globalCompositeOperation='lighter';c.globalAlpha=cl(a,0,1);const g=c.createRadialGradient(x,y,0,x,y,r*2.6);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.22,'rgba(255,246,200,.95)');g.addColorStop(.5,'rgba(255,211,107,.45)');g.addColorStop(1,'rgba(255,190,80,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,r*2.6,0,6.2832);c.fill();c.fillStyle='#fff';c.beginPath();c.arc(x,y,r*.55,0,6.2832);c.fill();c.restore()}
+function pillar(c,x,yb,w,a,t){if(w<=0||a<=0)return;c.save();c.globalCompositeOperation='lighter';c.globalAlpha=cl(a,0,1);
+ const g=c.createLinearGradient(x-w,0,x+w,0);g.addColorStop(0,'rgba(255,200,90,0)');g.addColorStop(.3,'rgba(255,220,130,.35)');g.addColorStop(.5,'rgba(255,255,240,.95)');g.addColorStop(.7,'rgba(255,220,130,.35)');g.addColorStop(1,'rgba(255,200,90,0)');
+ c.fillStyle=g;c.fillRect(x-w,-10,w*2,yb+10);
+ /* ground ring + rising motes */
+ /* ground glow: soft, no edge (several drifting blobs that fade to nothing) */
+ for(let i=0;i<5;i++){const a2=i*1.2566+t*.6,R=w*(3.4+.5*Math.sin(t*2.1+i*1.7)),ox=i?Math.cos(a2)*w*.9:0,oy=i?Math.sin(a2)*w*.9:0;c.save();c.translate(x+ox,yb+oy*.36);c.scale(1,.36);const gg=c.createRadialGradient(0,0,0,0,0,R);gg.addColorStop(0,'rgba(255,250,220,'+(i?.22:.55)+')');gg.addColorStop(.35,'rgba(255,232,160,'+(i?.12:.26)+')');gg.addColorStop(.7,'rgba(255,214,120,.05)');gg.addColorStop(1,'rgba(255,210,110,0)');c.fillStyle=gg;c.beginPath();c.arc(0,0,R,0,6.2832);c.fill();c.restore()}
+ c.fillStyle='rgba(255,250,225,.9)';for(let i=0;i<10;i++){const ph=(t*1.3+i*.137)%1,px=x+Math.sin(i*12.9898)*w*.75,py=yb-ph*Math.min(yb,360);c.globalAlpha=cl(a*(1-ph),0,1);c.beginPath();c.arc(px,py,1.6+((i*7)%3)*.6,0,6.2832);c.fill()}
+ c.restore()}
+function overlay(){const s=X.seq;if(!s)return;if(!s.t0)s.t0=now();const c=ctx,t=now()-s.t0,C=X.cfg,cv=cvs();if(!cv)return;const d=(typeof DPR==='number'&&DPR)||1,Wc=cv.width/d,Hc=cv.height/d;
+ c.save();c.setTransform(d,0,0,d,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over';
+ if(t<C.out){const u=t/C.out;/* old map still */c.drawImage(s.snap,0,0,Wc,Hc);
+  const x=s.sx,yb=s.sy,g=cl(u/.3,0,1),up=cl((u-.3)/.6,0,1),oy=yb-26-ez(up)*ez(up)*(yb+80);
+  pillar(c,x,yb,(10+g*20)*(1-up*.45),g*(1-cl((u-.85)/.15,0,1)*.4),t);orb(c,x,oy,6+g*10-up*3,1);
+  if(u<.18){c.save();c.globalCompositeOperation='lighter';c.globalAlpha=(1-u/.18)*.8;const fg=c.createRadialGradient(x,yb-26,0,x,yb-26,60);fg.addColorStop(0,'#fff');fg.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=fg;c.beginPath();c.arc(x,yb-26,60,0,6.2832);c.fill();c.restore()}
+  const wf=cl((u-.78)/.22,0,1);if(wf>0){c.globalAlpha=wf;c.fillStyle='#fff8e0';c.fillRect(0,0,Wc,Hc)}}
+ else{const v=t-C.out,u=v/C.inn;if(u>=1){X.seq=null;X.hide=false;c.restore();return}
+  let p;try{p=w2s(P.x,P.y)}catch(_){p=[Wc/2,Hc/2]}const x=p[0],yb=p[1];
+  const wf=1-cl(u/.25,0,1);if(wf>0){c.globalAlpha=wf;c.fillStyle='#fff8e0';c.fillRect(0,0,Wc,Hc);c.globalAlpha=1}
+  const dn=cl(u/C.show,0,1),oy=-60+(yb-26+60)*ez(dn),land=cl((u-C.show)/(1-C.show),0,1);
+  pillar(c,x,yb,(26-dn*8)*(1-land),1-land,t);
+  if(dn<1)orb(c,x,oy,14,1);else{X.hide=false;orb(c,x,yb-26,14+land*26,1-land)}}
+ c.restore()}
+try{const _r=render;render=function(){const r=_r.apply(this,arguments);try{overlay()}catch(e){X.err='ov '+e.message;X.seq=null;X.hide=false}return r}}catch(e){X.err='rh '+e.message}
+/* safety: never leave the hero hidden */
+setInterval(()=>{try{const s=X.seq;if(s&&now()-(s.t0||s.made)>6){X.seq=null;X.hide=false}if(!s&&X.hide)X.hide=false}catch(_){}},1000);
+})();
+
+</script>
+
+<script>
+
+/* ---- NOFIRSTAID252 (TEST): DeaRz 26 Nov 13:54 BKK "สกิล เฟริสเอจ เอาออกจากเกม". First Aid (novice heal) is taken off every character:
+   out of the learned skills, out of the skill bar slots (the slot becomes empty) and out of the class skill lists. Back: ?firstaid=on ---- */
+(function(){'use strict';
+const X=window.NOFIRSTAID252={ver:'nofirstaid-r252',on:!/[?&]firstaid=on\b/.test(String(location.search)),err:null,n:0};
+if(!X.on)return;const ID='firstAid';
+function strip(p){if(!p||typeof p!=='object')return 0;let c=0;try{if(p.skills&&ID in p.skills){delete p.skills[ID];c++}
+ if(Array.isArray(p.slots))for(let i=0;i<p.slots.length;i++)if(p.slots[i]===ID){p.slots[i]=null;c++}
+ for(const k of ['slots2','bar2','slotsB'])if(Array.isArray(p[k]))for(let i=0;i<p[k].length;i++)if(p[k][i]===ID){p[k][i]=null;c++}
+ if(p.cds&&ID in p.cds)delete p.cds[ID]}catch(e){X.err=e.message}return c}
+function lists(){try{if(typeof CLASSES==='undefined')return;for(const k in CLASSES){const C=CLASSES[k];if(!C)continue;for(const f in C){const v=C[f];if(Array.isArray(v)&&v.includes(ID)){C[f]=v.filter(x=>x!==ID);X.n++}}}}catch(e){X.err='cls '+e.message}}
+function run(){try{lists();let c=0;if(typeof P!=='undefined'&&P)c+=strip(P);try{if(typeof CH!=='undefined'&&CH&&Array.isArray(CH.list))for(const ch of CH.list){c+=strip(ch);if(ch&&ch.p)c+=strip(ch.p);if(ch&&ch.save)c+=strip(ch.save)}}catch(_){}
+ if(c){X.n+=c;try{if(typeof renderSkillBar==='function')renderSkillBar()}catch(_){}try{if(typeof renderHUD==='function')renderHUD()}catch(_){}}}catch(e){X.err=e.message}}
+run();setInterval(run,700);
+})();
+
+</script>
+
+<script>
+
+/* ---- DOTFIX252 (TEST): DeaRz 26 Nov 13:53 BKK: red dot on the status button although nothing can be raised. The dot was shown for
+   statPts > 0, but a stat step costs 2+ points (statCost), so 1 leftover point lit the dot for nothing. Now the dot shows only when
+   at least one stat can really be raised with the points in hand. Off: ?dotfix=off ---- */
+(function(){'use strict';
+const X=window.DOTFIX252={ver:'dotfix-r252',on:!/[?&]dotfix=off\b/.test(String(location.search)),err:null,n:0};
+if(!X.on)return;
+X.can=function(){try{if(typeof P==='undefined'||!P||!P.stats)return false;const pts=P.statPts|0;if(pts<=0)return false;for(const k in P.stats){const v=P.stats[k]|0;if(v<99&&pts>=statCost(v))return true}return false}catch(e){X.err=e.message;return true}};
+function fix(){try{const m=document.getElementById('menu');if(!m)return;const can=X.can();for(const b of m.querySelectorAll('.mbtn.h2dot')){if(b.dataset.win==='wSkill')continue;if(!can){b.classList.remove('h2dot');X.n++}}}catch(e){X.err=e.message}}
+let mo=null;function arm(){try{const m=document.getElementById('menu');if(!m||mo)return;mo=new MutationObserver(fix);mo.observe(m,{subtree:true,attributes:true,attributeFilter:['class']});fix()}catch(e){X.err=e.message}}
+setInterval(()=>{arm();fix()},300);
+})();
+
+</script>
+
+<script>
+/* ---- r253 HUDTAP253 (TEST ONLY, coordinator 26 Nov after the r251 test): a click / tap on any HUD control (build-mode action bar, store, menus, any element that is not the game canvas)
+   or any click while build mode is on never triggers the yard way-down ("ทางลง") or the lantern "enter house" tap. The tap on the ground ring itself still works outside build mode,
+   and the prompt pill / "ลงจากลาน" button keep working. Off: ?hudtap=off ---- */
+window.HUDTAP253={ver:'hudtap-r253',on:!/[?&]hudtap=off\b/.test(String(location.search)),skipped:0};
+</script>
+
+<script>
+/* ---- r254 NPCAFF254 (TEST ONLY). DeaRz 26 Nov 14:05 BKK (via coordinator, screenshot of ปู่ฟอน): "NPC ที่ให้ของขวัญได้ จะมีค่าความชอบโชว์ว่าได้กี่แต้มแล้ว
+   เมื่อกดให้ของขวัญจะมีอิโมจิหัวใจขึ้นบนหัว และแต้มเพิ่ม และเพิ่มกล่องข้อความหน้ายิ้มแล้วขอบคุณนะ ในแต่ละแบบของตัว NPC".
+   1) every gift NPC (CH1Q NPC with affinity) shows "❤ v/100" (this character's points) under its name tag when the hero is within 260 px,
+      and in the talk / gift window next to the name.
+   2) a gift that counts: a ❤ rises from the NPC's head with "+N" (the points really gained, +1 / +3 by the existing CH1Q rules), the number updates at once.
+   3) a speech bubble over the NPC: 😊 + a thank-you line in that NPC's voice (warmer line for a liked gift); the same line replaces the generic thank-you in the dialogue.
+      Lines = DRAFT (Code 26 Nov), listed in README_r254.md for DeaRz to change. Daily cap reached = the existing refusal, no heart, no bubble.
+   Off: ?npcaff=off. Debug: window.NPCAFF254 ---- */
+(function(){'use strict';
+const X=window.NPCAFF254={ver:'npcaff-r254',on:!/[?&]npcaff=off\b/.test(String(location.search)),err:null,cur:null,fx:[],stats:{gifts:0,tags:0},cfg:{near:260,tagDy:34,headDy:78,heartSec:1.6,bubbleSec:3.4}};
+if(!X.on)return;
+const ERR=(w,e)=>{X.err=w+': '+((e&&e.message)||e);try{console.error('[NPCAFF254]',w,e)}catch(_){}};
+/* thank-you lines [normal, liked] (draft) */
+X.lines={
+ npc_ora:['ขอบใจนะเจ้า ยายจะเก็บไว้ข้างตะเกียง','โอ้... ของที่ยายชอบเลย เจ้านี่ใจดีจริง ๆ'],
+ npc_mali:['ขอบใจจ้ะ ข้าจะวางไว้หน้าร้านเลย','ว้าย ของโปรดข้าเลย รู้ใจข้าจริง ๆ นะเจ้า'],
+ npc_ferro:['อืม ขอบใจ เดี๋ยวข้าหาที่ใช้ให้','ฮ่า! ของดีแบบนี้ข้าชอบนัก ขอบใจมาก'],
+ npc_astoria_trainer:['ขอบใจ ซ้อมต่ออย่าให้ขาดล่ะ','ของชิ้นนี้ข้าชอบเลย ศิษย์ดีจริง ๆ!'],
+ npc_astoria_gardener:['ขอบใจนะ ข้าจะเอาไปวางข้างแปลงดอกไม้','ดอกไม้กับสมุนไพรแบบนี้แหละที่ข้าชอบ ขอบใจมากนะเจ้า'],
+ npc_traveler_m4:['ขอบใจ ระหว่างทางข้าคงได้ใช้','ของที่ข้าอยากได้พอดีเลย ขอบใจมากนะ!'],
+ npc_beggar_reaper:['...ขอบใจ ข้าจะไม่ลืมน้ำใจนี้','ของกินอุ่น ๆ... ข้าชอบนัก ขอบใจเจ้ามาก'],
+ npc_demon_wounded:['ฮึ่ม... ขอบใจ มนุษย์','ของถูกใจข้า... เจ้าไม่เลวเลยนะ มนุษย์'],
+ npc_pip:['ขอบคุณครับ! ข้าจะเก็บไว้อย่างดี','ว้าว ของที่ข้าชอบที่สุดเลย ขอบคุณครับ!'],
+ npc_pell:['ขอบใจนะ เจ้านี่ใจดีจริง','ของชิ้นนี้ข้าชอบมากเลย ขอบใจ!'],
+ npc_mira:['ขอบคุณนะ มิราจะเก็บไว้อย่างดี','ของที่มิราชอบเลย! ขอบคุณมาก ๆ นะ'],
+ npc_hark:['ขอบใจ จะใช้ให้คุ้ม','ของดีแบบนี้แหละที่ข้าชอบ ขอบใจมาก']};
+const api=()=>window.CH1Q&&CH1Q.api;
+const now=()=>performance.now()/1000;
+function giftable(n){try{if(!n||n.affinity===false||!n.at)return false;const A=api();if(n.affGate){const f=A.flags&&A.flags();if(!f||!f[n.affGate])return false}return true}catch(_){return false}}
+function val(id){try{return api().aff(id)|0}catch(_){return 0}}
+X.val=val;
+/* called from the patched giftMenu after affAdd: returns the dialogue line */
+X.gift=(n,got,liked)=>{try{const L=X.lines[n.id]||['ขอบใจนะ','ของที่ข้าชอบเลย ขอบใจมาก!'],line=L[liked?1:0];const t=now();
+  X.fx.push({k:'heart',id:n.id,t0:t,got});X.fx.push({k:'bub',id:n.id,t0:t,line});X.stats.gifts++;X.cur=n.id;setTimeout(nameTag,30);return line}catch(e){ERR('gift',e);return null}};
+/* world drawing: tags, hearts, bubbles */
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath()}
+function draw(){const A=api();if(!A||!A.NPC||typeof G==='undefined'||G.state!=='play'||typeof P==='undefined'||!P)return;const c=ctx,t=now();c.save();
+ for(const id in A.NPC){const n=A.NPC[id];if(!giftable(n)||n.at.zone!==G.zone)continue;if(Math.hypot(P.x-n.at.x,P.y-n.at.y)>X.cfg.near)continue;
+  const s='❤ '+val(id)+'/100';c.font='800 11px system-ui,"Noto Sans Thai",sans-serif';const w=c.measureText(s).width+12,x=n.at.x-w/2,y=n.at.y+X.cfg.tagDy-8;
+  c.globalAlpha=.9;c.fillStyle='rgba(40,16,26,.78)';rr(c,x,y,w,16,8);c.fill();c.strokeStyle='rgba(255,150,180,.8)';c.lineWidth=1;c.stroke();c.globalAlpha=1;c.fillStyle='#ffd0de';c.textAlign='center';c.textBaseline='middle';c.fillText(s,n.at.x,y+8.5);X.stats.tags++}
+ for(let i=X.fx.length-1;i>=0;i--){const f=X.fx[i],n=A.NPC[f.id],age=t-f.t0;if(!n||!n.at||n.at.zone!==G.zone){if(age>4)X.fx.splice(i,1);continue}
+  if(f.k==='heart'){const D=X.cfg.heartSec;if(age>D){X.fx.splice(i,1);continue}const u=age/D,hx=n.at.x+Math.sin(age*5)*4,hy=n.at.y-X.cfg.headDy-u*46,sc=age<.18?.4+age/.18*.75:1.15-u*.25;
+   c.globalAlpha=Math.min(1,(1-u)*1.6);c.font=Math.round(26*sc)+'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('❤️',hx,hy);
+   c.font='900 15px system-ui,sans-serif';c.lineWidth=3;c.strokeStyle='rgba(60,10,25,.85)';c.fillStyle='#ff8fb0';const ps='+'+f.got;c.strokeText(ps,hx+22,hy+2);c.fillText(ps,hx+22,hy+2);c.globalAlpha=1}
+  else if(f.k==='bub'){const D=X.cfg.bubbleSec;if(age>D){X.fx.splice(i,1);continue}const a=Math.min(1,age/.18,(D-age)/.35);const s='😊 '+f.line;c.font='700 12px system-ui,"Noto Sans Thai",sans-serif';const w=Math.min(260,c.measureText(s).width+18),h=26,bx=n.at.x-w/2,by=n.at.y-X.cfg.headDy-28-h-(1-Math.min(1,age/.18))*6;
+   c.globalAlpha=a;c.fillStyle='rgba(255,252,240,.97)';rr(c,bx,by,w,h,9);c.fill();c.strokeStyle='#8a5a2a';c.lineWidth=1.5;c.stroke();c.beginPath();c.moveTo(n.at.x-6,by+h-.5);c.lineTo(n.at.x+6,by+h-.5);c.lineTo(n.at.x,by+h+8);c.closePath();c.fillStyle='rgba(255,252,240,.97)';c.fill();c.beginPath();c.moveTo(n.at.x-6,by+h);c.lineTo(n.at.x,by+h+8);c.lineTo(n.at.x+6,by+h);c.stroke();
+   c.fillStyle='#3a2410';c.textAlign='center';c.textBaseline='middle';c.fillText(s,n.at.x,by+h/2+.5,w-10);c.globalAlpha=1}}
+ c.restore()}
+try{const _o=drawEditorOverlay;drawEditorOverlay=function(){const r=_o.apply(this,arguments);try{draw()}catch(e){ERR('draw',e)}return r}}catch(e){ERR('hook',e)}
+/* name in the talk / gift window: "ปู่ฟอน ❤ 12/100" */
+function nameTag(){try{const d=document.getElementById('qDlg');if(!d)return;const nm=d.querySelector('.nm');if(!nm)return;const A=api();if(!A)return;
+  let sp=nm.querySelector('.af254');const n=X.cur&&A.NPC[X.cur];const base=(nm.firstChild&&nm.firstChild.nodeType===3)?nm.firstChild.nodeValue.trim():'';
+  if(!n||!giftable(n)||base!==n.name){if(sp)sp.remove();return}
+  const s='❤ '+val(n.id)+'/100';if(!sp){sp=document.createElement('span');sp.className='af254';sp.style.cssText='margin-left:10px;padding:1px 8px;border-radius:9px;background:rgba(255,120,160,.18);border:1px solid rgba(255,150,180,.6);color:#ffc4d6;font-size:.82em;font-weight:800';nm.appendChild(sp)}
+  if(sp.textContent!==s)sp.textContent=s}catch(e){ERR('nameTag',e)}}
+setInterval(nameTag,200);
+})();
+
+</script>
+
+<script>
+/* ---- r255 GUNOFF255 (TEST ONLY). DeaRz 26 Nov 14:27 BKK (Balance thread, via coordinator): "เอาอาวุธ ปืนออก ยังไม่มีสกิล".
+   Guns (weapon type 'gun': Wisp Pistol / Aurora Rifle / Gale Carbine, sealed or not) no longer come from anywhere new:
+   - 'gun' is taken out of WTYPES (the random weapon-type table used by monster drops, raid chests, gate boxes, black-market / weapon-shop stock, dev lists),
+   - every NEW weapon made as a gun (makeWeapon('gun', ...), e.g. the old kill reward that picks from all WEAPONS, a stored shop stock, a unique box)
+     is made as another random weapon type of the drop table instead (same level / rarity),
+   - giveUnique('gun', style) gives a unique of another type that has uniques.
+   Guns already in a save are left alone (bag / equipped / storage untouched, still usable). Off: ?gunoff=off. Debug: window.GUNOFF255 ---- */
+(function(){'use strict';
+const X=window.GUNOFF255={ver:'gunoff-r255',on:!/[?&]gunoff=off\b/.test(String(location.search)),err:null,stats:{rerolled:0,uniq:0,stripped:0}};
+if(!X.on)return;
+const ERR=(w,e)=>{X.err=w+': '+((e&&e.message)||e);try{console.error('[GUNOFF255]',w,e)}catch(_){}};
+function strip(){try{if(typeof WTYPES!=='undefined'){let i;while((i=WTYPES.indexOf('gun'))>=0){WTYPES.splice(i,1);X.stats.stripped++}}}catch(_){}}
+strip();setInterval(strip,2000);
+const pool=()=>{try{return (typeof WTYPES!=='undefined'?WTYPES:Object.keys(WEAPONS)).filter(t=>t!=='gun'&&t!=='fist'&&WEAPONS[t])}catch(_){return ['sword']}};
+const pk=a=>a[Math.floor(Math.random()*a.length)];
+try{const _m=makeWeapon;makeWeapon=function(t){if(t==='gun'){try{const a=pool();if(a.length){arguments[0]=pk(a);X.stats.rerolled++}}catch(e){ERR('reroll',e)}}return _m.apply(this,arguments)}}catch(e){ERR('hook makeWeapon',e)}
+try{if(typeof giveUnique==='function'){const _g=giveUnique;giveUnique=function(t){if(t==='gun'){try{const a=pool().filter(x=>typeof WUQ!=='undefined'&&WUQ[x]);if(a.length){arguments[0]=pk(a);X.stats.uniq++}}catch(e){ERR('uniq',e)}}return _g.apply(this,arguments)}}}catch(e){ERR('hook giveUnique',e)}
+})();
+
+</script>
+
+<script>
+/* ---- r256 WATERFISH256 (TEST ONLY). DeaRz 26 Nov 13:32 BKK screenshot ("ให้น้ำตรงนี้ตกปลาได้") = the Map 1 Sylva river (wooden plank bridge, mossy rock), not Astoria.
+   Adds the Sylva river to WATERFISH249 (same fishing, same rules): water = inside the river's own centre line + left/right bank half-widths (W22.sylva.layout.river via __slRiver()),
+   minus the three shallow fords (layout.shallow) and anything walkable (bridge decks, banks: W22.sylva.blockedAt(x,y,1) must be true). Must load BEFORE the r249 module reads it -> defined in the patch-time head below; this file only fills it.
+   Off: ?waterfish1=off (Map 1 only). ---- */
+(function(){'use strict';
+const X=window.WATERFISH256;if(!X||!X.on)return;
+let S=null;
+function samples(){if(S)return S;try{if(typeof __slRiver==='function'){const a=__slRiver();if(Array.isArray(a)&&a.length){S=a;return S}}}catch(_){}try{const R=W22.sylva.layout.river;S=R.map(p=>({x:p[0],y:p[1],wl:p[2],wr:p[3]}));return S}catch(_){return null}}
+function pip(poly,x,y){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c}return c}
+X.water=(x,y)=>{try{const A=samples();if(!A)return false;let bi=-1,bd=1e18;for(let i=0;i<A.length;i++){const d=(A[i].x-x)*(A[i].x-x)+(A[i].y-y)*(A[i].y-y);if(d<bd){bd=d;bi=i}}if(bi<0)return false;
+  const s=A[bi],n=A[Math.min(A.length-1,bi+1)],p=A[Math.max(0,bi-1)];let tx=n.x-p.x,ty=n.y-p.y;const tl=Math.hypot(tx,ty)||1;tx/=tl;ty/=tl;
+  const off=(x-s.x)*(-ty)+(y-s.y)*tx;/* + = right of the flow direction */const lim=(off>=0?s.wr:s.wl)*1.0;if(Math.abs(off)>lim)return false;
+  try{for(const q of (W22.sylva.layout.shallow||[]))if(pip(q,x,y))return false}catch(_){}
+  try{if(typeof W22.sylva.blockedAt==='function'&&!W22.sylva.blockedAt(x,y,1))return false}catch(_){}
+  return true}catch(e){X.err='water '+e.message;return false}};
+})();
+</script>
+
+<script>
+/* ---- r257 WARPPAD257 (TEST ONLY). DeaRz 26 Nov 14:06 BKK "วงมันกลมเกินไป ขอฝุ้งมากกว่านี้" / "ขอบๆวงอ่ะ": the hard oval left during the WARPFX252 effect is the old warp pad
+   on the ground (p337 / MAPWARP213 disc + star rim). While a warp plays, the pad fades out over 0.25 s so only the effect's soft glow remains, and fades back in over 0.25 s
+   after the sequence. Leaving: the fade starts when the warp fires (circle goT), so the still picture of the old map is taken without the pad. Arriving: faded while
+   WARPFX252.seq runs. Warp positions / timing untouched; nothing changes outside a warp or with ?warpfx=off. Off: ?warppadfade=off ---- */
+(function(){'use strict';
+const X=window.WARPPAD257={ver:'warppad-r257',on:!/[?&]warppadfade=off\b/.test(String(location.search)),err:null,v:1,last:0,skips:0,cfg:{fade:.25,near:260,win:2.5}};
+if(!X.on)return;
+function want(){try{const W=window.WARPFX252;if(!W||!W.on)return false;if(W.seq)return true;
+  const C=(window.__WARP&&__WARP.circles)||[],t=(typeof time==='number')?time:0;
+  for(const c of C){if(c.z!==G.zone||!c.s)continue;if(c.s.goT>=0&&t-c.s.goT>=0&&t-c.s.goT<X.cfg.win&&Math.hypot(P.x-c.x,P.y-c.y)<X.cfg.near)return true}}catch(e){X.err=e.message}return false}
+X.f=()=>{const n=performance.now()/1000,dt=X.last?Math.min(.1,Math.max(0,n-X.last)):0;X.last=n;const step=dt/X.cfg.fade;X.v=want()?Math.max(0,X.v-step):Math.min(1,X.v+step);return X.v};
+})();
+</script>
+
+<script>
+/* ---- r258 NOSKILLWPN258 (TEST ONLY). DeaRz 26 Nov 08:14 UTC (Balance thread): "เอาออกก่อน อาวุธที่ยงไม่มีสกิล" - same as the r255 gun removal for the four weapon types
+   that have no skill line yet: greatsword, axe (Battle Axe), spear, book (Grimoire). Kept: sword, dagger, bow, staff (+ scythe, knuckle, hammer as they are).
+   - removed from WTYPES (monster drops, raid chests, gate boxes, black-market / weapon-shop stock, dev lists),
+   - makeWeapon(<removed type>, lvl, rar) makes a kept type at the same level / rarity, EXCEPT when the hero's own class uses that weapon
+     (CLASSES[P.cls].wp, e.g. a Berserker's class weapon on class change / when bare-handed), so those classes are never left with nothing to equip,
+   - giveUnique(<removed type>) gives a unique of a kept type.
+   Items already in a save are untouched and usable. ?gunoff stays separate. Off: ?noskillwpn=off. Debug: window.NOSKILLWPN258 ---- */
+(function(){'use strict';
+const X=window.NOSKILLWPN258={ver:'noskillwpn-r258',on:!/[?&]noskillwpn=off\b/.test(String(location.search)),err:null,types:['greatsword','axe','spear','book'],stats:{rerolled:0,classKept:0,uniq:0,stripped:0}};
+if(!X.on)return;
+const ERR=(w,e)=>{X.err=w+': '+((e&&e.message)||e);try{console.error('[NOSKILLWPN258]',w,e)}catch(_){}};
+const RM=new Set(X.types);
+function strip(){try{if(typeof WTYPES!=='undefined')for(const t of X.types){let i;while((i=WTYPES.indexOf(t))>=0){WTYPES.splice(i,1);X.stats.stripped++}}}catch(_){}}
+strip();setInterval(strip,2000);
+const pool=()=>{try{return (typeof WTYPES!=='undefined'?WTYPES:Object.keys(WEAPONS)).filter(t=>!RM.has(t)&&t!=='gun'&&t!=='fist'&&WEAPONS[t])}catch(_){return ['sword']}};
+const pk=a=>a[Math.floor(Math.random()*a.length)];
+const classWp=()=>{try{return CLASSES[P.cls].wp}catch(_){return null}};
+try{const _m=makeWeapon;makeWeapon=function(t){if(RM.has(t)){if(classWp()===t)X.stats.classKept++;else{try{const a=pool();if(a.length){arguments[0]=pk(a);X.stats.rerolled++}}catch(e){ERR('reroll',e)}}}return _m.apply(this,arguments)}}catch(e){ERR('hook makeWeapon',e)}
+try{if(typeof giveUnique==='function'){const _g=giveUnique;giveUnique=function(t){if(RM.has(t)){try{const a=pool().filter(x=>typeof WUQ!=='undefined'&&WUQ[x]);if(a.length){arguments[0]=pk(a);X.stats.uniq++}}catch(e){ERR('uniq',e)}}return _g.apply(this,arguments)}}}catch(e){ERR('hook giveUnique',e)}
+})();
 </script>
