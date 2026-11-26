@@ -5973,7 +5973,7 @@ function initAdmUI(){
    ===================================================================== */
 const SHELL_HEAD='<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n';
 const HOSTED=!!(window.claude&&typeof window.claude.use==='function');
-let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l14: admin only with ?gm=on (v3l10) (local file / tests): developer mode
+let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l15: admin only with ?gm=on (v3l10) (local file / tests): developer mode
 function setAdmin(v){ADMIN=!!v;document.body.classList.toggle('noadmin',!ADMIN);if(!ADMIN){if(G.win==='wGM')closeWin();const d=$('#dev');if(d&&!d.hidden)toggleDev();if(G.edit)toggleEditor(false);}}
 setAdmin(ADMIN);
 (async()=>{if(!HOSTED)return;try{const u=await window.claude.use('user');setAdmin(u?await u.canEdit():false);}catch(e){setAdmin(false);}})();
@@ -60836,7 +60836,7 @@ setInterval(()=>{try{hook();const lg=document.querySelector('#wMap .legend');if(
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3l14',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l15',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -60861,7 +60861,7 @@ console.info('[REAL] v3l6c');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l14';console.info('[REAL] v3l14')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l15';console.info('[REAL] v3l15')}catch(e){}
 })();
 </script>
 <script>
@@ -67671,4 +67671,33 @@ X.rows=function(out){if(!X.on)return;try{const q=X.find();X.last=q&&(q.end?'end'
    the tint = everything tinted until dir4 reinstalls (300 ms), re-leaking every slash frame. Now: no tint inside PUPPETX ghost (inGhost>0), and tintOff keeps the accessor
    (ctx.drawImage = own.get) instead of deleting it; (3) pictures larger than maxPx (16.8 M px) are never tinted. The hero still turns red during the buff exactly as before. */
 window.SK3SAFE239={on:!/[?&]sk3safe=off\b/.test(String(location.search)),ver:'r239',maxPx:16.8e6,passed:0,big:0};
+</script>
+
+<script>
+/* WLOOKICON241 r241 (?wlookicon=off): DeaRz 26 Nov 2026 10:28 BKK (bag with two swords, same generic icon; tooltip "Uncommon Tidecaller · Sword"):
+   "เปลี่ยนไอค่อนตามดาบที่ถือจริงด้วยสิ และทุกอาวุธทำเหมือนกันให้หมด".
+   Before: itemIcon() drew one code-made picture per weapon TYPE + rarity (cache key w_<type>_<rarity>), so every sword looked the same.
+   Now: a weapon item whose base name has an approved hand-held look (r179b weapon look art, WLOOK.looks[type][name], 24 looks: dagger, sword, bow, staff, gun,
+   scythe, hammer, knuckle x 3 names; same name match as the hero's hand: exact or "<prefix> <name>") gets an icon made from THAT sprite:
+   rarity glow behind (same glowSprite colour as other items), the sprite tilted 45 deg (blade / head up-right; knuckle upright), fitted to the 64x64 cell.
+   Cached per type + name + rarity. Every place that uses itemIcon() (bag, equipment, shop, tooltip, loot, slots) gets it. Weapons without a look
+   (unique weapons with their own names, greatsword, spear, axe, book, fist) keep their old icon. */
+(function(){'use strict';
+const X=window.WLOOKICON241={on:!/[?&]wlookicon=off\b/.test(String(location.search)),ver:'r241',made:0,hits:0,err:null,cache:{}};
+if(!X.on)return;
+function lookFor(it){try{const W=window.WLOOK;if(!W||!W.on||!W.looks||!it||it.kind!=='wpn')return null;const L=W.looks[it.t];if(!L)return null;const nm=String(it.name||'');
+  let best=null;for(const n in L)if((nm===n||nm.endsWith(' '+n))&&(!best||n.length>best.length))best=n;if(!best)return null;const im=L[best];return im&&im.complete&&im.naturalWidth?{n:best,im}:{n:best,im:null}}catch(_){return null}}
+function bounds(im){if(im.__wi241)return im.__wi241;const w=im.naturalWidth,h=im.naturalHeight;let o={x0:0,y0:0,w,h};try{const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');g.drawImage(im,0,0);const d=g.getImageData(0,0,w,h).data;let x0=w,y0=h,x1=-1,y1=-1;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>30){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}if(x1>=0)o={x0,y0,w:x1-x0+1,h:y1-y0+1}}catch(e){X.err='bounds '+e.message}return im.__wi241=o}
+function make(it,lk){const S=64,c=document.createElement('canvas');c.width=c.height=S;const g=c.getContext('2d');
+  try{const R=(typeof RARITY!=='undefined'&&RARITY[it.rar])||null,col=R&&R.c;if(col&&typeof glowSprite==='function'){g.globalCompositeOperation='lighter';g.drawImage(glowSprite(col),0,0,S,S);g.globalCompositeOperation='source-over'}}catch(_){}
+  const b=bounds(lk.im),up=it.t==='knuckle';g.save();g.translate(S/2,S/2);if(!up)g.rotate(Math.PI/4);
+  // fit: for the tilted sprite the long side runs along the cell diagonal
+  const k=up?Math.min(54/b.w,54/b.h):Math.min(80/b.h,30/b.w);g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+  g.shadowColor='rgba(0,0,0,.55)';g.shadowBlur=3;g.shadowOffsetY=1;
+  g.drawImage(lk.im,b.x0,b.y0,b.w,b.h,-b.w*k/2,-b.h*k/2,b.w*k,b.h*k);g.restore();X.made++;return c.toDataURL()}
+X.icon=function(it){const lk=lookFor(it);if(!lk||!lk.im)return null;const key=it.t+'|'+lk.n+'|'+(it.rar|0);if(X.cache[key])return X.cache[key];try{return X.cache[key]=make(it,lk)}catch(e){X.err='make '+e.message;return null}};
+function hook(){if(typeof itemIcon!=='function')return false;const _i=itemIcon;itemIcon=function(it){try{if(it&&it.kind==='wpn'&&!it.img){const u=X.icon(it);if(u){X.hits++;return u}}}catch(_){}return _i.apply(this,arguments)};return true}
+if(!hook())X.err='itemIcon missing';
+})();
 </script>
