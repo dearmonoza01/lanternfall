@@ -1,5 +1,6 @@
 <script>try{if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){navigator.serviceWorker.register('sw.js').catch(function(){});if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});}}catch(e){}</script>
-<script>/* REAL v2x (2 Nov 2026): Map 10 r2 merged. Layers DeaRz has not passed yet stay in the file but start OFF:
+<script>/* r240 NOCANDLE240 (?nocandle=off): DeaRz 26 Nov 10:14 BKK candle shows for a moment at game start. The only candle in the game is the 🕯 button of the monk-quest GM test tray #mqGM; it was hidden by script after creation (+ REAL's 800 ms sweep), so anything that re-showed it showed it until the next sweep. Now a stylesheet from the first frame keeps it hidden unless ?gm=on. */(function(){try{var q=String(location.search);if(/[?&]nocandle=off\b/.test(q)||/[?&]gm=on\b/.test(q))return;var s=document.createElement('style');s.id='nocandle240';s.textContent='#mqGM{display:none!important}';(document.head||document.documentElement).appendChild(s);window.NOCANDLE240={on:true,ver:'r240'}}catch(e){}})();
+/* REAL v2x (2 Nov 2026): Map 10 r2 merged. Layers DeaRz has not passed yet stay in the file but start OFF:
    prologue r2, chapter 1 quests, chapter 2 quests, Map 6 ruined village. Add ?prologue=on / ?ch1quest=on / ?ch2quest=on /
    ?m6village=on to turn one back on (chapter 1 needs the prologue). */
 (function(){try{var s=String(location.search),a=[];['prologue','ch1quest','ch2quest','m6village'].forEach(function(k){/* TEST (DeaRz 15:46, decision 'open all'): prologue / ch1quest / ch2quest / m6village are ON by default; ?k=off still switches one off */});
@@ -2866,13 +2867,13 @@ function drawEnemy_v1(e){
   // name & bar: passive (Lv<=80) green, aggressive (Lv>80) red
   if(d2(e.x,e.y,P.x,P.y)<720||e.hitT>0||m.boss){
     const ag=isAggressive(e),bw=m.boss?170:Math.max(46,s*2.4),by=top-12;
-    ctx.fillStyle='rgba(3,6,18,.8)';rrect(x-bw/2-1,by-1,bw+2,7,4);ctx.fill();
+    const _bar=yb=>{ctx.fillStyle='rgba(3,6,18,.8)';rrect(x-bw/2-1,yb-1,bw+2,7,4);ctx.fill();
     const k=clamp(e.hp/e.maxHp,0,1);const g=ctx.createLinearGradient(x-bw/2,0,x+bw/2,0);
     if(ag){g.addColorStop(0,'#b0102a');g.addColorStop(1,'#ff6a7a');}else{g.addColorStop(0,'#1f9a4a');g.addColorStop(1,'#8dffa8');}
-    ctx.fillStyle=g;rrect(x-bw/2,by,bw*k,5,3);ctx.fill();
+    ctx.fillStyle=g;rrect(x-bw/2,yb,bw*k,5,3);ctx.fill();};e._bw=bw;e._bar=_bar;if(!(window.NPLATE232&&NPLATE232.on&&window.MNFIX&&MNFIX.on))_bar(by);
     ctx.fillStyle=(window.__MOBNAME&&__MOBNAME.on)?'#ffffff':lvGapCol(e);
     ctx.font=`${m.boss||m.elite?700:600} ${m.boss?14:11}px "Noto Sans Thai", system-ui, sans-serif`;ctx.textAlign='center';ctx.shadowColor='#000';ctx.shadowBlur=4;
-    {const _t0=`${(e.L-P.lvl)>=25?'☠ ':''}Lv${e.L}${dgapTag(e)} ${m.n}${m.elite?' ★':''}`;const _M=window.MNFIX&&MNFIX.on?MNFIX.begin(e,_t0,x,by-5,ctx):null;if(_M&&_M.hide){ctx.shadowBlur=0}else{const _t=_M?_M.t:_t0,_ly=_M?_M.y:by-5;const _run=()=>{if(window.__MOBNAME&&__MOBNAME.on){const cmb=!!(e.aggro||e.hitT>0||(typeof time==='number'&&time-(e._rbHit||-99)<3)),sw=' ⚔';const w1=ctx.measureText(_t).width,w2=ctx.measureText(sw).width,xc=x-w2/2,off=e._mnOff||0;ctx.lineWidth=3;ctx.lineJoin='round';ctx.strokeStyle='rgba(0,0,0,.85)';ctx.strokeText(_t,xc+off,_ly);ctx.fillStyle='#ffffff';ctx.fillText(_t,xc,_ly);e._mnOff=(e._elTag&&e._elTag.t===time)?(e._elTag.x-xc):0;const ax=xc+e._mnOff;ctx.textAlign='left';ctx.strokeText(sw,ax+w1/2,_ly);ctx.fillStyle=cmb?'#ff3b3b':'#ffffff';ctx.fillText(sw,ax+w1/2,_ly);ctx.textAlign='center';ctx.lineWidth=1}else ctx.fillText(`${_t}${e.aggro&&!ag?' ⚔':''}`,x,_ly);ctx.shadowBlur=0;};if(_M&&_M.defer!==false&&MNFIX.defer){MNFIX.defer(e,ctx.fillText,_M.f,_M.a,_run)}else _run();ctx.shadowBlur=0;}}
+    {const _t0=`${(e.L-P.lvl)>=25?'☠ ':''}Lv${e.L}${dgapTag(e)} ${m.n}${m.elite?' ★':''}`;const _M=window.MNFIX&&MNFIX.on?MNFIX.begin(e,_t0,x,by-5,ctx):null;if(_M&&_M.hide){ctx.shadowBlur=0}else{const _t=_M?_M.t:_t0,_ly=_M?_M.y:by-5;const _run=()=>{if(window.NPLATE232&&NPLATE232.on&&window.MNFIX&&MNFIX.on&&e._bar){try{NPLATE232.bar(e,x,by,_ly)}catch(_){}}if(window.__MOBNAME&&__MOBNAME.on){const cmb=!!(e.aggro||e.hitT>0||(typeof time==='number'&&time-(e._rbHit||-99)<3)),sw=' ⚔';const w1=ctx.measureText(_t).width,w2=ctx.measureText(sw).width,xc=x-w2/2,off=e._mnOff||0;ctx.lineWidth=3;ctx.lineJoin='round';ctx.strokeStyle='rgba(0,0,0,.85)';ctx.strokeText(_t,xc+off,_ly);ctx.fillStyle='#ffffff';ctx.fillText(_t,xc,_ly);e._mnOff=(e._elTag&&e._elTag.t===time)?(e._elTag.x-xc):0;const ax=xc+e._mnOff;ctx.textAlign='left';ctx.strokeText(sw,ax+w1/2,_ly);ctx.fillStyle=cmb?'#ff3b3b':'#ffffff';ctx.fillText(sw,ax+w1/2,_ly);ctx.textAlign='center';ctx.lineWidth=1}else ctx.fillText(`${_t}${e.aggro&&!ag?' ⚔':''}`,x,_ly);ctx.shadowBlur=0;};if(_M&&_M.defer!==false&&MNFIX.defer){MNFIX.defer(e,ctx.fillText,_M.f,_M.a,_run)}else _run();ctx.shadowBlur=0;}}
   }
   if(e.alertT>0){add();glow(x,top-30,18,'#ff5a6a',e.alertT);norm();}
 }
@@ -5972,7 +5973,7 @@ function initAdmUI(){
    ===================================================================== */
 const SHELL_HEAD='<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n';
 const HOSTED=!!(window.claude&&typeof window.claude.use==='function');
-let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l12: admin only with ?gm=on (v3l10) (local file / tests): developer mode
+let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l14: admin only with ?gm=on (v3l10) (local file / tests): developer mode
 function setAdmin(v){ADMIN=!!v;document.body.classList.toggle('noadmin',!ADMIN);if(!ADMIN){if(G.win==='wGM')closeWin();const d=$('#dev');if(d&&!d.hidden)toggleDev();if(G.edit)toggleEditor(false);}}
 setAdmin(ADMIN);
 (async()=>{if(!HOSTED)return;try{const u=await window.claude.use('user');setAdmin(u?await u.canEdit():false);}catch(e){setAdmin(false);}})();
@@ -26824,11 +26825,11 @@ PROP_DEFS[T]={n:'Blacksmith (placeholder ball)',cat:'misc',w:60,h:90,ax:30,ay:70
       if(g.roundRect)g.roundRect(bx-w/2,by-22,w,22,8);else g.rect(bx-w/2,by-22,w,22);g.fill();g.stroke();
       g.fillStyle='#fff4d6';g.textAlign='center';g.textBaseline='middle';g.fillText(msg,bx,by-11);g.restore();}}};
 function place(){if(G.zone!==ZID)return;for(let i=PROPS.length-1;i>=0;i--)if(PROPS[i]&&PROPS[i].p212)PROPS.splice(i,1);
-  const p=mkProp(T,POS[0],POS[1],1,0,1);p.p212=1;PROPS.push(p);ST.placed++;try{PROPS.sort((a,b)=>a.y-b.y);}catch(_){}try{buildSolids();}catch(_){}}
+  if(!/[?&]smithball=on\b/.test(location.search)){ST.off230=1;try{buildSolids();}catch(_){}return;}const p=mkProp(T,POS[0],POS[1],1,0,1);p.p212=1;PROPS.push(p);ST.placed++;try{PROPS.sort((a,b)=>a.y-b.y);}catch(_){}try{buildSolids();}catch(_){}}
 // service (user 07:22 "open it, I'll test the quest"): near the ball the normal interaction (F key / mobile action button) opens the
 // blacksmith window (refine + smith shop, the game's existing wRefine window that p195 had closed for the removed Master Smith NPC).
 const NEAR=80,SM={kind:'smith',n:'Blacksmith',p212:1,x:POS[0],y:POS[1]};ST.opens=0;
-{const ou=updPlayer;updPlayer=function(){const r=ou.apply(this,arguments);try{if(G.zone===ZID&&!G.interact&&Math.hypot(P.x-POS[0],P.y-POS[1])<NEAR)G.interact={k:'npc',n:SM};}catch(_){}return r;};}
+{const ou=updPlayer;updPlayer=function(){const r=ou.apply(this,arguments);try{if(/[?&]smithball=on\b/.test(location.search)&&G.zone===ZID&&!G.interact&&Math.hypot(P.x-POS[0],P.y-POS[1])<NEAR)G.interact={k:'npc',n:SM};}catch(_){}return r;};}
 {const oi=interact;interact=function(){const it=G.interact;if(it&&it.k==='npc'&&it.n&&it.n.p212){try{openWin_v3('wRefine');ST.opens++;}catch(e){ST.err='open '+e.message;}return true;}return oi.apply(this,arguments);};}
 const o=loadZone;loadZone=function(){const r=o.apply(this,arguments);try{place();}catch(e){ST.err=e.message;}return r;};
 try{if(typeof G!=='undefined'&&G.zone===ZID&&typeof PROPS!=='undefined')place();}catch(_){}
@@ -29445,7 +29446,7 @@ const RAMP=(()=>{const st=[[0,[.18,.02,.02]],[.35,[.62,.07,.06]],[.62,[.92,.22,.
   for(let i=0;i<256;i++){const x=i/255;let k=0;while(k<st.length-2&&x>st[k+1][0])k++;const a=st[k],b=st[k+1],u=Math.max(0,Math.min(1,(x-a[0])/(b[0]-a[0])));for(let c=0;c<3;c++)L[i*3+c]=a[1][c]+(b[1][c]-a[1][c])*u;}return L;})();
 function tinted(img){
   if(!okI(img)&&!(img&&img.width))return null;let t=TC.get(img);if(t)return t;
-  const w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;if(!w||!h)return null;
+  const w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;if(!w||!h)return null;if(window.SK3SAFE239&&SK3SAFE239.on&&w*h>SK3SAFE239.maxPx){SK3SAFE239.big++;return null;}
   const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
   RAWDRAW.call(g,img,0,0);
   try{   // luminance gradient map (dark red -> red -> warm highlight) blended with the original colours: hair strands, face, cloth folds, shadow and outline all stay readable
@@ -29458,13 +29459,13 @@ function tinted(img){
   TC.set(img,c);return c;}
 let TK=0;   // current tint strength
 L3.tk=()=>TK;
-function tintOn(ctx){if(TK<=.01)return null;const own=Object.getOwnPropertyDescriptor(ctx,'drawImage');
-  ctx.drawImage=function(img){const t=tinted(img);if(!t)return RAWDRAW.apply(this,arguments);
+let TDEPTH239=0;function tintOn(ctx){if(TK<=.01)return null;if(window.SK3SAFE239&&SK3SAFE239.on&&window.PUPPETX&&PUPPETX.inGhost>0)return null;const own=Object.getOwnPropertyDescriptor(ctx,'drawImage');const prev239=(own&&own.value)||null,safe239=!!(window.SK3SAFE239&&SK3SAFE239.on);TDEPTH239++;
+  ctx.drawImage=function(img){if(safe239&&TDEPTH239<=0){try{SK3SAFE239.passed++}catch(_){}return (prev239||CanvasRenderingContext2D.prototype.drawImage).apply(this,arguments)}const t=tinted(img);if(!t)return RAWDRAW.apply(this,arguments);
     const a=Array.prototype.slice.call(arguments,1);
     if(TK>=.995)return RAWDRAW.apply(this,[t].concat(a));
     RAWDRAW.apply(this,[img].concat(a));const ga=this.globalAlpha;this.globalAlpha=ga*TK;RAWDRAW.apply(this,[t].concat(a));this.globalAlpha=ga;};
   return own||{};}
-function tintOff(ctx,own){if(own===null)return;try{delete ctx.drawImage;}catch(e){}if(own&&own.value)ctx.drawImage=own.value;}
+function tintOff(ctx,own){if(own===null)return;TDEPTH239=Math.max(0,TDEPTH239-1);if(window.SK3SAFE239&&SK3SAFE239.on&&own&&own.get&&own.set){try{const cur=Object.getOwnPropertyDescriptor(ctx,'drawImage');if(cur&&cur.set===own.set){ctx.drawImage=own.get.call(ctx);SK3SAFE239.acc=(SK3SAFE239.acc||0)+1;return}}catch(_){}}try{delete ctx.drawImage;}catch(e){}if(own&&own.value)ctx.drawImage=own.value;}
 window.__B3RAW=function(){return RAWDRAW.apply(ctx,arguments);};
 L3.tintDraw=function(fn){const own=tintOn(ctx);try{fn();}finally{tintOff(ctx,own);}};   // r1b: lets other pose overlays (Provoke) draw with the same tint while the buff is on
 /* ---------------- aura (procedural ribbons, back / front) + burst + sparks ---------------- */
@@ -43449,7 +43450,7 @@ function drawToken(x,y,name,ghost){const b=Math.sin(clk()*2+x)*1.5;   // art pen
   txt(t('waitArt'),x,y-38+b,'#ffe6a0',11);txt(name,x,y+20,'#ffd36b',13);txt('TEST',x,y+33,'#c8b88a',9,.8);}
 function drawNpc(n){const A=NART[n.id],art=drawArtNpc(n.id,n.at.x,n.at.y);if(!art)drawToken(n.at.x,n.at.y,n.name);else txt(n.name,n.at.x,n.at.y+16,'#ffd36b',12,.9);
   const m=mark(n);if(m)txt(m,n.at.x,n.at.y-(art?A.h+18:92)+Math.sin(clk()*4)*3,'#ffd36b',30);}
-function drawPoints(){const tt=clk();for(const {p,o} of pointsHere()){const a=.55+.3*Math.sin(tt*3+p.x),col=o.kind==='collect'?'#bff5a0':o.kind==='interact'?'#a8d8ff':'#fff2b0';
+function drawPoints(){const tt=clk();for(const {p,o} of pointsHere()){try{if(window.HERBVIS231&&HERBVIS231.on)HERBVIS231.draw(ctx,p,o,tt);}catch(_){}const a=.55+.3*Math.sin(tt*3+p.x),col=o.kind==='collect'?'#bff5a0':o.kind==='interact'?'#a8d8ff':'#fff2b0';
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=a;const g=ctx.createRadialGradient(p.x,p.y-20,0,p.x,p.y-20,30);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y-20,30,0,6.283);ctx.fill();ctx.restore();
   if(o.kind!=='collect'&&p.label)txt(p.label,p.x,p.y+16,'#fff2b0',12,.9);}
   if(HOLD){const h=HOLD,o=active().map(curObj).find(x=>x&&x.point===h.id),tot=(o&&o.hold)||1,k=1-h.t/tot;ctx.save();ctx.strokeStyle='#a8d8ff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(P.x,P.y-100,16,-Math.PI/2,-Math.PI/2+6.283*k);ctx.stroke();ctx.restore();}}
@@ -60351,7 +60352,7 @@ function targetOf(q,r){const a=A();if(!a)return null;
   if(ob.kind==='kill'||ob.kind==='collect'){const types=ob.types||ob.dropFrom||[];const zone=ob.zone||q.zone;return {zone,kind:'mob',types,stop:150,label:'ล่า '+(types.map(t=>{try{return MOBS[t].n}catch(_){return t}}).join(' / ')||'มอนสเตอร์')}}
   return null}
 function textOf(q,r){try{const a=A(),ob=curObj(q,r);if(a&&a.objText)return a.objText(q,ob,r)||''}catch(_){}try{return r.s==='r'?'กลับไปหา '+npcName(q.receiver):(curObj(q,r)||{}).text||''}catch(_){return ''}}
-function collect(){const out=[];try{const a=A();if(!a||!a.state)return out;const st=a.state();if(!st)return out;const qs=st.q||{};for(const id in qs){const r=qs[id],q=a.QBY[id];if(!q||!r||(r.s!=='a'&&r.s!=='r'))continue;out.push({q,r,cat:catOf(q),text:textOf(q,r),tg:targetOf(q,r)})}}catch(e){QH.err='collect '+e.message}return out}
+function collect(){const out=[];try{const a=A();if(!a||!a.state)return out;const st=a.state();if(!st)return out;const qs=st.q||{};for(const id in qs){const r=qs[id],q=a.QBY[id];if(!q||!r||(r.s!=='a'&&r.s!=='r'))continue;out.push({q,r,cat:catOf(q),text:textOf(q,r),tg:targetOf(q,r)})}try{if(window.MAINNEXT&&MAINNEXT.rows)MAINNEXT.rows(out)}catch(_){}}catch(e){QH.err='collect '+e.message}return out}
 /* ---------- tracker render ---------- */
 let sig='';
 function render(){try{const rows=collect();QH.rows=rows.map(x=>x.q.id);const live=!(typeof G==='undefined')&&G.state==='play'&&!String(G.zone).startsWith('w00_');
@@ -60835,7 +60836,7 @@ setInterval(()=>{try{hook();const lg=document.querySelector('#wMap .legend');if(
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3l12',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l14',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -60860,7 +60861,7 @@ console.info('[REAL] v3l6c');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l12';console.info('[REAL] v3l12')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l14';console.info('[REAL] v3l14')}catch(e){}
 })();
 </script>
 <script>
@@ -61445,7 +61446,7 @@ function save(){try{S.saved=Date.now();localStorage.setItem(H.cfg.save,JSON.stri
 H.exportSave=()=>JSON.stringify({format:'lf_house',v:S.v,data:S});
 H.importSave=function(txt){try{const o=typeof txt==='string'?JSON.parse(txt):txt;if(!o||o.format!=='lf_house'||!o.data||typeof o.data!=='object')return 'bad format';const b=fresh(),d=o.data;S=Object.assign(b,d);S.plat=Object.assign(b.plat,d.plat||{});S.plat.floorsOwned=Object.assign({wood:1},S.plat.floorsOwned||{});if(!Array.isArray(S.placed))S.placed=[];if(!S.storage||typeof S.storage!=='object')S.storage={};if(S.v==null||S.v<2){for(const x of S.placed)if(x&&x.f==null)x.f=0;S.v=2}if(S.lantern&&(typeof S.lantern.x!=='number'||typeof S.lantern.y!=='number'||!S.lantern.zone))S.lantern=null;try{H.sanitize&&H.sanitize()}catch(_){}save();dirty=true;built=false;try{H.syncItems&&H.syncItems();H.sync&&H.sync()}catch(_){}return ''}catch(e){ERR('importSave',e);return 'error '+e.message}};
 load();H.state=()=>S;H.save=save;H.load=()=>{load();return S};
-const myName=()=>S.name||('บ้าน'+((typeof P!=='undefined'&&P&&typeof P.name==='string'&&P.name)?P.name:'นักเดินทาง'));H.houseName=myName;
+const myName=()=>S.name||((window.LANTNAME237&&LANTNAME237.on)?LANTNAME237.house():('บ้าน'+((typeof P!=='undefined'&&P&&typeof P.name==='string'&&P.name)?P.name:'นักเดินทาง')));H.houseName=myName;
 H.setName=n=>{S.name=String(n||'').slice(0,20);save();return myName()};
 /* ---------------- geometry: picture (1536x1024) -> world; mask-measured: deck bbox x 291..1233, y 241..747 (943 px wide), centre (762,494) ---------------- */
 const PW=1536,PH=1024,MX0=291,MX1=1233,MCX=762,MCY=494,ZW=2400,ZH=1500;
@@ -61680,7 +61681,7 @@ H.drawExit=function(c,x,y,t){c.save();const pu=.5+.5*Math.sin(t*3);c.fillStyle='
   c.strokeStyle='rgba(255,230,150,'+(.6+.3*pu)+')';c.lineWidth=2.5;c.beginPath();c.ellipse(x,y,34+3*pu,13+1.5*pu,0,0,7);c.stroke();
   for(let i=0;i<7;i++){const ph=(t*.6+i/7)%1,a=i*2.4+t*.3;c.globalAlpha=(1-ph)*.8;c.fillStyle='#fff3c0';c.beginPath();c.arc(x+Math.cos(a)*22,y-ph*70,2.2,0,7);c.fill()}
   c.globalAlpha=.16;c.fillStyle='#ffeaa0';c.fillRect(x-9,y-84,18,84);c.restore()};
-function ensureDefs(){try{if(!PROP_DEFS.houselantern)PROP_DEFS.houselantern={n:'House lantern',cat:'misc',w:140,h:150,ax:70,ay:120,liveOnly:1,nofade:1,draw(){},live(c,p){try{if(p.fade!=null){const k=1-(time-p.fade)/.6;if(k<=0)return;c.save();c.globalAlpha=k;H.drawLantern(c,p.x,p.y-(1-k)*40,time);c.restore();return}H.drawLantern(c,p.x,p.y,time);c.save();c.font='700 13px system-ui,sans-serif';c.textAlign='center';c.lineWidth=4;c.strokeStyle='rgba(20,12,4,.85)';const s=myName();c.strokeText(s,p.x+8,p.y-108);c.fillStyle='#ffe9b0';c.fillText(s,p.x+8,p.y-108);c.restore()}catch(e){ERR('lantern live',e)}}};
+function ensureDefs(){try{if(!PROP_DEFS.houselantern)PROP_DEFS.houselantern={n:'House lantern',cat:'misc',w:140,h:150,ax:70,ay:120,liveOnly:1,nofade:1,draw(){},live(c,p){try{if(p.fade!=null&&window.LANTDIS237&&LANTDIS237.on){LANTDIS237.draw(c,p);return}if(p.fade!=null){const k=1-(time-p.fade)/.6;if(k<=0)return;c.save();c.globalAlpha=k;H.drawLantern(c,p.x,p.y-(1-k)*40,time);c.restore();return}H.drawLantern(c,p.x,p.y,time);c.save();c.font='700 13px system-ui,sans-serif';c.textAlign='center';c.lineWidth=4;c.strokeStyle='rgba(20,12,4,.85)';const s=myName();c.strokeText(s,p.x+8,p.y-108);c.fillStyle='#ffe9b0';c.fillText(s,p.x+8,p.y-108);c.restore()}catch(e){ERR('lantern live',e)}}};
   if(!PROP_DEFS.houseexit)PROP_DEFS.houseexit={n:'Way down',cat:'misc',w:120,h:100,ax:60,ay:80,liveOnly:1,nofade:1,draw(){},live(c,p){try{H.drawExit(c,p.x,p.y,time);c.save();c.font='700 12px system-ui,sans-serif';c.textAlign='center';c.lineWidth=3;c.strokeStyle='rgba(20,12,4,.8)';c.strokeText('ทางลง',p.x,p.y-90);c.fillStyle='#ffe9b0';c.fillText('ทางลง',p.x,p.y-90);c.restore()}catch(e){ERR('exit live',e)}}};return true}catch(e){ERR('defs',e);return false}}
 let lanternProp=null,exitProp=null,lanternLight=null;
 function dropProps(){try{for(const k of [lanternProp,exitProp]){if(!k)continue;const i=PROPS.indexOf(k);if(i>=0)PROPS.splice(i,1)}}catch(_){}lanternProp=exitProp=null;try{if(lanternLight){const i=LIGHTS.indexOf(lanternLight);if(i>=0)LIGHTS.splice(i,1)}}catch(_){}lanternLight=null}
@@ -61715,7 +61716,7 @@ H.pickup=function(){if(G.state!=='play'||P.dead||H.busy||H.place||!S.lantern||S.
   const have=countItem('houseLantern');if(!have&&(window.QBAG222?QBAG222.used(P):P.inv.length)>=P.invSize){say('กระเป๋าเต็ม เก็บตะเกียงไม่ได้ · เคลียร์ช่องว่างก่อน');return false}
   if(!have)addItem({id:'houseLantern',q:1});const L=S.lantern;S.lantern=null;S.owned=true;save();H.stats.picked=(H.stats.picked||0)+1;H.log.push({ev:'pickup',zone:L.zone,x:L.x,y:L.y});
   if(lanternProp){lanternProp.fade=time}try{ring(L.x,L.y,6,70,.5,'#ffd98a',3);log('เก็บตะเกียงบ้านแล้ว · กลับเป็นไอเท็มในกระเป๋า','g')}catch(_){}try{if(G.win==='wInv')renderInv()}catch(_){}try{saveGame()}catch(_){}
-  setTimeout(()=>{try{if(!S.lantern)syncLanternProp()}catch(_){}},650);return true};
+  setTimeout(()=>{try{if(!S.lantern)syncLanternProp()}catch(_){}},(window.LANTDIS237&&LANTDIS237.on)?LANTDIS237.ms:650);return true};
 setInterval(()=>{if(G.state==='play'&&!H.place)reconcile()},1500);/* ---------------- enter / leave (light-lift) ---------------- */
 const fx=document.createElement('div');fx.id='houseFx';fx.innerHTML='<i></i>';document.body.appendChild(fx);
 function lift(action){if(H.busy)return;H.busy=true;setTimeout(()=>{H.busy=false;fx.classList.remove('on')},4000);try{for(const k in keys)keys[k]=false;mouse.down=false}catch(_){}fx.classList.add('on');setTimeout(()=>{try{action()}catch(e){ERR('lift',e)}setTimeout(()=>{fx.classList.remove('on');setTimeout(()=>{H.busy=false},450)},180)},520)}
@@ -61734,7 +61735,7 @@ const nearExit=()=>G.zone===ZID&&!P.dead&&Math.hypot(EXIT.x-P.x,(EXIT.y-P.y)*1.6
 const dn=document.createElement('button');dn.id='houseDown';dn.type='button';dn.textContent='⬇ ลงจากลาน';dn.style.cssText='position:fixed;right:12px;top:88px;z-index:30;display:none;min-height:40px;padding:0 14px;border-radius:12px;border:1px solid #ffd98a;background:linear-gradient(#d49a3a,#8a5a14);color:#fff4cf;font:800 14px system-ui,sans-serif;cursor:pointer;touch-action:manipulation;box-shadow:0 3px 12px rgba(0,0,0,.5)';document.body.appendChild(dn);dn.addEventListener('click',e=>{e.stopPropagation();H.exit()});for(const ev of ['pointerdown','mousedown','touchstart'])dn.addEventListener(ev,e=>e.stopPropagation());
 const pr=document.createElement('div');pr.id='housePrompt';document.body.appendChild(pr);
 function doPrompt(){if(nearLantern())H.enter();else if(nearExit())H.exit()}
-pr.addEventListener('click',e=>{e.stopPropagation();const a=e.target.closest&&e.target.closest('[data-a]');if(a&&a.dataset.a==='pick')H.pickup();else doPrompt()});for(const ev of ['pointerdown','mousedown','touchstart'])pr.addEventListener(ev,e=>e.stopPropagation());
+pr.addEventListener('click',e=>{e.stopPropagation();const a=e.target.closest&&e.target.closest('[data-a]');if(a&&a.dataset.a==='acc'){try{LANTACC236.open()}catch(_){}}else if(a&&a.dataset.a==='pick')H.pickup();else doPrompt()});for(const ev of ['pointerdown','mousedown','touchstart'])pr.addEventListener(ev,e=>e.stopPropagation());
 /* F is also a skill-slot key in the game (slot "F"), and those handlers run first and swallow it, so this goes through the early key hook (window.__EK, installed before every other script) */
 const touchUI=(()=>{try{return matchMedia('(pointer:coarse)').matches}catch(_){return false}})();
 function keyH(e){try{const k=e.key;if(k==='Escape'&&H.place){cancelPlace();e.stopImmediatePropagation();e.preventDefault();return true}
@@ -61744,13 +61745,13 @@ function keyH(e){try{const k=e.key;if(k==='Escape'&&H.place){cancelPlace();e.sto
     if(nearLantern()||nearExit()){e.stopImmediatePropagation();e.preventDefault();doPrompt();return true}
     try{const C=window.COOK;if(C&&C.fire&&C.fire.lit&&C.fire.zone===G.zone&&Math.hypot(C.fire.x-P.x,C.fire.y-P.y)<95&&!C.place){e.stopImmediatePropagation();e.preventDefault();C.open();return true}}catch(_){}}}catch(er){ERR('key',er)}return false}
 if(window.__EK)window.__EK.push(keyH);else addEventListener('keydown',e=>{keyH(e)},true);
-document.addEventListener('click',e=>{try{if(H.place||G.state!=='play'||H.busy)return;if(e.target.closest&&e.target.closest('#housePrompt,#houseGm,.mbtn,#bar,#tSkills,#hpMgr,#hpMgrPrompt,#hpMenu,#hpConfirm'))return;const [wx,wy]=s2w(e.clientX,e.clientY);
+document.addEventListener('click',e=>{try{if(H.place||G.state!=='play'||H.busy)return;if(e.target.closest&&e.target.closest('#housePrompt,#houseGm,.mbtn,#bar,#tSkills,#hpMgr,#hpMgrPrompt,#hpMenu,#hpConfirm,#lt233,#la236'))return;const [wx,wy]=s2w(e.clientX,e.clientY);
   if(nearLantern()&&Math.hypot(wx-(S.lantern.x+10),wy-(S.lantern.y-40))<56){e.stopImmediatePropagation();H.enter()}else if(nearExit()&&Math.abs(wx-EXIT.x)<70&&Math.abs(wy-(EXIT.y-10))<70){e.stopImmediatePropagation();H.exit()}}catch(er){ERR('tap',er)}},true);
 /* ---------------- ghost + loop ---------------- */
 try{const _o=drawEditorOverlay;drawEditorOverlay=function(){const r=_o.apply(this,arguments);try{if(H.place){const bad=H.valid(ghostXY[0],ghostXY[1])||H.calmLeft()>0,ok=!bad,pu=.5+.5*Math.sin(time*6),c=ctx;c.save();c.globalAlpha=.35+.45*pu;c.strokeStyle=ok?'#b8ffd0':'#ffb0b0';c.lineWidth=4;c.beginPath();c.ellipse(ghostXY[0],ghostXY[1]+2,36+4*pu,15+2*pu,0,0,7);c.stroke();c.globalAlpha=.16;c.beginPath();c.ellipse(P.x,P.y+2,H.cfg.placeRange,H.cfg.placeRange*.55,0,0,7);c.stroke();c.globalAlpha=.6;c.fillStyle=ok?'rgba(80,255,130,.35)':'rgba(255,80,80,.35)';c.beginPath();c.ellipse(ghostXY[0],ghostXY[1]+2,24,9,0,0,7);c.fill();c.restore();H.drawLantern(c,ghostXY[0],ghostXY[1],time,{alpha:.7})}}catch(e){ERR('ghost',e)}return r}}catch(e){ERR('hook overlay',e)}
 try{const _u=useItemId;useItemId=function(id){try{if(id==='houseLantern'){startPlace();return}}catch(e){ERR('use',e)}return _u.apply(this,arguments)}}catch(e){ERR('hook use',e)}
 try{const _up=update;update=function(dt){const r=_up.apply(this,arguments);try{if(G.state==='play'){if(H.busy){try{for(const k in keys)keys[k]=false;mouse.down=false}catch(_){}}pumpClouds();if(G.zone===ZID&&!maskA)buildMask();if(pin){if(pin.z===G.zone&&pin.n-->0){P.x=pin.x;P.y=pin.y}else pin=null}
-  const np=(nearLantern()||nearExit())&&!H.place&&!H.busy&&!G.win&&!G.interact;if(np){const cl=H.calmLeft();pr.style.opacity=(nearLantern()&&cl>0)?'.55':'1';const t=nearLantern()?(cl>0?'<span>⚔ กำลังต่อสู้ · รอ '+Math.ceil(cl)+' วิ</span>':'<span class="hpA" data-a="enter">'+(touchUI?'ขึ้นบ้าน · ':'<kbd>F</kbd>ขึ้นบ้าน · ')+myName()+'</span><span class="hpB" data-a="pick">'+(touchUI?'เก็บตะเกียง':'<kbd>V</kbd>เก็บตะเกียง')+'</span>'):(touchUI?'⬇ แตะเพื่อลงจากลาน':'<kbd>F</kbd>กด F เพื่อลงจากลาน (หรือแตะที่นี่)');if(pr.dataset.t!==t){pr.dataset.t=t;pr.innerHTML=t}}if(pr.style.display!==(np?'flex':'none'))pr.style.display=np?'flex':'none';{const sd=(G.zone===ZID&&!H.busy)?'block':'none';if(dn.style.display!==sd)dn.style.display=sd}if(H.place)updBar()}else pr.style.display='none'}catch(e){ERR('tick',e)}return r}}catch(e){ERR('hook update',e)}
+  const np=(nearLantern()||nearExit())&&!H.place&&!H.busy&&!G.win&&!G.interact;if(np){const cl=H.calmLeft();pr.style.opacity=(nearLantern()&&cl>0)?'.55':'1';const t=nearLantern()?(cl>0?'<span>⚔ กำลังต่อสู้ · รอ '+Math.ceil(cl)+' วิ</span>':'<span class="hpA" data-a="enter">'+(touchUI?'ขึ้นบ้าน · ':'<kbd>F</kbd>ขึ้นบ้าน · ')+myName()+'</span><span class="hpB" data-a="pick">'+(touchUI?'เก็บตะเกียง':'<kbd>V</kbd>เก็บตะเกียง')+'</span>'+(window.LANTACC236&&LANTACC236.on?LANTACC236.span(touchUI):'')):(touchUI?'⬇ แตะเพื่อลงจากลาน':'<kbd>F</kbd>กด F เพื่อลงจากลาน (หรือแตะที่นี่)');if(pr.dataset.t!==t){pr.dataset.t=t;pr.innerHTML=t}}if(pr.style.display!==(np?'flex':'none'))pr.style.display=np?'flex':'none';{const sd=(G.zone===ZID&&!H.busy)?'block':'none';if(dn.style.display!==sd)dn.style.display=sd}if(H.place)updBar()}else pr.style.display='none'}catch(e){ERR('tick',e)}return r}}catch(e){ERR('hook update',e)}
 /* ---------------- GM (TEST only / ?gm=on) ---------------- */
 try{if(!window.__REAL||new URLSearchParams(location.search).get('gm')==='on'){const p=document.createElement('div');p.id='houseGm';const mkb=(t,fn)=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.addEventListener('click',e=>{e.stopPropagation();try{fn()}catch(er){ERR('gm',er)}});for(const ev of ['pointerdown','mousedown','touchstart'])b.addEventListener(ev,e=>e.stopPropagation());p.appendChild(b)};
   mkb('🏮 GM: ตะเกียงบ้าน',()=>H.give());mkb('เข้าลาน',()=>{if(G.zone!==ZID)H.enterDirect()});mkb('ออกลาน',()=>{if(G.zone===ZID)H.exit()});for(const k of H.cfg.floors)mkb(H.cfg.floorName[k],()=>H.setFloor(k));document.body.appendChild(p)}}catch(e){ERR('gm',e)}
@@ -62010,7 +62011,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 function renderPanel(){if(!B.on){box_.style.display='none';return}const s=st();let h='<div class="hh"><b>🔨 โหมดสร้าง · '+esc(H.houseName())+'</b><button data-a="grid" class="'+(B.grid?'on':'')+'">'+(B.grid?'ตาราง 16':'อิสระ')+'</button><button data-a="down">⬇ ลงจากลาน</button><button data-a="close">✕ ออก</button></div><div class="hc">';
   for(const [k,n] of CATS)h+='<button data-a="cat" data-v="'+k+'" class="'+(B.cat===k?'on':'')+'">'+n+'</button>';h+='</div><div class="hl">';
   if(B.cat==='pond'&&!IT.some(d=>d.cat==='pond'))h+='<div class="hx" style="grid-column:1/-1">'+(B.cat==='farm'?'ฟาร์ม':'บ่อตกปลา')+' · เร็วๆ นี้ (ขั้นตอนถัดไป)</div>';
-  else{if(B.cat==='floor'){for(const k of H.cfg.floors){const own=!!s.plat.floorsOwned[k],pr=H.cfg.floorPrice[k],cur=s.plat.floor===k;h+='<div class="hi'+(cur?' sel':'')+((!own&&pr==null)?' z':'')+'" data-a="floor" data-v="'+k+'"><span style="font-size:22px">'+({wood:'🟫',grass:'🟩',stone:'⬜',dirt:'🟤',sand:'🟨',marble:'🤍'}[k]||'■')+'</span><span>'+esc(H.cfg.floorName[k])+'</span><span>'+(cur?'ใช้อยู่':own?'เปลี่ยนเป็นพื้นนี้':pr==null?'ยังไม่มีขาย':'ซื้อ '+pr+' G')+'</span></div>'}}
+  else{if(B.cat==='floor'){for(const k of H.cfg.floors){const own=!!s.plat.floorsOwned[k],pr=H.cfg.floorPrice[k],cur=s.plat.floor===k;h+='<div class="hi'+(cur?' sel':'')+((!own&&pr==null)?' z':'')+'" data-a="floor" data-v="'+k+'">'+(window.FLOORICON233&&FLOORICON233.on&&FLOORICON233.html(k)||'<span style="font-size:22px">'+({wood:'🟫',grass:'🟩',stone:'⬜',dirt:'🟤',sand:'🟨',marble:'🤍'}[k]||'■')+'</span>')+'<span>'+esc(H.cfg.floorName[k])+'</span><span>'+(cur?'ใช้อยู่':own?'เปลี่ยนเป็นพื้นนี้':pr==null?'ยังไม่มีขาย':'ซื้อ '+pr+' G')+'</span></div>'}}
     for(const d of IT){if(d.cat!==B.cat)continue;const left=have(d.id),pl=placedCount(d.id);h+='<div class="hi'+(B.sel&&B.sel.id===d.id&&B.sel.fresh?' sel':'')+(left<1?' z':'')+'" data-a="pick" data-v="'+d.id+'"><img src="'+iconUrl(d.id)+'" alt=""><i>'+left+'</i><span>'+esc(d.n)+'</span><span style="color:#9fb2d8">วางแล้ว '+pl+'</span></div>'}
     if(!h.includes('data-a="pick"')&&B.cat!=='floor')h+='<div class="hx" style="grid-column:1/-1">ยังไม่มีของหมวดนี้</div>'}
   h+='</div>';box_.innerHTML=h;box_.style.display='flex'}
@@ -62138,7 +62139,7 @@ F.begin=function(e,t,x,y,c){try{if(fr!==time){fr=time;frame()}
   const C=F.cfg,tl=window.TLOCK&&TLOCK.e,isT=e===tl;let txt=t,small=false;
   if(crowd&&!isT&&e!==cursor&&!near.has(e)&&!(e.hitT>0)&&!(typeof time==='number'&&time-(e._rbHit||-99)<3)){txt=t.replace(/^(☠ )?Lv\d+\S* /,'');small=true;F.stats.short++}
   const f0=c.font;let fS=f0;if(small)fS=f0.replace(/\d+px/,C.shortFont+'px');c.font=fS;const aS=small?c.globalAlpha*C.shortAlpha:c.globalAlpha;
-  const w=c.measureText(txt).width+(small?0:24);c.font=f0;let dy=0;
+  const w=Math.max(c.measureText(txt).width+(small?0:24),(window.NPLATE232&&NPLATE232.on&&e._bw)||0);c.font=f0;let dy=0;
   if(!isT){for(let r=0;r<=C.maxRows;r++){const yy=y-r*C.rowH;let hit=false;for(const q of rects){if(Math.abs(q.x-x)<(q.w+w)/2-C.tol&&Math.abs(q.y-yy)<C.rowH-1){hit=true;break}}if(!hit){dy=-r*C.rowH;break}if(r===C.maxRows)dy=-r*C.rowH}}
   const cur=e._mnDy||0;e._mnDy=Math.abs(dy-cur)<.5?dy:cur+(dy-cur)*C.smooth;const yf=y+e._mnDy;rects.push({x,y:yf,w});F.stats.labels++;if(dy)F.stats.moved++;
   return {t:txt,y:yf,small,f:fS,a:aS}}catch(er){F.err='begin '+er.message;return null}};
@@ -64329,7 +64330,7 @@ const touchUI=(()=>{try{return matchMedia('(pointer:coarse)').matches}catch(_){r
 pr.innerHTML=(touchUI?'🐾 ':'<kbd>G</kbd>')+'จัดการผู้ช่วย';
 for(const el of [win,pr])for(const ev of ['pointerdown','mousedown','touchstart','pointerup','mouseup','touchend'])el.addEventListener(ev,e=>e.stopPropagation());
 const J=k=>HP.cfg.jobNames[k]||k;
-function ico(r){return '<canvas width="34" height="34" data-o="1"></canvas>'}
+function ico(r){try{if(window.HELPERCARDS235&&HELPERCARDS235.on){const h=HELPERCARDS235.ico(r);if(h)return h}}catch(_){}return '<canvas width="34" height="34" data-o="1"></canvas>'}
 function paintIcons(){for(const c of win.querySelectorAll('canvas[data-o]')){try{const g=c.getContext('2d');g.clearRect(0,0,34,34);g.save();g.scale(34/64,34/64);orbIcon(g);g.restore()}catch(_){}}}
 function render(){if(!HM.open)return;const L=roster(),lim=limit();let h='<div class="pn"><div class="hd"><h3>🐾 จัดการผู้ช่วย</h3><span class="cap">ผู้ช่วย '+L.length+'/'+lim+'</span><button class="x" data-a="close" aria-label="ปิด">✕</button></div><div class="bd"><div class="col">';
  for(const S of SOURCES){h+='<h4>'+esc(S.label)+'</h4>';const l=S.list();if(!l.length)h+='<div class="none">'+esc(S.empty)+'</div>';for(const e of l){const r=e.rec;h+='<div class="rw">'+ico(r)+'<div class="nm"><b>'+esc(r.name)+'</b><small>★ ถนัด'+esc(J(r.job))+' เวล '+r.lv+(HP.fat&&r.trait?' · '+esc(HP.traitText(r.trait)):'')+'</small></div><button class="b pri" data-a="give" data-s="'+S.id+'" data-k="'+esc(e.key)+'"'+(L.length>=lim?' title="ผู้ช่วยเต็ม"':'')+'>ให้เป็นผู้ช่วย</button></div>'}}
@@ -67323,4 +67324,351 @@ setInterval(tick,400);
 document.addEventListener('click',e=>{const t=e.target;if(t&&(t.id==='bBag'||(t.closest&&t.closest('[data-buy="bagScroll"]')&&!t.closest('#cs228')))){e.stopImmediatePropagation();e.preventDefault()}},true);
 })();
 
+</script>
+
+<script>
+/* HERBVIS231 r231 (?herbvis=off): DeaRz 26 Nov 2026 09:09 BKK, screenshot of "เด็กหลังประตู" (collect สมุนไพรใบแหลม 0/3, Map 2 plains): "ให้สมุนไพรเห็นชัดๆหน่อย".
+   Before: a quest collect point was only a faint additive green glow (r 30) with no picture and no label -> invisible on green grass.
+   Now (code-drawn, no new art): a dark ground shadow + pulsing light ring, a spiky-leaf herb plant (5 pointed leaves, dark-brown outline #2B201C like the Chibi art,
+   gentle sway), sparkles, a bouncing marker above and the item name. Herb items (id contains "herb") get the plant; other collect points get ring + marker + label.
+   Hooked from the quest drawPoints() loop (patch), so it shows only while that collect objective is active and the point is not picked yet. */
+(function(){'use strict';
+const X=window.HERBVIS231={on:true,ver:'r231',draws:0,err:null};
+try{if(/[?&]herbvis=off\b/.test(location.search)){X.on=false;return}}catch(e){}
+const NAMES={qi_herb:'สมุนไพรใบแหลม',qi_spiked_herb:'สมุนไพรใบแหลม',qi_lantern_flower:'ดอกไม้โคม'};
+function leaf(g,ang,len,w,fill,hi){const sx=Math.sin(ang),cy=-Math.cos(ang),tx=sx*len,ty=cy*len,px=-cy*w,py=sx*w;
+  g.beginPath();g.moveTo(0,0);g.quadraticCurveTo(tx*.5+px,ty*.5+py,tx,ty);g.quadraticCurveTo(tx*.5-px,ty*.5-py,0,0);g.closePath();
+  g.fillStyle=fill;g.fill();g.lineWidth=1.6;g.strokeStyle='#2b201c';g.stroke();
+  g.beginPath();g.moveTo(0,0);g.lineTo(tx*.85,ty*.85);g.lineWidth=1;g.strokeStyle=hi;g.stroke();}
+function label(g,s,x,y){g.save();g.font='600 12px sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineWidth=3.5;g.strokeStyle='rgba(20,14,10,.9)';g.strokeText(s,x,y);g.fillStyle='#eaffc8';g.fillText(s,x,y);g.restore();}
+X.draw=function(g,p,o,tt){if(!o||o.kind!=='collect')return;const x=p.x,y=p.y,id=String(o.item||''),herb=/herb/.test(id),ph=tt*2.4+(p.x%7);
+  g.save();
+  // ground: shadow + pulsing ring
+  g.fillStyle='rgba(20,30,10,.35)';g.beginPath();g.ellipse(x,y+2,24,9,0,0,6.2832);g.fill();
+  const k=(tt*1.1+(p.y%5)*.2)%1;g.globalAlpha=1-k;g.strokeStyle='#f4ffb0';g.lineWidth=2.5;g.beginPath();g.ellipse(x,y+2,14+20*k,5+8*k,0,0,6.2832);g.stroke();g.globalAlpha=1;
+  if(herb){g.save();g.globalCompositeOperation='lighter';const hg=g.createRadialGradient(x,y-20,0,x,y-20,42);hg.addColorStop(0,'rgba(255,250,200,.75)');hg.addColorStop(.5,'rgba(190,255,150,.35)');hg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=hg;g.beginPath();g.arc(x,y-20,42,0,6.2832);g.fill();g.restore();
+    g.save();g.translate(x,y);g.scale(1.45,1.45);g.rotate(Math.sin(ph)*.05);
+    const L=[[-1.15,20,4.5],[-.55,27,5],[0,32,5.5],[.55,27,5],[1.15,20,4.5]];
+    for(const [a,len,w] of L)leaf(g,a+Math.sin(ph+a)*.06,len,w,'#8ff5b0','#f2fff0');
+    // small bright centre bud
+    g.beginPath();g.arc(0,-3,3.2,0,6.2832);g.fillStyle='#d8ff7a';g.fill();g.lineWidth=1.2;g.strokeStyle='#2b201c';g.stroke();
+    g.restore();}
+  // sparkles
+  g.save();g.globalCompositeOperation='lighter';for(let i=0;i<3;i++){const a=ph*.7+i*2.1,r=18+6*Math.sin(ph+i),sx=x+Math.cos(a)*r,sy=y-18+Math.sin(a)*r*.6,s=1.5+1.2*(.5+.5*Math.sin(ph*1.7+i));
+    g.fillStyle='rgba(240,255,190,.9)';g.beginPath();g.moveTo(sx,sy-s*2);g.lineTo(sx+s*.6,sy);g.lineTo(sx,sy+s*2);g.lineTo(sx-s*.6,sy);g.closePath();g.fill();}g.restore();
+  // bouncing marker + name
+  const my=y-(herb?66:34)+Math.sin(tt*4+p.x)*3;
+  g.beginPath();g.moveTo(x-7,my-9);g.lineTo(x+7,my-9);g.lineTo(x,my);g.closePath();g.fillStyle='#ffe066';g.fill();g.lineWidth=1.6;g.strokeStyle='#2b201c';g.stroke();
+  label(g,NAMES[id]||'เก็บของ',x,my-18);
+  g.restore();X.draws++;};
+})();
+</script>
+
+<script>
+/* NPLATE232 r232b (?nplate=off): DeaRz 26 Nov 2026 09:18 BKK, screenshot of 4-5 slimes on one spot: names and HP bars piled on each other, "เช็คม้อนทุกตัวและแก้ไข".
+   Before (r141e MNFIX): when names collided only the TEXT moved up (rows of 13 px, max 4), placed in draw order (which reshuffles as monsters move) and tested
+   against half-slid positions; every HP bar stayed on its monster, so bars cut through the moved names.
+   Now, for every monster (one code path for all kinds): name + HP bar are ONE plate (~23 px) drawn in MNFIX's late pass. Once per frame all plates are laid out
+   together: the target (TLOCK) keeps its own spot, then from the bottom of the screen up each plate takes the first free row above its monster (rows of 24 px,
+   max 6), overlap tested with max(name width, bar width). Plates glide to their row; a moved plate gets a thin line down to its monster.
+   MNFIX crowd rules are kept (>6 monsters near: far ones show a small faded name). Needs MNFIX on; ?nplate=off or ?mobnamefix=off = old drawing. */
+(function(){'use strict';
+const X=window.NPLATE232={on:true,ver:'r232b',bars:0,lines:0,layouts:0,err:null,cfg:{rowH:24,maxRows:6,tol:6,smooth:.45}};
+try{if(/[?&]nplate=off\b/.test(location.search)){X.on=false;return}}catch(e){}
+const F=window.MNFIX;if(!F||!F.on||!F.begin){X.on=false;return}
+let fr=null,crowd=false,near=new Set(),cursor=null;
+function layout(){try{const C=F.cfg,K=X.cfg;near=new Set();crowd=false;cursor=null;const vis=[];
+  for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.x-P.x,e.y-P.y);if(d>C.crowdR*1.6)continue;vis.push([d,e])}
+  let n=0;for(const v of vis)if(v[0]<=C.crowdR)n++;crowd=n>C.crowdN;if(crowd){vis.sort((a,b)=>a[0]-b[0]);for(let i=0;i<Math.min(C.fullNear,vis.length);i++)near.add(vis[i][1])}
+  try{if(typeof mouse!=='undefined'&&mouse&&mouse.x!=null){const w=s2w(mouse.x,mouse.y);let bd=48;for(const v of vis){const d=Math.hypot(v[1].x-w[0],v[1].y-w[1]);if(d<bd){bd=d;cursor=v[1]}}}}catch(_){}
+  // plates known from the previous frame (anchor x / y / width)
+  const tl=window.TLOCK&&TLOCK.e,list=[];for(const v of vis){const e=v[1];if(e._nbY==null)continue;list.push(e)}
+  list.sort((a,b)=>(b===tl)-(a===tl)||b._nbY-a._nbY||((a.uid||0)-(b.uid||0)));
+  const placed=[];for(const e of list){let r=0;if(e!==tl){for(r=0;r<=K.maxRows;r++){const yy=e._nbY-r*K.rowH;let hit=false;for(const q of placed){if(Math.abs(q.x-e._nbX)<(q.w+e._nbW)/2-K.tol&&Math.abs(q.y-yy)<K.rowH-1){hit=true;break}}if(!hit)break}if(r>K.maxRows)r=K.maxRows}
+    e._mnT=-r*K.rowH;placed.push({x:e._nbX,y:e._nbY+e._mnT,w:e._nbW})}
+  X.layouts++;}catch(er){X.err='layout '+er.message}}
+F.begin=function(e,t,x,y,c){try{if(fr!==time){fr=time;F.stats.frames++;layout()}
+  if(P.dead||G.state!=='play'){F.stats.hidden++;return {hide:true}}
+  const C=F.cfg,K=X.cfg,tl=window.TLOCK&&TLOCK.e,isT=e===tl;let txt=t,small=false;
+  if(crowd&&!isT&&e!==cursor&&!near.has(e)&&!(e.hitT>0)&&!(typeof time==='number'&&time-(e._rbHit||-99)<3)){txt=t.replace(/^(☠ )?Lv\d+\S* /,'');small=true;F.stats.short++}
+  const f0=c.font;let fS=f0;if(small)fS=f0.replace(/\d+px/,C.shortFont+'px');c.font=fS;const aS=small?c.globalAlpha*C.shortAlpha:c.globalAlpha;
+  const w=Math.max(c.measureText(txt).width+(small?0:24),e._bw||0);c.font=f0;
+  e._nbX=x;e._nbY=y;e._nbW=w;
+  const dy=e._mnT||0,cur=e._mnDy||0;e._mnDy=Math.abs(dy-cur)<.5?dy:cur+(dy-cur)*K.smooth;if(dy)F.stats.moved++;F.stats.labels++;
+  return {t:txt,y:y+e._mnDy,small,f:fS,a:aS}}catch(er){F.err='begin232 '+er.message;return null}};
+X.bar=function(e,x,by,ly){const c=ctx,yb=ly+5;
+  if(yb<by-3){c.save();c.shadowBlur=0;c.globalAlpha*=.55;c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=1;c.beginPath();c.moveTo(x,yb+7);c.lineTo(x,by+4);c.stroke();c.restore();X.lines++;}
+  c.save();c.shadowBlur=0;e._bar(yb);c.restore();X.bars++;};
+})();
+</script>
+
+<script>
+/* LANTUT233 r233 (?lanterntut=off): DeaRz 26 Nov 2026 09:21 BKK (bag screenshot, the golden hanging lantern): "เมื่อจบเควสและได้รับตะเกียงมา ให้สอนวิธีใช้ด้วย".
+   The house lantern (ITEMS.houseLantern) comes from main quest m2_02_forge_gift (r217); before, the player only got a one-line notice.
+   Now: the first time the lantern is in the bag (and not yet planted), a one-time how-to card: what it does, how to use it from the bag, where it can be planted,
+   how to go up / down, how to move it. Buttons: "ลองปักเลย" (opens the normal place mode) / "เข้าใจแล้ว". Seen once per character (localStorage lf_lantut233).
+   Re-view: SET window button "🏮 วิธีใช้ตะเกียงบ้าน", and LANTUT233.show(). Texts follow the real controls of the housing module (r141/r146). */
+(function(){'use strict';
+const X=window.LANTUT233={on:true,ver:'r233',shown:0,err:null};
+try{if(/[?&]lanterntut=off\b/.test(location.search)){X.on=false;return}}catch(e){}
+const KEY='lf_lantut233',touch=(()=>{try{return matchMedia('(pointer:coarse)').matches}catch(_){return false}})();
+const who=()=>{try{if(window.CHARNAME237)return CHARNAME237();return String((P&&(P.name||P.nm||P.charName))||'')}catch(_){return ''}};
+function seen(){try{const o=JSON.parse(localStorage.getItem(KEY)||'{}');return !!o[who()||'_']}catch(_){return false}}
+function mark(){try{const o=JSON.parse(localStorage.getItem(KEY)||'{}');o[who()||'_']=Date.now();localStorage.setItem(KEY,JSON.stringify(o))}catch(_){}}
+const css=`#lt233{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;background:rgba(5,8,16,.55);padding:16px}
+#lt233 .c{max-width:440px;width:100%;max-height:calc(100vh - 32px);overflow:auto;background:linear-gradient(180deg,#2a2016,#17120c);border:1px solid #ffd98a;border-radius:14px;box-shadow:0 0 30px rgba(255,200,100,.35);color:#fff4dc;padding:16px 18px;font:14px/1.5 "Noto Sans Thai",system-ui,sans-serif}
+#lt233 h3{margin:0 0 4px;font-size:18px;color:#ffd98a}#lt233 .in{margin:0 0 10px;color:#e9dcc0}
+#lt233 ol{margin:0;padding:0;list-style:none;counter-reset:s}#lt233 li{counter-increment:s;position:relative;padding:6px 0 6px 34px;border-top:1px solid rgba(255,217,138,.15)}
+#lt233 li:before{content:counter(s);position:absolute;left:0;top:7px;width:24px;height:24px;border-radius:50%;background:#ffd98a;color:#1a0e00;font-weight:700;text-align:center;line-height:24px}
+#lt233 kbd{display:inline-block;min-width:18px;padding:0 5px;border-radius:5px;background:#ffd98a;color:#1a0e00;font-weight:700;text-align:center;font-size:12px}
+#lt233 .nt{margin:10px 0 0;font-size:12px;color:#bfae8c}#lt233 .b{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+#lt233 button{border-radius:999px;border:1px solid #ffd98a;padding:7px 16px;font:600 14px "Noto Sans Thai",system-ui,sans-serif;cursor:pointer;background:#3a2c18;color:#fff4dc}#lt233 button.go{background:#ffd98a;color:#1a0e00}`;
+function html(){const K=k=>'<kbd>'+k+'</kbd>';
+ return '<div class="c" role="dialog" aria-label="วิธีใช้ตะเกียงบ้าน"><h3>🏮 ได้รับ ตะเกียงบ้าน</h3><p class="in">ปักตะเกียงไว้ที่ไหน ที่นั่นจะเป็นทางขึ้น <b>ลานตะเกียงลอยฟ้า</b> บ้านส่วนตัวของคุณ</p><ol>'+
+ '<li>เปิดกระเป๋า แล้ว'+(touch?'<b>แตะสองครั้ง</b>':'<b>ดับเบิลคลิก</b>')+'ที่ "ตะเกียงบ้าน"</li>'+
+ '<li>เลื่อน'+(touch?'นิ้ว':'เมาส์')+'ไปจุดที่อยากปัก ถ้าขึ้น <b style="color:#8dffa8">✔ เขียว</b> แปลว่าปักได้ แล้วกด <b>"วาง"</b>'+(touch?'':' (หรือคลิกซ้าย / '+K('Enter')+')')+' · ยกเลิก: '+(touch?'ปุ่มยกเลิก':'คลิกขวา / '+K('Esc'))+'</li>'+
+ '<li>เดินไปใกล้ตะเกียง แล้ว'+(touch?'แตะป้ายที่ขึ้นมา หรือแตะที่ตะเกียง':'กด '+K('F')+' หรือคลิกที่ตะเกียง')+' เพื่อขึ้นบ้านลอยฟ้า · ลงจากบ้าน: ไปที่จุดทางลงแล้ว'+(touch?'แตะ':'กด '+K('F'))+'</li>'+
+ '<li>อยากย้ายที่: ยืนใกล้ตะเกียงแล้ว'+(touch?'แตะ "เก็บตะเกียง" บนป้าย':'กด '+K('V'))+' ตะเกียงกลับเข้ากระเป๋า แล้วไปปักใหม่</li></ol>'+
+ '<p class="nt">ใช้แล้วไม่หาย · มีได้ 1 ดวงต่อคน · ปักไม่ได้ระหว่างต่อสู้ (รอ 5 วินาที) · ปักในถ้ำ ดันเจี้ยน ห้องบอส และในบ้านไม่ได้ · ดูหน้านี้อีกครั้งได้ที่ ตั้งค่า (SET) › 🏮 วิธีใช้ตะเกียงบ้าน</p>'+
+ '<div class="b"><button type="button" data-a="ok">เข้าใจแล้ว</button><button type="button" class="go" data-a="try">🏮 ลองปักเลย</button></div></div>'}
+let box=null;
+function ensure(){if(box)return box;const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);box=document.createElement('div');box.id='lt233';document.body.appendChild(box);
+ for(const ev of ['pointerdown','pointerup','mousedown','mouseup','click','dblclick','touchstart','touchend','wheel','contextmenu'])box.addEventListener(ev,e=>e.stopPropagation());
+ box.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(!b){if(e.target===box)close();return}const a=b.dataset.a;close();
+  if(a==='try'){try{const H=window.HOUSE;if(H&&H.startPlace&&countItem('houseLantern')>0){if(typeof closeWin==='function'&&G.win)closeWin();H.startPlace()}else if(typeof notify==='function')notify('ตะเกียงปักอยู่แล้ว · ยืนใกล้ตะเกียงแล้ว'+(touch?'แตะ "เก็บตะเกียง"':'กด V')+' เพื่อเก็บก่อนย้าย')}catch(er){X.err='try '+er.message}}});
+ return box}
+function close(){if(box)box.style.display='none';mark()}
+X.show=function(){try{const b=ensure();b.innerHTML=html();b.style.display='flex';X.shown++;return true}catch(e){X.err='show '+e.message;return false}};
+let firstSeenT=0;
+setInterval(()=>{try{if(typeof G==='undefined'||G.state!=='play'||typeof P==='undefined'||!P||P.dead||G.fade)return;if(box&&box.style.display==='flex')return;
+  const H=window.HOUSE,have=typeof countItem==='function'?countItem('houseLantern'):0;
+  if(seen())return;
+  if(H&&H.state){const S=H.state();if(S&&S.lantern){mark();return}}
+  if(have<1){firstSeenT=0;return}
+  if(!firstSeenT){firstSeenT=Date.now();return}if(Date.now()-firstSeenT<2500)return;   // let the quest reward dialog / notice finish first
+  if(document.querySelector('#housePlaceBar[style*="flex"]'))return;
+  X.show()}catch(e){X.err='tick '+e.message}},1000);
+// SET window button (same place r217 put its HUD-layout button)
+const addBtn=setInterval(()=>{try{const p=document.getElementById('camPanel');if(!p||document.getElementById('lt233Btn'))return;const b=document.createElement('button');b.id='lt233Btn';b.type='button';b.className='btn';b.textContent='🏮 วิธีใช้ตะเกียงบ้าน';b.style.cssText='display:block;width:100%;margin:8px 0 2px';
+  b.addEventListener('click',e=>{e.stopPropagation();try{p.hidden=true}catch(_){}X.show()});const ref=document.getElementById('hudxSetBtn')||document.getElementById('benchBtn');if(ref&&ref.parentNode===p)p.insertBefore(b,ref.nextSibling);else p.appendChild(b);clearInterval(addBtn)}catch(e){X.err='btn '+e.message}},800);
+// item description points to the guide too
+try{const t=setInterval(()=>{try{if(typeof ITEMS!=='undefined'&&ITEMS.houseLantern){const d=ITEMS.houseLantern.d||'';if(!/วิธีใช้/.test(d))ITEMS.houseLantern.d=d+' · วิธีใช้: ตั้งค่า (SET) › 🏮 วิธีใช้ตะเกียงบ้าน';clearInterval(t)}}catch(_){}},1000)}catch(_){}
+})();
+</script>
+
+<script>
+/* FLOORICON233 r233 (?flooricon=off): DeaRz 26 Nov 2026 09:22 BKK: housing build mode, tab "พื้น": the plain colour squares (emoji) become small icons cut from the
+   REAL floor textures of the sky platform (__HOUSE_ART.floors: wood / grass / stone / dirt / sand / marble), so the player sees the actual floor before buying.
+   Each icon = the centre 50 % of the tile, 64x64, rounded; made once at load (canvas -> data URL). Until an icon is ready the old emoji is shown. */
+(function(){'use strict';
+const X=window.FLOORICON233={on:true,ver:'r233',made:0,err:null,urls:{}};
+try{if(/[?&]flooricon=off\b/.test(location.search)){X.on=false;return}}catch(e){}
+try{const st=document.createElement('style');st.textContent='img.fi233{width:44px!important;height:44px!important;border-radius:9px;border:1px solid rgba(255,217,138,.55);box-shadow:0 2px 6px rgba(0,0,0,.45);object-fit:cover;display:block;margin:0 auto 2px;image-rendering:auto}';document.head.appendChild(st)}catch(_){}
+function make(k,src){const im=new Image();im.onload=()=>{try{const S=64,c=document.createElement('canvas');c.width=c.height=S;const g=c.getContext('2d'),w=im.naturalWidth,h=im.naturalHeight,cs=Math.min(w,h)*.5;
+  g.beginPath();if(g.roundRect)g.roundRect(0,0,S,S,10);else g.rect(0,0,S,S);g.clip();g.drawImage(im,(w-cs)/2,(h-cs)/2,cs,cs,0,0,S,S);
+  const sh=g.createLinearGradient(0,0,0,S);sh.addColorStop(0,'rgba(255,255,255,.12)');sh.addColorStop(.5,'rgba(255,255,255,0)');sh.addColorStop(1,'rgba(0,0,0,.18)');g.fillStyle=sh;g.fillRect(0,0,S,S);
+  X.urls[k]=c.toDataURL('image/png');X.made++}catch(e){X.err='make '+k+' '+e.message}};im.src=src}
+function init(){try{const A=window.__HOUSE_ART;if(!A||!A.floors)return false;for(const k in A.floors)if(typeof A.floors[k]==='string')make(k,A.floors[k]);return true}catch(e){X.err='init '+e.message;return true}}
+if(!init()){const t=setInterval(()=>{if(init())clearInterval(t)},1000)}
+X.html=k=>X.urls[k]?'<img class="fi233" src="'+X.urls[k]+'" alt="">':'';
+})();
+</script>
+
+<script>
+/* NODOORWARP234 r234 (?doorwarp=on brings it back): DeaRz 26 Nov 2026 09:29 BKK, screenshot of the blue swirl circle on the sky-yard floor in front of the cottage door:
+   "วงวาฟหน้าบ้านเอาออกหน่อย". The circle is HOMEWARP209's pad drawn by HOUSE.roomWarpDraw outside the room (r209). Now nothing is drawn there.
+   Entering is unchanged: stand at the door spot and press F / tap the "F เข้าบ้าน" pill (the pill already shows only when the hero is at the door spot),
+   with the same light transition. Inside the room the hook already drew nothing (exit door has no circle). Map warp circles (MAPWARP213, other maps) are not touched. */
+(function(){'use strict';
+const X=window.NODOORWARP234={on:!/[?&]doorwarp=on\b/.test(String(location.search)),ver:'r234',skipped:0,err:null};
+if(!X.on)return;
+function hook(){const H=window.HOUSE;if(!H||typeof H.roomWarpDraw!=='function')return false;if(H.roomWarpDraw.__r234)return true;const _d=H.roomWarpDraw;
+  const f=function(c){try{if(H.roomOn)return _d.apply(this,arguments);X.skipped++;return}catch(e){X.err=e.message}};f.__r234=1;H.roomWarpDraw=f;return true}
+if(!hook()){const t=setInterval(()=>{if(hook())clearInterval(t)},500)}
+})();
+</script>
+
+<script>
+/* HELPERCARDS235 r235 (?helpercards=off): DeaRz 26 Nov 2026 09:34 BKK, screenshot of the helper manager "จัดการผู้ช่วย": "ทำให้โชว์ตัวม้อนเตอร์ที่เรามีเลยไม่ใช่โชว์แค่ชื่อ".
+   Before (r181 helpermgr): every entry was a text row with the same small orb icon.
+   Now every entry (ม้อนในกระเป๋า, ม้อนในกล่องบ้าน, ผู้ช่วยตอนนี้) shows the monster's REAL in-game look: the picture is drawn once per species by the game's own drawEnemy
+   (same way the yard draws helpers: name plate / HP bar / glow halo stripped, approved Studio art allowed), on the main canvas between two frames, copied into a cached
+   picture, then the canvas is put back (nothing visible changes). The picture bobs gently (CSS). Monsters that are mostly glow (wisps) are drawn again with their glow kept. Fallback = the old orb icon if a species cannot be drawn.
+   Layout: bag / box entries are cards in a grid (picture, name, job / level / trait, the same "ให้เป็นผู้ช่วย" button); current helpers keep all their buttons with a bigger picture.
+   Phone (width <= 640): one column, the whole panel scrolls. Empty lists stay as text. */
+(function(){'use strict';
+const X=window.HELPERCARDS235={on:!/[?&]helpercards=off\b/.test(String(location.search)),ver:'r235',made:0,fail:0,err:null,cache:{}};
+if(!X.on)return;
+const S=176;   // portrait size (px)
+try{const st=document.createElement('style');st.textContent=
+ '@keyframes hc235b{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}'
++'#hpMgr img.pt235{width:72px;height:72px;flex:none;object-fit:contain;animation:hc235b 2.4s ease-in-out infinite;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}'
++'#hpMgr .pt235w{width:72px;height:72px;flex:none;border-radius:12px;background:radial-gradient(ellipse at 50% 70%,rgba(255,217,138,.18),rgba(0,0,0,0) 70%);display:flex;align-items:center;justify-content:center}'
++'#hpMgr .bd>.col:first-child{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));align-content:start;gap:6px}'
++'#hpMgr .bd>.col:first-child>h4,#hpMgr .bd>.col:first-child>.none{grid-column:1/-1}'
++'#hpMgr .bd>.col:first-child .rw{flex-direction:column;align-items:stretch;text-align:center;margin:0;padding:7px 6px}'
++'#hpMgr .bd>.col:first-child .rw .pt235w{margin:0 auto}#hpMgr .bd>.col:first-child .rw .nm b{white-space:normal}#hpMgr .bd>.col:first-child .rw button{width:100%}'
++'#hpMgr .hc .t .pt235w{width:80px;height:80px}#hpMgr .hc .t img.pt235{width:80px;height:80px}'
++'@media (max-width:640px){#hpMgr .pn{height:min(94vh,720px)}#hpMgr .bd{display:block;overflow:auto;-webkit-overflow-scrolling:touch}#hpMgr .col{overflow:visible;margin-bottom:10px}#hpMgr .bd>.col:first-child{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}}';
+ document.head.appendChild(st)}catch(e){X.err='css '+e.message}
+const keyOf=r=>String((r&&r.sp)||'');
+/* draw one species with the game's drawEnemy into a cached picture (between frames, canvas restored) */
+function make(r,glow){const sp=keyOf(r);if(!sp||(X.cache[sp]&&!glow))return;X.cache[sp]='…';
+ setTimeout(()=>{const c=ctx,cv=c.canvas;let bak=null,en=null;const px=P.x,py=P.y,sv=[c.fillText,c.strokeText,c.fillRect,c.createLinearGradient,c.fill,c.drawImage],nop=function(){};
+  const V=window.__VIS,vr=V?V.r:0;let R=null,sc0=null;
+  try{if(!MOBS[sp]&&r.mob)MOBS[sp]=Object.assign({},r.mob);if(!MOBS[sp])throw new Error('no MOBS '+sp);
+   const wx=(typeof cam!=='undefined'&&typeof VW!=='undefined')?cam.x+VW/2:P.x,wy=(typeof cam!=='undefined'&&typeof VH!=='undefined')?cam.y+VH/2:P.y;
+   en=makeEnemy(sp,1,wx,wy);en.aggro=false;en.dead=false;en.hp=en.maxHp;en.hitT=0;en.flash=0;en.x=wx;en.y=wy;en.vx=en.vy=0;en.face=Math.PI*.05;en.st=en.st||{};
+   try{const M=window.MON_SPRITES;R=M&&M.byType&&M.byType[sp];if(R&&R.data&&R.data.scope==='studio'){sc0=R.data.scope;R.data.scope='home'}else R=null}catch(_){R=null}
+   const D=300,sz=Math.max(10,en.sz||20),k=Math.min(2.0,D*.2/sz);
+   c.save();c.setTransform(1,0,0,1,0,0);bak=c.getImageData(0,0,D,D);c.clearRect(0,0,D,D);
+   c.setTransform(k,0,0,k,D/2-en.x*k,D*.72-en.y*k);
+   P.x=en.x+580;P.y=en.y;if(V)V.r=1e6;
+   c.fillText=nop;c.strokeText=nop;c.fillRect=nop;c.createLinearGradient=function(){const g=sv[3].apply(this,arguments);g.addColorStop=nop;return g};c.fill=function(){if(this.fillStyle==='rgba(3, 6, 18, 0.8)')return;return sv[4].apply(this,arguments)};c.drawImage=function(im){if(!glow&&im&&im.tagName==='CANVAS'&&im.width===64&&im.height===64)return;return sv[5].apply(this,arguments)};
+   try{drawEnemy(en)}finally{c.fillText=sv[0];c.strokeText=sv[1];c.fillRect=sv[2];c.createLinearGradient=sv[3];c.fill=sv[4];c.drawImage=sv[5];P.x=px;P.y=py;if(V)V.r=vr;if(R)R.data.scope=sc0}
+   c.setTransform(1,0,0,1,0,0);const raw=c.getImageData(0,0,D,D).data;
+   // bounding box of the drawn monster + how much of it is bright (a wisp drawn without its glow is only two dark eyes)
+   let x0=D,y0=D,x1=-1,y1=-1,n=0,lit=0;for(let y=0;y<D;y+=2)for(let x=0;x<D;x+=2){const i=(y*D+x)*4,al=raw[i+3];if(al>24){n++;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(raw[i]+raw[i+1]+raw[i+2]>200&&al>90)lit++}}
+   if((n<20||lit<25)&&!glow){c.putImageData(bak,0,0);bak=null;setTimeout(()=>make(r,true),0);return}   // mostly-glow monsters (wisps): draw again with their glow
+   if(n<20)throw new Error('empty draw '+sp);
+   const pad=6,bw=x1-x0+1+pad*2,bh=y1-y0+1+pad*2,side=Math.max(bw,bh),o=document.createElement('canvas');o.width=o.height=S;const g=o.getContext('2d');
+   const sx=x0-pad-(side-bw)/2,sy=y0-pad-(side-bh);   // keep the feet at the bottom of the square
+   g.imageSmoothingQuality='high';g.drawImage(cv,sx,sy,side,side,0,0,S,S);   X.cache[sp]=o.toDataURL('image/png');X.made++;
+   for(const im of document.querySelectorAll('#hpMgr [data-pt235="'+sp+'"]')){im.outerHTML='<img class="pt235" src="'+X.cache[sp]+'" alt="">'}
+  }catch(e){X.cache[sp]='x';X.fail++;X.err=e.message}
+  finally{try{if(bak)c.putImageData(bak,0,0)}catch(_){}try{c.restore()}catch(_){}try{const F=window.MNFIX;if(F&&F.q&&en)F.q=F.q.filter(it=>it.e!==en)}catch(_){}}},0)}
+X.ico=function(r){const sp=keyOf(r);if(!sp)return '';const v=X.cache[sp];
+ if(v&&v!=='…'&&v!=='x')return '<span class="pt235w"><img class="pt235" src="'+v+'" alt=""></span>';
+ if(v==='x')return '';           // old orb icon
+ make(r);return '<span class="pt235w"><span data-pt235="'+sp+'"><canvas width="34" height="34" data-o="1"></canvas></span></span>'};
+})();
+</script>
+
+<script>
+/* LANTACC236 r236 (?lanternaccess=off): DeaRz 26 Nov 2026 09:36 BKK: who may go up to my sky house. At the planted house lantern the prompt
+   ("F ขึ้นบ้าน · <house> | V เก็บตะเกียง") gets a third part "⚙ ตั้งค่า" (key O on PC, tap on touch) that opens "ใครขึ้นบ้านได้บ้าง":
+   🔓 ทุกคน / 👥 เฉพาะเพื่อน / 🔒 เฉพาะเรา. Default = เฉพาะเรา (DeaRz 09:36:51 "เริ่มต้นให้ใช้ ขึ้นได้แค่เรา"); old saves without the field are เฉพาะเรา too.
+   Saved with the house save (HOUSE.state().access = 'all'|'friends'|'owner', mirrored on HOUSE.state().lantern.access while planted; kept when the lantern is picked up
+   and planted again). A small icon (🔓 / 👥 / 🔒) floats over the planted lantern.
+   Taps inside this menu (and the r233 lantern card) no longer fall through to the house's tap-on-lantern handler (its ignore list gets #lt233,#la236).
+   There is no online visiting yet, so the owner can always go up. HOUSE.canEnter(visitor) is the single check for the later online code:
+   visitor null/undefined or visitor.owner / visitor.id === state.owner -> true; 'all' -> true; 'friends' -> !!visitor.friend; 'owner' -> false. */
+(function(){'use strict';
+const X=window.LANTACC236={on:!/[?&]lanternaccess=off\b/.test(String(location.search)),ver:'r236',opened:0,set:0,err:null};
+if(!X.on)return;
+const H=window.HOUSE;if(!H||!H.state){X.on=false;X.err='no HOUSE';return}
+const OPT=[['all','🔓','ทุกคน','ใครก็ขึ้นบ้านเราได้'],['friends','👥','เฉพาะเพื่อน','เฉพาะคนในรายชื่อเพื่อน'],['owner','🔒','เฉพาะเรา','ล็อก · ขึ้นได้คนเดียว']];
+const valid=v=>OPT.some(o=>o[0]===v);
+X.get=function(){try{const S=H.state();if(!valid(S.access))S.access='owner';if(S.lantern&&S.lantern.access!==S.access)S.lantern.access=S.access;return S.access}catch(e){return 'owner'}};
+X.setAccess=function(v){if(!valid(v))return false;try{const S=H.state();S.access=v;if(S.lantern)S.lantern.access=v;H.save();try{saveGame()}catch(_){}X.set++;return true}catch(e){X.err='set '+e.message;return false}};
+X.icon=()=>(OPT.find(o=>o[0]===X.get())||OPT[2])[1];
+H.canEnter=function(visitor){try{const S=H.state();if(!visitor||visitor.owner||(visitor.id&&visitor.id===S.owner))return true;const a=X.get();if(a==='all')return true;if(a==='friends')return !!visitor.friend;return false}catch(e){return !visitor}};
+X.span=t=>'<span class="hpB" data-a="acc">'+(t?'':'<kbd>O</kbd>')+X.icon()+' ตั้งค่า</span>';
+/* menu */
+let box=null;
+function ensure(){if(box)return box;const st=document.createElement('style');st.textContent='#la236{position:fixed;inset:0;z-index:9100;display:none;align-items:center;justify-content:center;background:rgba(5,8,16,.5);padding:16px}'
+ +'#la236 .c{box-sizing:border-box;width:min(92vw,340px);background:linear-gradient(180deg,#2a2016,#17120c);border:1px solid #ffd98a;border-radius:14px;box-shadow:0 0 26px rgba(255,200,100,.3);color:#fff4dc;padding:14px 16px;font:14px/1.45 "Noto Sans Thai",system-ui,sans-serif}'
+ +'#la236 h3{margin:0 0 8px;font-size:16px;color:#ffd98a}#la236 button.o{display:flex;width:100%;align-items:center;gap:10px;text-align:left;margin:0 0 6px;padding:9px 10px;border-radius:10px;border:1px solid #6a5230;background:#241b12;color:#fff4dc;cursor:pointer;font:inherit;touch-action:manipulation}'
+ +'#la236 button.o.on{border-color:#ffd98a;background:#4a3618;box-shadow:inset 0 0 0 1px #ffd98a}#la236 button.o i{font-style:normal;font-size:20px;width:26px;text-align:center}#la236 button.o b{display:block}#la236 button.o small{color:#c9b892;font-size:12px}'
+ +'#la236 .nt{font-size:12px;color:#bfae8c;margin:4px 0 10px}#la236 .x{display:block;margin:0 0 0 auto;min-width:72px;width:auto;flex:none;border-radius:999px;border:1px solid #ffd98a;background:#3a2c18;color:#fff4dc;padding:6px 16px;cursor:pointer;font:600 14px "Noto Sans Thai",system-ui,sans-serif}';
+ document.head.appendChild(st);box=document.createElement('div');box.id='la236';document.body.appendChild(box);
+ for(const ev of ['pointerdown','pointerup','mousedown','mouseup','click','dblclick','touchstart','touchend','wheel','contextmenu'])box.addEventListener(ev,e=>e.stopPropagation());
+ box.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-v],[data-x]');if(!b){if(e.target===box)X.close();return}if(b.dataset.x){X.close();return}X.setAccess(b.dataset.v);render()});return box}
+function render(){const a=X.get();box.innerHTML='<div class="c" role="dialog" aria-label="ใครขึ้นบ้านได้บ้าง"><h3>⚙ ใครขึ้นบ้านได้บ้าง</h3>'+OPT.map(o=>'<button type="button" class="o'+(o[0]===a?' on':'')+'" data-v="'+o[0]+'"><i>'+o[1]+'</i><span><b>'+o[2]+(o[0]===a?' ✔':'')+'</b><small>'+o[3]+'</small></span></button>').join('')
+ +'<p class="nt">ตอนนี้ยังไม่มีระบบเยี่ยมบ้านออนไลน์ เจ้าของบ้านขึ้นได้เสมอ · ค่านี้จะใช้เมื่อเปิดให้คนอื่นมาเยี่ยม</p><button type="button" class="x" data-x="1">ปิด</button></div>'}
+X.open=function(){try{ensure();render();box.style.display='flex';X.opened++;try{for(const k in keys)keys[k]=false}catch(_){}return true}catch(e){X.err='open '+e.message;return false}};
+X.close=function(){if(box)box.style.display='none'};
+/* key O while the lantern prompt is up (same early key hook the house uses for F / V) */
+function keyH(e){try{const k=e.key;if(box&&box.style.display==='flex'&&k==='Escape'){X.close();e.stopImmediatePropagation();e.preventDefault();return true}
+ if((k==='o'||k==='O')&&!e.repeat&&G.state==='play'&&!H.busy&&!G.win&&!G.interact&&H.nearLantern&&H.nearLantern()){e.stopImmediatePropagation();e.preventDefault();X.open();return true}}catch(er){X.err='key '+er.message}return false}
+if(window.__EK)window.__EK.push(keyH);else addEventListener('keydown',e=>{keyH(e)},true);
+/* icon over the planted lantern: drawn in the top overlay pass (same hook the house uses for its placement ghost) so trees / roofs in front never hide it */
+try{const _o=drawEditorOverlay;drawEditorOverlay=function(){const r=_o.apply(this,arguments);try{const S=H.state(),L=S.lantern;if(L&&L.zone===G.zone&&!H.roomOn&&G.state==='play'&&!H.place){const c=ctx,t=time||0;let tw=0;try{c.save();c.font='700 13px system-ui,sans-serif';tw=c.measureText(H.houseName()).width;c.restore()}catch(_){}const x=L.x+8-tw/2-16,yy=L.y-112;   /* left of the lantern's name tag (tag: centre x+8, baseline y-108, 13 px) */
+  c.save();c.globalAlpha=1;c.font='15px "Noto Color Emoji","Segoe UI Emoji",sans-serif';c.textAlign='center';c.textBaseline='middle';
+  c.fillStyle='rgba(20,15,8,.8)';c.strokeStyle='rgba(255,217,138,.85)';c.lineWidth=1.3;c.beginPath();c.arc(x,yy,12,0,6.2832);c.fill();c.stroke();c.fillStyle='#fff';c.fillText(X.icon(),x,yy+1);c.restore();X.iconDraws=(X.iconDraws||0)+1}}catch(_){}return r}}catch(e){X.err='overlay '+e.message}X.get();
+})();
+</script>
+
+<script>
+/* r237 lantern pickup dissolve + "บ้านของ <ชื่อ>" (26 Nov 2026, desktop PC)
+   (1) LANTDIS237 (?lanterndissolve=off): DeaRz 09:38 BKK "ตอนเก็บตะเกียงไม่เอาแบบลอยขึ้น ให้ตะเกียงค่อยๆสลายเป็นละอองตั้งแต่หัวไล่มาจนถึงพื้น".
+       Before: on pick-up (V / เก็บตะเกียง) the lantern floated up 40 px and faded in 0.6 s. Now: over 1.2 s an erase line runs from the lantern head down to the ground
+       (soft edge), and at that line the lantern sheds small warm glowing motes that drift up / outward and fade. Pick-up logic is unchanged (the item is back in the bag at once,
+       a second pick-up is impossible because the lantern is already gone from the save); only the leftover picture lives 1.2 s + mote time. Motes capped (40, phone 22).
+   (2) LANTNAME237 (?lanternname=off): DeaRz 09:47 BKK "ชื่อบ้านนักเดินทางบนหัวตะเกียงให้ ขึ้นว่า บ้านของ [ชื่อผู้เล่น]".
+       The house name (tag over the planted lantern, prompt "F ขึ้นบ้าน · …", build mode title) = "บ้านของ <character name>", fallback "บ้านนักเดินทาง".
+       A name the player typed for the house (HOUSE.setName) still wins. Character name = the active character slot (CH.list[CH.cur].name); P.name was never set,
+       which is why every house read "บ้านนักเดินทาง". CHARNAME237() is shared: the r233 lantern guide's "seen" flag now uses it too (per character). */
+(function(){'use strict';
+window.CHARNAME237=function(){try{if(typeof CH!=='undefined'&&CH&&CH.cur>=0&&CH.list&&CH.list[CH.cur]&&CH.list[CH.cur].name)return String(CH.list[CH.cur].name)}catch(_){}try{if(window.P&&typeof P.name==='string'&&P.name)return P.name}catch(_){}return ''};
+const N=window.LANTNAME237={on:!/[?&]lanternname=off\b/.test(String(location.search)),ver:'r237'};
+N.house=()=>{const n=CHARNAME237();return n?'บ้านของ '+n:'บ้านนักเดินทาง'};
+const X=window.LANTDIS237={on:!/[?&]lanterndissolve=off\b/.test(String(location.search)),ver:'r237',D:1.2,ms:2300,parts:[],draws:0,err:null};
+if(!X.on)return;
+const phone=()=>{try{return document.body.classList.contains('mobile')||matchMedia('(pointer:coarse)').matches}catch(_){return false}};
+let lastT=null;
+X.draw=function(c,p){try{const H=window.HOUSE,t=time,el=t-p.fade,k=Math.min(1,Math.max(0,el/X.D)),x=p.x,y=p.y,top=y-122,bot=y+8,cut=top+(bot-top)*k,dt=lastT==null?0:Math.min(.05,Math.max(0,t-lastT));lastT=t;
+  if(k<1){
+   // the part of the lantern below the erase line
+   c.save();c.beginPath();c.rect(x-80,cut,180,bot-cut+40);c.clip();H.drawLantern(c,x,y,t);c.restore();
+   // soft edge: a thin faded strip just above the line
+   c.save();c.beginPath();c.rect(x-80,cut-7,180,7);c.clip();c.globalAlpha*=.35;H.drawLantern(c,x,y,t);c.restore();
+   // glowing seam along the line
+   c.save();c.globalCompositeOperation='lighter';const g=c.createLinearGradient(0,cut-5,0,cut+3);g.addColorStop(0,'rgba(255,220,140,0)');g.addColorStop(.6,'rgba(255,226,150,.55)');g.addColorStop(1,'rgba(255,220,140,0)');c.fillStyle=g;c.fillRect(x-10,cut-5,52,8);c.restore();
+   // shed motes at the line
+   const cap=phone()?22:40,want=Math.min(cap-X.parts.length,Math.ceil(dt*60*(phone()?1.2:2.2)));
+   for(let i=0;i<want;i++){const ang=-Math.PI/2+(Math.random()-.5)*1.6,sp=18+Math.random()*34;X.parts.push({x:x-6+Math.random()*44,y:cut+(Math.random()-.5)*4,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp-6,life:0,max:.55+Math.random()*.55,r:1.2+Math.random()*1.8,hue:Math.random()})}
+  }
+  // motes: drift up / out, slow down, fade
+  if(X.parts.length){c.save();c.globalCompositeOperation='lighter';for(let i=X.parts.length-1;i>=0;i--){const q=X.parts[i];q.life+=dt;if(q.life>=q.max){X.parts.splice(i,1);continue}q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.96;q.vy=q.vy*.97-8*dt;
+    const a=1-q.life/q.max;c.globalAlpha=a;c.fillStyle=q.hue<.5?'#ffd98a':'#fff2c4';c.beginPath();c.arc(q.x,q.y,q.r*(.6+.4*a),0,6.2832);c.fill();c.globalAlpha=a*.35;c.beginPath();c.arc(q.x,q.y,q.r*2.6,0,6.2832);c.fill()}c.restore()}
+  X.draws++;if(k>=1&&!X.parts.length)lastT=null}catch(e){X.err=e.message}};
+})();
+</script>
+
+<script>
+/* MAINNEXT238 r238: DeaRz 26 Nov 2026 09:38 BKK "เช็คเควสหลักหน่อย ทำไมไม่ต่อกัน ... มันมีช่วงเควสหลักหาย".
+   Cause: the main line is one chain (each main quest needs the one before AND a level: m3 Lv8, m4 Lv10, Lv16, ch2 Lv18/22/23/27/29).
+   When the next main quest is level-locked, or its giver is in another map, the quest tracker showed nothing at all (no active quest = tracker hidden; "!" only in the giver's own map).
+   Now, whenever no main quest is active, the tracker always shows the NEXT main quest as a gold row: where to take it (NPC + map, tap = walk there),
+   or "ต้อง Lv X (ตอนนี้ Lv Y)" while it is still locked. ?mainnext=off */
+(function(){const X=window.MAINNEXT={on:true,err:null,ver:'r238',last:null};
+try{if(/[?&]mainnext=off/.test(location.search)){X.on=false;return}}catch(e){}
+const A=()=>{try{return window.CH1Q&&CH1Q.api}catch(_){return null}};
+function npc(id){try{const L=(window.__QDATA2&&__QDATA2.npcs)||[];return L.find(n=>n.id===id)||null}catch(_){return null}}
+function zn(z){try{const Z=ZONES[z];return (Z&&(Z.th||Z.n))||z}catch(_){return z}}
+function mains(a){const out=[];try{for(const id in a.QBY){const q=a.QBY[id];if(q&&q.type==='main')out.push(q)}}catch(_){}return out}
+X.find=function(){const a=A();if(!a||!a.state)return null;const st=a.state();if(!st||!st.q)return null;
+  try{if(window.PROLOGUE&&PROLOGUE.state&&PROLOGUE.state.flags&&!PROLOGUE.state.flags.prologueDone)return null}catch(_){}
+  const done=id=>{const r=st.q[id];return !!(r&&r.s==='d')};
+  const M=mains(a);if(!M.length)return null;
+  if(M.some(q=>{const r=st.q[q.id];return r&&(r.s==='a'||r.s==='r')}))return null; // a main quest is running: tracker already shows it
+  for(const q of M){if(st.q[q.id])continue;const R=q.requires||{},af=[].concat(R.after||[]);
+    if(af.some(x=>!(done(x)||String(x).startsWith('pro_'))))continue;return q}
+  return {end:true}};
+X.rows=function(out){if(!X.on)return;try{const q=X.find();X.last=q&&(q.end?'end':q.id);if(!q)return;
+  if(q.end){out.unshift({q:{id:'__mainnext_end',name:'เควสหลัก',type:'main'},r:{s:'n'},cat:'main',text:'ทำเควสหลักที่มีครบแล้ว · รอบทต่อไป',tg:null});return}
+  const lv=(q.requires&&q.requires.lv)||1,cur=(typeof P!=='undefined'&&P.lvl)||1,lock=cur<lv;
+  let tg=null,where='';const g=q.giver&&npc(q.giver);
+  if(g&&g.at){tg={zone:g.at.zone,x:g.at.x,y:g.at.y,stop:68,label:g.name||q.giver,kind:'npc',npc:q.giver};where='รับเควสที่ '+(g.name||q.giver)+' · '+zn(g.at.zone)}
+  else{const z=q.zone;where='เควสจะเริ่มเองที่ '+zn(z);try{const a=A(),ob=(q.objectives||[])[0],p=ob&&ob.point&&a.PT&&a.PT[ob.point];if(p)tg={zone:p.zone,x:p.x,y:p.y,stop:60,label:zn(p.zone),kind:'point'};else if(z)tg={zone:z,kind:'mob',types:[],stop:150,label:zn(z)}}catch(_){}}
+  const text=lock?('ต้อง Lv '+lv+' (ตอนนี้ Lv '+cur+') · เก็บเลเวลก่อน แล้ว'+where.replace(/^รับ/,'ไปรับ')):where;
+  out.unshift({q:{id:'__mainnext_'+q.id,name:'ต่อไป: '+q.name,type:'main'},r:{s:lock?'n':'a'},cat:'main',text,tg:lock?null:tg})}catch(e){X.err='rows '+e.message}};
+})();
+
+</script>
+
+<script>
+/* SK3SAFE239 r239 (?sk3safe=off): DeaRz 26 Nov 2026 09:43 + 10:04 BKK: sword skill "นักดาบคลั่ง" with AUTO on: "ภาพจะกระตุกและเขียวทั้งจอ".
+   His screenshots (PC, live v3l12, Fallowfield Hamlet): first the WHOLE world turns red (trees, ground), then the world disappears (only the green-grey canvas background).
+   Cause (code reading; not reproduced here): the buff tints the hero by putting a temporary drawImage wrapper on the game canvas (p237 tintOn / tintOff around the hero draw).
+   Other modules capture ctx.drawImage and re-install it (p269 sword art re-wraps ctx.drawImage on every update tick; ghost / helper draws save and restore it).
+   If one of them captures it while the tint is on, the tint wrapper stays in the chain for EVERY later draw: the whole map is recoloured red, and each map-sized picture
+   gets a full-size red copy (getImageData on huge images) = stutter, then the canvas runs out of memory and the world is not drawn = green screen.
+   Fix (3 exact patches in p237 + this switch): (1) the tint wrapper tints only while a tint scope is open (depth counter); a wrapper left in the chain by anyone else just
+   passes the draw through to what it replaced; (2) r239b (root cause found by Code, cloud repro): PUPPETX draws the hero inside ghost(fn, bodyOnly) while slashing (all the time in auto-play);
+   ghost saves/restores ctx.drawImage, which is an ACCESSOR owned by the dir4 module; tintOff deleted that accessor and ghost then wrote back a plain value while dir4's INNER was still
+   the tint = everything tinted until dir4 reinstalls (300 ms), re-leaking every slash frame. Now: no tint inside PUPPETX ghost (inGhost>0), and tintOff keeps the accessor
+   (ctx.drawImage = own.get) instead of deleting it; (3) pictures larger than maxPx (16.8 M px) are never tinted. The hero still turns red during the buff exactly as before. */
+window.SK3SAFE239={on:!/[?&]sk3safe=off\b/.test(String(location.search)),ver:'r239',maxPx:16.8e6,passed:0,big:0};
 </script>
