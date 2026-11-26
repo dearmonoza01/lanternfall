@@ -1,4 +1,4 @@
-<script>try{if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){navigator.serviceWorker.register('sw.js').catch(function(){});if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});}}catch(e){}</script>
+<script>window.__LF_BUILD='c7dcf2c728';try{if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){var __lfNew=null,__lfDone=false;navigator.serviceWorker.register('sw.js').then(function(r){function chk(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(x){return x.json()}).then(function(v){if(v&&v.build&&v.build!==window.__LF_BUILD){__lfNew=v.build;r.update().catch(function(){})}}).catch(function(){})}chk();setInterval(chk,600000)}).catch(function(){});navigator.serviceWorker.addEventListener('controllerchange',function(){if(__lfDone||!__lfNew)return;__lfDone=true;var title=true;try{title=!(typeof G!=='undefined'&&G&&G.state==='play')}catch(e){}if(title){location.reload();return}try{var b=document.createElement('div');b.id='lfUpd';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:2147483000;padding:9px 16px;border-radius:12px;background:rgba(30,20,8,.96);border:1px solid #ffd98a;color:#ffe9b0;font:700 14px system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5)';b.textContent='มีเวอร์ชันใหม่ของเกม · แตะเพื่อโหลดใหม่';b.onclick=function(){try{if(typeof saveGame==='function')saveGame()}catch(e){}location.reload()};document.body.appendChild(b)}catch(e){}});if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});}}catch(e){}</script>
 <script>/* r240 NOCANDLE240 (?nocandle=off): DeaRz 26 Nov 10:14 BKK candle shows for a moment at game start. The only candle in the game is the 🕯 button of the monk-quest GM test tray #mqGM; it was hidden by script after creation (+ REAL's 800 ms sweep), so anything that re-showed it showed it until the next sweep. Now a stylesheet from the first frame keeps it hidden unless ?gm=on. */(function(){try{var q=String(location.search);if(/[?&]nocandle=off\b/.test(q)||/[?&]gm=on\b/.test(q))return;var s=document.createElement('style');s.id='nocandle240';s.textContent='#mqGM{display:none!important}';(document.head||document.documentElement).appendChild(s);window.NOCANDLE240={on:true,ver:'r240'}}catch(e){}})();
 /* REAL v2x (2 Nov 2026): Map 10 r2 merged. Layers DeaRz has not passed yet stay in the file but start OFF:
    prologue r2, chapter 1 quests, chapter 2 quests, Map 6 ruined village. Add ?prologue=on / ?ch1quest=on / ?ch2quest=on /
@@ -5973,7 +5973,7 @@ function initAdmUI(){
    ===================================================================== */
 const SHELL_HEAD='<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n';
 const HOSTED=!!(window.claude&&typeof window.claude.use==='function');
-let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l17: admin only with ?gm=on (v3l10) (local file / tests): developer mode
+let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l18g: admin only with ?gm=on (v3l10) (local file / tests): developer mode
 function setAdmin(v){ADMIN=!!v;document.body.classList.toggle('noadmin',!ADMIN);if(!ADMIN){if(G.win==='wGM')closeWin();const d=$('#dev');if(d&&!d.hidden)toggleDev();if(G.edit)toggleEditor(false);}}
 setAdmin(ADMIN);
 (async()=>{if(!HOSTED)return;try{const u=await window.claude.use('user');setAdmin(u?await u.canEdit():false);}catch(e){setAdmin(false);}})();
@@ -13808,7 +13808,7 @@ cmdDef('buyWeapon',a=>{
   const p=+a.price;if(!(p>=0)||P.gold<p)return{ok:false,err:'no_gold'};
   const it=makeWeapon(a.t,P.lvl,1);if(!addItem(it))return{ok:false,err:'bag_full'};
   P.gold-=p;log(`ซื้อ ${it.name}`,'g');return{ok:true};});
-cmdDef('sellShards',()=>{const n=countItem('shard');P.gold+=n*25;takeItem('shard',n);log(`ขาย Spirit Shard ${n} ชิ้น ได้ ${n*25} G`,'g');return{ok:true,n};});
+cmdDef('sellShards',()=>{const n=countItem('shard'),v=((window.GOLD262&&GOLD262.on)?5:25);P.gold+=n*v;takeItem('shard',n);log(`ขาย Spirit Shard ${n} ชิ้น ได้ ${n*v} G`,'g');return{ok:true,n};});
 cmdDef('refine',a=>{const f=refineList().find(o=>o.it.uid===a.uid);if(!f)return{ok:false,err:'bad_item'};refineItem(f.it);return{ok:true};});
 /* v113 preview — Leviathan Abyssa redesign candidates: long serpentine sea-dragon (3 styles). Not wired to the boss until approved.
    window.LEVI_STYLE: 'kraken' (current) | 'S1' Ember Wyrm | 'S2' Jade Tide Emperor | 'S3' Bone-Armoured Abyss Serpent */
@@ -24411,7 +24411,7 @@ function renderShop_v6(){
   h+=`<h3 class="sec">อาวุธ Lv ${L}</h3>`;
   for(const t of GEAR_TYPES){const p=L*15+80;h+=`<div class="tp on" style="cursor:default"><img src="${itemIcon({kind:'eq',type:t,rar:1})}" width="40" height="40" alt=""><div><b>Fine ${GEAR[t].n}</b><small>${t==='acc'?'โบนัสสเตตัส':'DEF ~'+Math.round((3+L*.9)*GEAR[t].def*1.25)} · ช่องการ์ด [1]</small></div><button class="btn" data-buyg="${t}" data-p="${p}" ${P.gold>=p?'':'disabled'}>${fmt(p)} G</button></div>`;}
   for(const t of WTYPES){const p=L*20+100;h+=`<div class="tp on" style="cursor:default"><img src="${itemIcon({kind:'wpn',t,rar:1})}" width="40" height="40" alt=""><div><b>Fine ${WEAPONS[t].n}</b><small>${WEAPONS[t].th} · ATK ~${Math.round((8+L*2.6)*1.25*WEAPONS[t].f)}</small></div><button class="btn" data-buyw="${t}" data-p="${p}" ${P.gold>=p?'':'disabled'}>${fmt(p)} G</button></div>`;}
-  const sh=countItem('shard');h+=`<div class="row" style="margin-top:10px"><button class="btn gold" id="bSellShard" ${sh?'':'disabled'}>ขาย Spirit Shard ทั้งหมด (${sh}) · ${sh*25} G</button></div></div>`;
+  const sh=countItem('shard');h+=`<div class="row" style="margin-top:10px"><button class="btn gold" id="bSellShard" ${sh?'':'disabled'}>ขาย Spirit Shard ทั้งหมด (${sh}) · ${sh*((window.GOLD262&&GOLD262.on)?5:25)} G</button></div></div>`;
   $('#shopBody').innerHTML=h;
 }
 function renderTele(){
@@ -43451,7 +43451,7 @@ function drawToken(x,y,name,ghost){const b=Math.sin(clk()*2+x)*1.5;   // art pen
 function drawNpc(n){const A=NART[n.id],art=drawArtNpc(n.id,n.at.x,n.at.y);if(!art)drawToken(n.at.x,n.at.y,n.name);else txt(n.name,n.at.x,n.at.y+16,'#ffd36b',12,.9);
   const m=mark(n);if(m)txt(m,n.at.x,n.at.y-(art?A.h+18:92)+Math.sin(clk()*4)*3,'#ffd36b',30);}
 function drawPoints(){const tt=clk();for(const {p,o} of pointsHere()){try{if(window.HERBVIS231&&HERBVIS231.on)HERBVIS231.draw(ctx,p,o,tt);}catch(_){}const a=.55+.3*Math.sin(tt*3+p.x),col=o.kind==='collect'?'#bff5a0':o.kind==='interact'?'#a8d8ff':'#fff2b0';
-  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=a;const g=ctx.createRadialGradient(p.x,p.y-20,0,p.x,p.y-20,30);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y-20,30,0,6.283);ctx.fill();ctx.restore();
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=(window.QOBJ263&&o.kind==='collect'&&QOBJ263.has(o.item))?a*.22:a;const g=ctx.createRadialGradient(p.x,p.y-20,0,p.x,p.y-20,30);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y-20,30,0,6.283);ctx.fill();ctx.restore();
   if(o.kind!=='collect'&&p.label)txt(p.label,p.x,p.y+16,'#fff2b0',12,.9);}
   if(HOLD){const h=HOLD,o=active().map(curObj).find(x=>x&&x.point===h.id),tot=(o&&o.hold)||1,k=1-h.t/tot;ctx.save();ctx.strokeStyle='#a8d8ff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(P.x,P.y-100,16,-Math.PI/2,-Math.PI/2+6.283*k);ctx.stroke();ctx.restore();}}
 function target(q){const r=qs(q.id),o=curObj(q);if(r&&r.s==='r'){const n=NPC[q.receiver];return n&&n.at?{zone:n.at.zone,x:n.at.x,y:n.at.y}:null;}if(!o)return null;
@@ -44662,7 +44662,7 @@ let seen=new Set();try{const a=JSON.parse(localStorage.getItem(WP.seenKey)||'[]'
 function markSeen(z){if(!z||seen.has(z))return;seen.add(z);try{localStorage.setItem(WP.seenKey,JSON.stringify([...seen]));}catch(_){}}
 const reached=z=>!!z&&(seen.has(z)||(G.unlocked&&G.unlocked.has&&G.unlocked.has(z))||z==='sylva_lab'||z==='cartroad_plains'||z==='astoria_capital');
 /* why a circle cannot be used right now (null = usable) */
-function why(c){if(!c.go||!c.dest)return 'closed';try{if(c.lock&&c.lock())return 'lock';}catch(_){return 'lock';}if(!reached(c.dest))return 'new';return null;}
+function why(c){if(!c.go||!c.dest)return 'closed';try{if(c.lock&&c.lock())return 'lock';}catch(_){return 'lock';}if(!reached(c.dest)&&!(window.WARPWALK260&&WARPWALK260.on)&&!(window.WARPQ259&&WARPQ259.on&&WARPQ259.allow(c.dest)))return 'new';return null;}
 let lastHit=-99;{const h=window.hurtPlayer;if(typeof h==='function'){window.hurtPlayer=function(){const hp=P?P.hp:0;const r=h.apply(this,arguments);try{if(P&&P.hp<hp)lastHit=time;}catch(_){}return r;};}}
 const dlgOpen=()=>{try{const u=window.PROLOGUE&&PROLOGUE.ui;if(u&&u.isOpen&&u.isOpen())return true;}catch(_){}const d=document.getElementById('qDlg');return !!(d&&!d.hidden&&d.offsetParent!==null);};
 const fight=now=>{if(now-lastHit<5)return true;try{return typeof CMB!=='undefined'&&!(ZONES[G.zone]&&ZONES[G.zone].safe)&&time-CMB.t<CMB.lock;}catch(_){return false;}};
@@ -60837,7 +60837,7 @@ setInterval(()=>{try{hook();const lg=document.querySelector('#wMap .legend');if(
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3l17',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l18g',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -60862,7 +60862,7 @@ console.info('[REAL] v3l6c');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l17';console.info('[REAL] v3l17')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l18g';console.info('[REAL] v3l18g')}catch(e){}
 })();
 </script>
 <script>
@@ -61834,9 +61834,11 @@ const BY={};for(const d of IT)BY[d.id]=d;H.items=BY;H.itemList=IT;B.cats=CATS;
 /* real decor art (Art decor_r1, 20 items, 3/4 view, 1:1 with the hero = 84 px): replaces the code placeholders by id; footprint (w x d), anchor (= footprint centre inside the PNG) and the second facing (_b, drawn separately, never mirrored) come from decor_r1.json. ?decorart=off = the code placeholders. */
 /* r154c: facings by direction, clockwise s,sw,w,nw,n,ne,e,se (s = faces the camera). An item with a 'facings' map {key:{png|src,foot_poly,w,h}} + default uses ONLY that map; items without one keep today's two sprites as 'se' ('') and 'sw' ('_b'). o.f = index into d.fkeys, o.fk = saved key. */
 const DIRS=['s','sw','w','nw','n','ne','e','se'],DIRN={s:'หน้า',sw:'หน้าซ้าย',w:'ซ้าย',nw:'หลังซ้าย',n:'หลัง',ne:'หลังขวา',e:'ขวา',se:'หน้าขวา'};
-function setFacings(d,fm,def,dw,dh,fallback){const ks=DIRS.filter(k=>fm[k]);if(!ks.length)return false;d.fkeys=ks;d.fimg={};d.fac=[];d.fnames=ks.map(k=>DIRN[k]);d.defKey=(def&&fm[def])?def:ks[0];d.facingMap=true;d.two=ks.length>1;const sp0=P=>{const cx=P.reduce((s,p)=>s+p[0],0)/P.length,cy=P.reduce((s,p)=>s+p[1],0)/P.length;return {ax:cx,ay:cy,foot:P.map(p=>[p[0]-cx,p[1]-cy]),pts:P}};ks.forEach((k,i)=>{const o=fm[k],src=o.png||o.src||o.file;if(src&&typeof src==='string'&&src.indexOf('data:')===0){const im=new Image();im.src=src;ARTIMG[d.id+'_'+k]=im}else if(src&&typeof src==='object')ARTIMG[d.id+'_'+k]=src;d.fimg[k]='_'+k;const A=sp0(o.foot_poly||o.foot||fallback);A.sw=o.w||dw||d.sw;A.sh=o.h||dh||d.sh;d.fac[i]=A});const dA=d.fac[ks.indexOf(d.defKey)];d.ax=dA.ax;d.ay=dA.ay;d.foot=dA.foot;d.footPng=dA.pts;d.sw=dA.sw;d.sh=dA.sh;delete d.footB;try{for(const k in BASE)if(k.indexOf(d.id+'|')===0)delete BASE[k]}catch(_){}return true}
+function setFacings(d,fm,def,dw,dh,fallback){const ks=DIRS.filter(k=>fm[k]);if(!ks.length)return false;d.fkeys=ks;d.fimg={};d.fac=[];d.fnames=ks.map(k=>DIRN[k]);d.defKey=(def&&fm[def])?def:ks[0];d.facingMap=true;d.two=ks.length>1;const sp0=P=>{const cx=P.reduce((s,p)=>s+p[0],0)/P.length,cy=P.reduce((s,p)=>s+p[1],0)/P.length;return {ax:cx,ay:cy,foot:P.map(p=>[p[0]-cx,p[1]-cy]),pts:P}};ks.forEach((k,i)=>{const o=fm[k],src=o.png||o.src||o.file;if(src&&typeof src==='string'&&(src.indexOf('data:')===0||(!/[?&]facingurl=off\b/.test(String(location.search))&&/^(assets\/|https?:|\.\/)|\.(png|webp|jpe?g|gif)(\?|$)/i.test(src)))){const im=new Image();im.src=src;ARTIMG[d.id+'_'+k]=im}else if(src&&typeof src==='object')ARTIMG[d.id+'_'+k]=src;d.fimg[k]='_'+k;const A=sp0(o.foot_poly||o.foot||fallback);A.sw=o.w||dw||d.sw;A.sh=o.h||dh||d.sh;d.fac[i]=A});const dA=d.fac[ks.indexOf(d.defKey)];d.ax=dA.ax;d.ay=dA.ay;d.foot=dA.foot;d.footPng=dA.pts;d.sw=dA.sw;d.sh=dA.sh;delete d.footB;try{for(const k in BASE)if(k.indexOf(d.id+'|')===0)delete BASE[k]}catch(_){}return true}
 /* r251 tank prop art (TEST): Art tank_r1 (ChatGPT row 289, cut + QA by Art 26 Nov): fishTank picture front ('s') + 3/4 front-right ('se'), drawn at 1x from the 2x pictures, placement / collision = Art's foot_poly per facing; bag/shop/storage icon = fishTank_icon48. Not mirrored (the housing code draws every facing from its own picture). ?tankart=off = the code-drawn placeholder. */
 try{if(window.__HOUSE_DECOR&&__HOUSE_DECOR.items&&!/[?&]tankart=off\b/.test(Q)){__HOUSE_DECOR.items.fishTank={"png":"assets/f22871dcd7d64be0.png","w":60.5,"h":101.5,"fp":[54.7,7.2],"a":[30.35,96.3],"foot":[[3.0,92.7],[57.7,92.7],[57.7,99.9],[3.0,99.9]],"default":"s","facings":{"s":{"png":"assets/f22871dcd7d64be0.png","w":60.5,"h":101.5,"foot_poly":[[3.0,92.7],[57.7,92.7],[57.7,99.9],[3.0,99.9]]},"se":{"png":"assets/33d3668a47ac912d.png","w":63,"h":108,"foot_poly":[[2.7,94.5],[15.6,104.8],[59.3,95.8],[46.5,85.5]]}},"glass":{"s":[30.2,50.8],"se":[31.5,54.0]}};__HOUSE_DECOR.icons=__HOUSE_DECOR.icons||{};__HOUSE_DECOR.icons.fishTank="assets/fa4920eccab3dae7.png";window.__TANKART251={on:true}}}catch(e){window.__TANKART251={on:false,err:e.message}}
+/* r263 tank 8 directions (TEST): Art fishTank_8dir_r1 (ChatGPT row 430, approved for REAL 26 Nov 12:26 UTC): the fishTank item gets all 8 facings (keys = the way the front faces, all drawn, none mirrored; s replaces the old front, se the old 3/4; saved tanks keep their key). ?tank8=off = the r251 two views. */
+try{if(window.__HOUSE_DECOR&&__HOUSE_DECOR.items&&__HOUSE_DECOR.items.fishTank&&!/[?&]tank8=off\b/.test(Q)){__HOUSE_DECOR.items.fishTank.facings={"s":{"png":"assets/328f64db0b6a5f03.png","w":60.0,"h":100.5,"foot_poly":[[3.0,91.8],[57.2,91.8],[57.2,98.9],[3.0,98.9]],"glass":[31.9,26.2]},"sw":{"png":"assets/6672e85a89ac6c80.png","w":63.5,"h":109.0,"foot_poly":[[2.0,96.5],[43.5,107.0],[61.5,96.5],[20.0,86.0]],"glass":[31.1,29.0]},"w":{"png":"assets/8b7f2a71f54dc344.png","w":41.0,"h":102.0,"foot_poly":[[2.1,93.1],[39.1,93.1],[39.1,100.4],[2.1,100.4]],"glass":[18.9,26.7]},"nw":{"png":"assets/071be647ea9e5648.png","w":66.5,"h":109.0,"foot_poly":[[2.5,96.5],[18.5,107.5],[64.5,96.0],[48.5,85.0]],"glass":[32.5,28.2]},"n":{"png":"assets/dc469b116374f20f.png","w":62.5,"h":100.5,"foot_poly":[[3.1,91.8],[59.6,91.8],[59.6,98.9],[3.1,98.9]],"glass":[30.1,26.4]},"ne":{"png":"assets/a55837f47905b5f3.png","w":63.5,"h":108.5,"foot_poly":[[2.5,96.0],[44.5,107.0],[61.5,95.5],[19.5,84.5]],"glass":[30.1,28.4]},"e":{"png":"assets/250a1e3b9e302789.png","w":41.0,"h":102.0,"foot_poly":[[2.1,93.1],[39.1,93.1],[39.1,100.4],[2.1,100.4]],"glass":[20.8,26.5]},"se":{"png":"assets/1df8cea1f87833ae.png","w":62.0,"h":109.5,"foot_poly":[[2.0,97.0],[19.0,108.0],[60.5,96.5],[43.5,85.5]],"glass":[32.6,29.3]}};__HOUSE_DECOR.items.fishTank.default='s';window.__TANK8_263={on:true}}}catch(e){window.__TANK8_263={on:false,err:e.message}}
 /* r191 pond art (TEST): Art fishing_r1/pond_r1 (ChatGPT row 288, Art QA 23 Nov; DeaRz has not approved the look yet) replaces the code-drawn fishing pond. Drawn 125 x 71 (farmPlot scale) from the 250 x 142 picture; placement polygon = Art's foot_poly (rim). ?pondart=off = the code placeholder. */
 try{if(window.__HOUSE_DECOR&&__HOUSE_DECOR.items&&!/[?&]pondart=off\b/.test(Q)){__HOUSE_DECOR.items.fishPond={"png": "assets/1e87da99de2c97d8.png", "w": 125, "h": 71, "fp": [125, 71], "a": [62.13, 35.77], "foot": [[124.8, 35.8], [117.9, 50.7], [105.5, 60.8], [92.9, 66.5], [81.5, 69.2], [71.4, 70.2], [62.2, 70.6], [53.0, 70.0], [42.9, 69.2], [31.6, 66.4], [18.1, 61.3], [5.2, 51.1], [-0.1, 35.8], [5.6, 20.6], [18.3, 10.5], [31.6, 5.2], [43.0, 2.6], [53.0, 1.6], [62.2, 0.2], [71.4, 1.5], [81.4, 2.5], [92.9, 5.1], [106.1, 10.4], [118.8, 20.6]], "water_poly": [[110.0, 34.0], [101.3, 46.9], [86.3, 52.0], [77.1, 55.5], [68.8, 56.6], [61.5, 56.8], [53.9, 57.3], [45.3, 56.2], [34.6, 53.5], [22.6, 46.6], [13.4, 34.0], [21.5, 21.0], [34.1, 14.1], [45.3, 11.7], [54.2, 11.5], [61.5, 12.1], [68.7, 11.6], [77.3, 12.2], [87.7, 14.9], [101.8, 20.9]], "water_centre": [61.5, 34.0]};__HOUSE_DECOR.icons=__HOUSE_DECOR.icons||{};__HOUSE_DECOR.icons.fishPond="assets/bec509afce417046.png";window.__POND191={on:true,cx:62.13,cy:35.77}}}catch(e){window.__POND191={on:false,err:e.message}}
 const DEC_ART=(window.__HOUSE_DECOR&&!/[?&]decorart=off\b/.test(Q))?window.__HOUSE_DECOR:null;const ARTIMG={},ARTICON={},ICIMG={};
@@ -61942,7 +61944,7 @@ function addGoods(){try{const TN=window.__TOWNNPC;if(!TN||!TN.goods)return false
 function wrapShop(){try{const SW=window.__SHOPWIN;if(!SW||SW._hb)return;SW._hb=1;const o=SW.openNpc;SW.openNpc=function(a){try{if(a&&a.list&&a.list.some(r=>BY[r.id])){const b=a.buy;a.buy=(id,price,qty)=>{if(!BY[id])return b(id,price,qty);let done=0;for(let i=0;i<qty;i++){if((P.gold|0)<price)break;P.gold-=price;done++}if(done){H.storageAdd(id,done);B.stats.bought+=done;try{saveGame()}catch(_){}}return done}}}catch(e){ERR('shop',e)}return o.apply(this,arguments)}}catch(e){ERR('wrapShop',e)}}
 {let n=0;const iv=setInterval(()=>{wrapShop();if((window.__SHOPWIN&&window.__SHOPWIN._hb)||++n>80)clearInterval(iv)},500)}
 /* starter set: given once, right after the lantern is first placed (Small Cottage + 2 Wooden Stools + 1 Round Table) */
-function starter(){try{const s=st();if(s.starterDone||!s.starterGiven)return;s.starterDone=true;const S0=H.cfg.build.starter;for(const id in S0)H.storageAdd(id,S0[id],true);H.save();toast('ได้ชุดตั้งต้นลานบ้าน → คลังของแต่งบ้าน (กระท่อมเล็ก 1 · สตูลไม้ 2 · โต๊ะกลม 1)')}catch(e){ERR('starter',e)}}
+function starter(){try{const s=st();if(s.starterDone||!s.starterGiven)return;s.starterDone=true;const S0=H.cfg.build.starter;for(const id in S0)H.storageAdd(id,S0[id],true);H.save();toast((window.STARTER262&&STARTER262.on)?'ได้แปลงผักตั้งต้น → คลังของแต่งบ้าน (แปลงผัก 1)':'ได้ชุดตั้งต้นลานบ้าน → คลังของแต่งบ้าน (กระท่อมเล็ก 1 · สตูลไม้ 2 · โต๊ะกลม 1)')}catch(e){ERR('starter',e)}}
 setInterval(()=>{if(G.state==='play')starter()},1500);
 /* ---------------- placed items as y-sorted props / flat items ---------------- */
 let DEC=[];
@@ -67349,7 +67351,7 @@ X.draw=function(g,p,o,tt){if(!o||o.kind!=='collect')return;const x=p.x,y=p.y,id=
   // ground: shadow + pulsing ring
   g.fillStyle='rgba(20,30,10,.35)';g.beginPath();g.ellipse(x,y+2,24,9,0,0,6.2832);g.fill();
   const k=(tt*1.1+(p.y%5)*.2)%1;g.globalAlpha=1-k;g.strokeStyle='#f4ffb0';g.lineWidth=2.5;g.beginPath();g.ellipse(x,y+2,14+20*k,5+8*k,0,0,6.2832);g.stroke();g.globalAlpha=1;
-  if(herb){g.save();g.globalCompositeOperation='lighter';const hg=g.createRadialGradient(x,y-20,0,x,y-20,42);hg.addColorStop(0,'rgba(255,250,200,.75)');hg.addColorStop(.5,'rgba(190,255,150,.35)');hg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=hg;g.beginPath();g.arc(x,y-20,42,0,6.2832);g.fill();g.restore();
+  if(herb&&!(window.QOBJ263&&QOBJ263.has(id))){g.save();g.globalCompositeOperation='lighter';const hg=g.createRadialGradient(x,y-20,0,x,y-20,42);hg.addColorStop(0,'rgba(255,250,200,.75)');hg.addColorStop(.5,'rgba(190,255,150,.35)');hg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=hg;g.beginPath();g.arc(x,y-20,42,0,6.2832);g.fill();g.restore();
     g.save();g.translate(x,y);g.scale(1.45,1.45);g.rotate(Math.sin(ph)*.05);
     const L=[[-1.15,20,4.5],[-.55,27,5],[0,32,5.5],[.55,27,5],[1.15,20,4.5]];
     for(const [a,len,w] of L)leaf(g,a+Math.sin(ph+a)*.06,len,w,'#8ff5b0','#f2fff0');
@@ -67360,9 +67362,9 @@ X.draw=function(g,p,o,tt){if(!o||o.kind!=='collect')return;const x=p.x,y=p.y,id=
   g.save();g.globalCompositeOperation='lighter';for(let i=0;i<3;i++){const a=ph*.7+i*2.1,r=18+6*Math.sin(ph+i),sx=x+Math.cos(a)*r,sy=y-18+Math.sin(a)*r*.6,s=1.5+1.2*(.5+.5*Math.sin(ph*1.7+i));
     g.fillStyle='rgba(240,255,190,.9)';g.beginPath();g.moveTo(sx,sy-s*2);g.lineTo(sx+s*.6,sy);g.lineTo(sx,sy+s*2);g.lineTo(sx-s*.6,sy);g.closePath();g.fill();}g.restore();
   // bouncing marker + name
-  const my=y-(herb?66:34)+Math.sin(tt*4+p.x)*3;
+  const my=y-((window.QOBJ263&&QOBJ263.has(id))?QOBJ263.top(id):(herb?66:34))+Math.sin(tt*4+p.x)*3;
   g.beginPath();g.moveTo(x-7,my-9);g.lineTo(x+7,my-9);g.lineTo(x,my);g.closePath();g.fillStyle='#ffe066';g.fill();g.lineWidth=1.6;g.strokeStyle='#2b201c';g.stroke();
-  label(g,NAMES[id]||'เก็บของ',x,my-18);
+  label(g,NAMES[id]||((window.QOBJ263&&QOBJ263.has(id))?QOBJ263.name(id):'เก็บของ'),x,my-18);
   g.restore();X.draws++;};
 })();
 </script>
@@ -67997,7 +67999,7 @@ function cvs(){try{return ctx.canvas}catch(_){return null}}
 /* hero hidden while he is the ball */
 try{const _d=drawPlayer;drawPlayer=function(){if(X.hide)return;return _d.apply(this,arguments)}}catch(e){X.err='dp '+e.message}
 function begin(){const c=cvs();if(!c||!c.width)return null;let s;try{X.hide=true;render()}catch(e){X.err='snap '+e.message}
- try{const o=document.createElement('canvas');o.width=c.width;o.height=c.height;o.getContext('2d').drawImage(c,0,0);const p=w2s(P.x,P.y);s={snap:o,sx:p[0],sy:p[1]}}catch(e){X.err='copy '+e.message;s=null}
+ try{const o=document.createElement('canvas');o.width=c.width;o.height=c.height;o.getContext('2d').drawImage(c,0,0);const p=w2s(P.x,P.y);s={snap:o,sx:p[0],sy:p[1],z0:G.zone,tb:performance.now()/1000}}catch(e){X.err='copy '+e.message;s=null}
  return s}
 try{const _l=loadZone;loadZone=function(zid,arrive){let s=null;
   try{if(X.on&&!X.seq&&typeof G!=='undefined'&&G.state==='play'&&typeof P!=='undefined'&&P&&!P.dead&&G.zone&&zid&&zid!==G.zone&&!document.hidden)s=begin()}catch(e){X.err='pre '+e.message;s=null}
@@ -68015,23 +68017,23 @@ function pillar(c,x,yb,w,a,t){if(w<=0||a<=0)return;c.save();c.globalCompositeOpe
  for(let i=0;i<5;i++){const a2=i*1.2566+t*.6,R=w*(3.4+.5*Math.sin(t*2.1+i*1.7)),ox=i?Math.cos(a2)*w*.9:0,oy=i?Math.sin(a2)*w*.9:0;c.save();c.translate(x+ox,yb+oy*.36);c.scale(1,.36);const gg=c.createRadialGradient(0,0,0,0,0,R);gg.addColorStop(0,'rgba(255,250,220,'+(i?.22:.55)+')');gg.addColorStop(.35,'rgba(255,232,160,'+(i?.12:.26)+')');gg.addColorStop(.7,'rgba(255,214,120,.05)');gg.addColorStop(1,'rgba(255,210,110,0)');c.fillStyle=gg;c.beginPath();c.arc(0,0,R,0,6.2832);c.fill();c.restore()}
  c.fillStyle='rgba(255,250,225,.9)';for(let i=0;i<10;i++){const ph=(t*1.3+i*.137)%1,px=x+Math.sin(i*12.9898)*w*.75,py=yb-ph*Math.min(yb,360);c.globalAlpha=cl(a*(1-ph),0,1);c.beginPath();c.arc(px,py,1.6+((i*7)%3)*.6,0,6.2832);c.fill()}
  c.restore()}
-function overlay(){const s=X.seq;if(!s)return;if(!s.t0)s.t0=now();const c=ctx,t=now()-s.t0,C=X.cfg,cv=cvs();if(!cv)return;const d=(typeof DPR==='number'&&DPR)||1,Wc=cv.width/d,Hc=cv.height/d;
+function overlay(){const s=X.seq;if(!s)return;if(!s.t0)s.t0=now();const C=X.cfg;let t=now()-s.t0;if((window.WARPWAIT259&&WARPWAIT259.on)){t=WARPWAIT259.step(s,t,C);if(t<0)return}const c=ctx,cv=cvs();if(!cv)return;const d=(typeof DPR==='number'&&DPR)||1,Wc=cv.width/d,Hc=cv.height/d;
  c.save();c.setTransform(d,0,0,d,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over';
  if(t<C.out){const u=t/C.out;/* old map still */c.drawImage(s.snap,0,0,Wc,Hc);
   const x=s.sx,yb=s.sy,g=cl(u/.3,0,1),up=cl((u-.3)/.6,0,1),oy=yb-26-ez(up)*ez(up)*(yb+80);
   pillar(c,x,yb,(10+g*20)*(1-up*.45),g*(1-cl((u-.85)/.15,0,1)*.4),t);orb(c,x,oy,6+g*10-up*3,1);
   if(u<.18){c.save();c.globalCompositeOperation='lighter';c.globalAlpha=(1-u/.18)*.8;const fg=c.createRadialGradient(x,yb-26,0,x,yb-26,60);fg.addColorStop(0,'#fff');fg.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=fg;c.beginPath();c.arc(x,yb-26,60,0,6.2832);c.fill();c.restore()}
-  const wf=cl((u-.78)/.22,0,1);if(wf>0){c.globalAlpha=wf;c.fillStyle='#fff8e0';c.fillRect(0,0,Wc,Hc)}}
+  const wf=cl((u-.78)/.22,0,1);if(wf>0){c.globalAlpha=wf;c.fillStyle=(window.WARPWAIT259&&WARPWAIT259.on)?'#02040c':'#fff8e0';c.fillRect(0,0,Wc,Hc)}}
  else{const v=t-C.out,u=v/C.inn;if(u>=1){X.seq=null;X.hide=false;c.restore();return}
   let p;try{p=w2s(P.x,P.y)}catch(_){p=[Wc/2,Hc/2]}const x=p[0],yb=p[1];
-  const wf=1-cl(u/.25,0,1);if(wf>0){c.globalAlpha=wf;c.fillStyle='#fff8e0';c.fillRect(0,0,Wc,Hc);c.globalAlpha=1}
+  const wf=1-cl(u/.25,0,1);if(wf>0){c.globalAlpha=wf;c.fillStyle=((window.WARPWAIT259&&WARPWAIT259.on)&&s.waited>.25)?'#02040c':'#fff8e0';c.fillRect(0,0,Wc,Hc);c.globalAlpha=1}
   const dn=cl(u/C.show,0,1),oy=-60+(yb-26+60)*ez(dn),land=cl((u-C.show)/(1-C.show),0,1);
   pillar(c,x,yb,(26-dn*8)*(1-land),1-land,t);
   if(dn<1)orb(c,x,oy,14,1);else{X.hide=false;orb(c,x,yb-26,14+land*26,1-land)}}
  c.restore()}
 try{const _r=render;render=function(){const r=_r.apply(this,arguments);try{overlay()}catch(e){X.err='ov '+e.message;X.seq=null;X.hide=false}return r}}catch(e){X.err='rh '+e.message}
 /* safety: never leave the hero hidden */
-setInterval(()=>{try{const s=X.seq;if(s&&now()-(s.t0||s.made)>6){X.seq=null;X.hide=false}if(!s&&X.hide)X.hide=false}catch(_){}},1000);
+setInterval(()=>{try{const s=X.seq;if(s&&now()-(s.t0||s.made)>((window.WARPWAIT259&&WARPWAIT259.on)?24:6)){X.seq=null;X.hide=false}if(!s&&X.hide)X.hide=false}catch(_){}},1000);
 })();
 
 </script>
@@ -68216,4 +68218,136 @@ const classWp=()=>{try{return CLASSES[P.cls].wp}catch(_){return null}};
 try{const _m=makeWeapon;makeWeapon=function(t){if(RM.has(t)){if(classWp()===t)X.stats.classKept++;else{try{const a=pool();if(a.length){arguments[0]=pk(a);X.stats.rerolled++}}catch(e){ERR('reroll',e)}}}return _m.apply(this,arguments)}}catch(e){ERR('hook makeWeapon',e)}
 try{if(typeof giveUnique==='function'){const _g=giveUnique;giveUnique=function(t){if(RM.has(t)){try{const a=pool().filter(x=>typeof WUQ!=='undefined'&&WUQ[x]);if(a.length){arguments[0]=pk(a);X.stats.uniq++}}catch(e){ERR('uniq',e)}}return _g.apply(this,arguments)}}}catch(e){ERR('hook giveUnique',e)}
 })();
+</script>
+
+<script>
+/* ---- r259 (TEST ONLY) two live-site fixes after REAL v3l17 (26 Nov 2026).
+   WARPWAIT259 (?warpwait=off; ?warpfx=off still turns the whole effect off). DeaRz 08:53 UTC "ตอนวาฟทำไมยังเป็นเหมือนเดิมอยู่เลยล่ะ" + live screenshot:
+   on the web the new map's pictures load over the network, the game holds its Loading screen (r169 #loadScr) until the map is ready, and the
+   WARPFX252 timeline ran on underneath it, so the arriving pillar was spent (or frozen) behind Loading. Now:
+     leaving phase (old map still + orb rising) is shown ABOVE the Loading screen (only when the map change itself was quick; when loadZone blocked > 0.3 s the leaving still is skipped, it would look like going back to the old map) (the Loading screen is held invisible for those 0.85 s) and fades to the
+     Loading screen's dark colour (not cream); then WAIT while the Loading screen is up / the zone has not changed / a fade runs (nothing drawn, hero hidden,
+     the game's Loading screen shows); the arriving phase (pillar + orb down) starts on the first frame after that, on the real map at the hero's real spot.
+     Wait cap 20 s, then the hero is revealed anyway; the 6 s safety of WARPFX252 becomes 24 s.
+   WARPQ259 (?warpquest=off). DeaRz (via coordinator) 08:54 UTC "เควสให้ไปแมพ 4 แต่แมพ4เข้าไม่ได้": the warp circles (p337) refuse a destination map the
+     character has never visited ("ยังไม่เคยไป แมพ 4") and only Maps 1-3 count as visited for a new character, while the old walk-in gates are closed, so a
+     never-visited map could not be entered at all. Now a circle also opens when an ACTIVE quest's current objective is on that map (reach / interact / kill /
+     cutscene point, kill zone, or the NPC to talk to). Once entered, the map is marked visited as before. ---- */
+(function(){'use strict';
+const Q=String(location.search);
+const X=window.WARPWAIT259={ver:'warpwait-r259',on:!/[?&]warpwait=off\b/.test(Q),err:null,cap:20,slow:.3,waits:[],stats:{waited:0,capped:0}};
+if(X.on){try{const st=document.createElement('style');st.textContent='body.wfx259leave #loadScr{opacity:0!important;transition:none!important}';document.head.appendChild(st)}catch(_){}
+ const nowS=()=>performance.now()/1000;
+ X.step=(s,t,C)=>{try{const b=document.body;
+   /* on the web loadZone itself can block for seconds (map pictures); then the old-map leaving still would come back AFTER the Loading screen: skip it */
+   if(s.skip===undefined){s.skip=!!(s.tb&&s.made&&s.made-s.tb>X.slow);if(s.skip)X.stats.skipLeave=(X.stats.skipLeave|0)+1}
+   if(!s.skip&&t<C.out){if(b&&!b.classList.contains('wfx259leave'))b.classList.add('wfx259leave');return t}
+   if(b)b.classList.remove('wfx259leave');
+   if(!s.t1){const ld=document.getElementById('loadScr'),loading=!!(ld&&ld.classList.contains('on')),w=nowS()-(s.skip?s.made:s.t0+C.out);if(s.skip)s.waited=Math.max(1,w);
+     if((loading||G.zone===s.z0||G.fade)&&w<X.cap){if(!s.skip)s.waited=w;return -1}
+     if(w>=X.cap)X.stats.capped++;if(!s.skip)s.waited=w;s.t1=nowS();X.stats.waited++;if(X.waits.length<20)X.waits.push(+w.toFixed(2))}
+   return C.out+(nowS()-s.t1)}catch(e){X.err=e.message;try{document.body.classList.remove('wfx259leave')}catch(_){}return t}};
+ setInterval(()=>{try{if(!(window.WARPFX252&&WARPFX252.seq))document.body.classList.remove('wfx259leave')}catch(_){}},500)}
+const Y=window.WARPQ259={ver:'warpquest-r259',on:!/[?&]warpquest=off\b/.test(Q),err:null,allowed:0};
+Y.zones=()=>{const out=new Set();try{const A=CH1Q.api,S=A.state();if(!S||!S.q)return out;for(const id in S.q){const r=S.q[id];if(!r||r.s!=='a')continue;const q=A.QBY[id];if(!q||!q.objectives)continue;const o=q.objectives[r.i|0];if(!o)continue;
+   const ids=o.point?[o.point]:(o.points||[]);for(const p of ids){const P_=A.PT[p];if(P_&&P_.zone)out.add(P_.zone)}if(o.zone)out.add(o.zone);if(o.npc&&A.NPC[o.npc]&&A.NPC[o.npc].at)out.add(A.NPC[o.npc].at.zone)}}catch(e){Y.err=e.message}return out};
+Y.allow=dest=>{try{if(Y.zones().has(dest)){Y.allowed++;return true}}catch(_){}return false};
+})();
+/* ---- r259d FAFIX259: old saves kept the First Aid icon in skill bar slot 1 after NOFIRSTAID252 had emptied P.slots (it called a renderSkillBar() that does
+   not exist; the bar is drawn by buildBar()). Every 700 ms: if the bar still shows firstAid, rebuild it. Same flag as NOFIRSTAID252 (?firstaid=on = no fix needed). ---- */
+(function(){'use strict';const F=window.FAFIX259={on:!/[?&]firstaid=on\b/.test(String(location.search)),rebuilt:0};if(!F.on)return;
+ setInterval(()=>{try{if(!document.querySelector('#bar [data-sk="firstAid"]'))return;if(typeof buildBar==='function'){buildBar();F.rebuilt++}}catch(_){}},700)})();
+</script>
+
+<script>
+/* ---- r260 WARPWALK260 (TEST ONLY). DeaRz 26 Nov 09:27 UTC "เหลือกฎ "ยังไม่เคยไป" ไว้เฉพาะการวาร์ปจากแผนที่ ok เอาตามนี้เลย" + 09:27:56 "ยกเว้นแมพ 9 นะ แมพ9ต้องทำเควสเปิดหอเท่านั้น".
+   Ground warp circles (p337 / __WARP.circles) no longer refuse a destination map the character has never visited ("ยังไม่เคยไป ...").
+   Unchanged: story/quest locks of a circle (c.lock: Map 4->5, 5->6, 6->7), closed circles (no destination, e.g. Map 10 east), the world-map warp rule
+   (unvisited maps still refused there; that code does not use this check), and Map 9: it has no ground circle; the only way in is the Map 8 deck door,
+   which still opens only after the tower quest (M4T.map9.open()). Off: ?warpwalk=off (r259 quest rule then applies alone). ---- */
+window.WARPWALK260={ver:'warpwalk-r260',on:!/[?&]warpwalk=off\b/.test(String(location.search))};
+</script>
+
+<script>
+/* ---- r261 GATHERFIX261 (TEST ONLY, coordinator 26 Nov 09:39 UTC after the gather audit): quest sp80_mali_rare "ของหายากใต้เคาน์เตอร์" could not be finished
+   (5 ดอกโคมแสง from ONE spot; 5 สมุนไพรใบแหลม from the 3 spots of s2_01 - every spot gives 1 item once per quest). Now the quest has its own spots:
+     ดอกโคมแสง x5, Astoria fountain-plaza flower beds: 2350,1400 (the old spot, grass by the guild bed) · 2280,1782 · 3080,1782 · 2480,2405 · 2860,2400 (just in front of the 4 plaza beds; the beds themselves are solid)
+     สมุนไพรใบแหลม x5, Map 2 plains: 1500,450 · 1900,1040 · 3100,900 (same places as s2_01) · 2250,450 · 1300,800 (open grass)
+   Picked state is per quest (CH1Q keeps "got" in each quest's own record), so s2_01 and sp80 do not use up each other's herbs.
+   Positions chosen by the coordinator/Code, to be shown to DeaRz. Off: ?gatherfix=off ---- */
+(function(){'use strict';
+const X=window.GATHERFIX261={ver:'gatherfix-r261',on:!/[?&]gatherfix=off\b/.test(String(location.search)),err:null,done:false};
+if(!X.on)return;
+const FL=[['p_sp80_flower_1',2350,1400],['p_sp80_flower_2',2280,1782],['p_sp80_flower_3',3080,1782],['p_sp80_flower_4',2480,2405],['p_sp80_flower_5',2860,2400]];
+const HB=[['p_sp80_herb_1',1500,450],['p_sp80_herb_2',1900,1040],['p_sp80_herb_3',3100,900],['p_sp80_herb_4',2250,450],['p_sp80_herb_5',1300,800]];
+function apply(){try{const A=window.CH1Q&&CH1Q.api;if(!A||!A.QBY||!A.PT)return false;const q=A.QBY.sp80_mali_rare;if(!q)return true;
+  FL.forEach(([id,x,y],i)=>{A.PT[id]=A.PT[id]||{id,zone:'astoria_capital',x,y,r:55,label:'ดอกโคมแสง '+(i+1)}});
+  HB.forEach(([id,x,y],i)=>{A.PT[id]=A.PT[id]||{id,zone:'cartroad_plains',x,y,r:55,label:'สมุนไพร '+(i+1)}});
+  for(const o of q.objectives){if(o.kind!=='collect')continue;if(o.item==='qi_lantern_flower'){delete o.point;o.points=FL.map(a=>a[0])}else if(o.item==='qi_herb'){delete o.point;o.points=HB.map(a=>a[0])}}
+  X.done=true;return true}catch(e){X.err=e.message;return true}}
+{let n=0;const iv=setInterval(()=>{if(apply()||++n>120)clearInterval(iv)},250)}
+})();
+</script>
+
+<script>
+/* ---- r262 (TEST ONLY). DeaRz approved in the Balance thread 26 Nov 11:03:40 UTC ("ok ใช้ตามนี้ได้เลย", spec balance/approved/BALANCE_gold_farm_v1.md, via coordinator)
+   and 11:04 UTC "เริ่มต้นแจกแค่แปลงผักพอนะ ของแต่งบ้านไม่ต้องแจกบ้าน".
+   GOLD262 (?gold2=off):
+     - gold per kill = (6 + 3.4 x mobLv) x rand(0.85..1.2) x 0.35 (elite x4 / boss x30 unchanged): the FIRST gold drop made inside a killEnemy() call
+       (= the generic per-kill gold of killEnemy_v3) is multiplied by 0.35. Later gold drops in the same kill (raid boss bonus gold) and all gold outside
+       kills (thief steal, moon-thief, raid chest, special-weapon box, gate boxes, quest gold, fish tank) are NOT changed; food "gold +%" and the boss-arena /3
+       still apply on top (they wrap dropLoot further in).
+     - Spirit Shard (id shard): sell 25 -> 5 G (item sell value, description, the old shop "sell all" button and its command);
+       kill drops of shard (generic 12% roll and every species table) are kept with probability 1/4 and always quantity 1
+       (generic 12% -> 3%; species 10/12/14/16/18/20% -> 2.5/3/3.5/4/4.5/5%); HP/MP potion chances unchanged; steal / fish bubble / shop buy prices unchanged.
+   STARTER262 (?starter2=off): the one-time housing starter set for a NEW yard = farmPlot (แปลงผัก) x1 instead of Small Cottage 1 + Wooden Stool 2 + Round Table 1.
+     Saves that already got their set (starterDone) get nothing new and keep everything. ---- */
+(function(){'use strict';const Q=String(location.search);
+const X=window.GOLD262={ver:'gold2-r262',on:!/[?&]gold2=off\b/.test(Q),err:null,mult:.35,shardKeep:.25,stats:{kills:0,goldScaled:0,goldIn:0,goldOut:0,shardSeen:0,shardKept:0}};
+const Y=window.STARTER262={ver:'starter2-r262',on:!/[?&]starter2=off\b/.test(Q),err:null,applied:false};
+if(X.on){
+ try{if(ITEMS.shard){ITEMS.shard.sell=5;ITEMS.shard.d='ผลึกวิญญาณ ขายได้ 5 G'}}catch(e){X.err='item '+e.message}
+ let depth=0,goldDone=false;
+ try{const _k=killEnemy;killEnemy=function(e){const top=depth===0;if(top){goldDone=false;if(e&&!e.dead)X.stats.kills++}depth++;try{return _k.apply(this,arguments)}finally{depth--;if(depth===0)goldDone=false}}}catch(er){X.err='hook kill '+er.message}
+ try{const _d=dropLoot;dropLoot=function(x,y,o){try{if(depth>0&&o){
+     if(o.gold!=null&&!goldDone){goldDone=true;X.stats.goldIn+=o.gold;const g=Math.max(1,Math.round(o.gold*X.mult));X.stats.goldOut+=g;X.stats.goldScaled++;o=Object.assign({},o,{gold:g})}
+     else if(o.item&&o.item.id==='shard'){X.stats.shardSeen++;if(Math.random()>=X.shardKeep)return;X.stats.shardKept++;o=Object.assign({},o,{item:Object.assign({},o.item,{q:1})})}}}catch(er){X.err='drop '+er.message}
+   return _d.call(this,x,y,o)}}catch(er){X.err='hook drop '+er.message}
+}
+if(Y.on){function ap(){try{const H=window.HOUSE;if(!H||!H.cfg||!H.cfg.build)return false;H.cfg.build.starter={farmPlot:1};if(H.cfg.starter)H.cfg.starter={farmPlot:1};Y.applied=true;return true}catch(e){Y.err=e.message;return true}}
+ if(!ap()){let n=0;const iv=setInterval(()=>{if(ap()||++n>120)clearInterval(iv)},250)}}
+})();
+</script>
+
+<script>
+/* ---- r263 QOBJ263 (TEST ONLY, ?questobj=off). DeaRz 26 Nov 09:26 UTC "เควสที่ให้เก็บของ ... ให้ Chatgpt เจนให้ทั้งหมด"; Art quest_objects_r2 (PR431, approved for REAL 12:26 UTC).
+   The 7 quest gather objects are drawn as Art's sprites at every gather spot of their item while that collect objective is active and the spot is not picked:
+   qi_lantern_seed, qi_herb, qi_spiked_herb, qi_lantern_flower, qi_reo_bag, qi_rag_doll, qi_frozen_trap (2x PNGs drawn at 0.5, anchor bottom-centre).
+   Depth: drawn in the hero's draw call (objects above the hero's feet line before him, below it after him), so the hero walks in front of / behind them.
+   A light code twinkle (3 tiny sparkles) only, no code outline. The HERBVIS231 ring, bouncing marker and label stay (marker raised above the sprite,
+   label = item name); its code-drawn herb plant is not drawn when the sprite exists, and the quest-point glow of CH1Q is cut to 22 % over a sprite so the object is not washed out. Picked = gone (the spot leaves the active list). ---- */
+(function(){'use strict';
+const X=window.QOBJ263={ver:'questobj-r263',on:!/[?&]questobj=off\b/.test(String(location.search)),err:null,draws:0};
+if(!X.on)return;
+const D={"qi_lantern_seed":{"src":"assets/61d9ee23faf4efb4.png","w":23.0,"h":30.5,"ax":11.5,"ay":30.5},"qi_herb":{"src":"assets/33ef21d8c27c737d.png","w":28.5,"h":30.5,"ax":14.25,"ay":30.5},"qi_spiked_herb":{"src":"assets/3e9ca393230c6ea3.png","w":28.5,"h":30.5,"ax":14.25,"ay":30.5},"qi_lantern_flower":{"src":"assets/245aa910effb7269.png","w":24.5,"h":34.5,"ax":12.25,"ay":34.5},"qi_reo_bag":{"src":"assets/9e3ce78874e233e3.png","w":28.5,"h":23.0,"ax":14.25,"ay":23.0},"qi_rag_doll":{"src":"assets/aeaef8f2f9b4339b.png","w":20.5,"h":24.5,"ax":10.25,"ay":24.5},"qi_frozen_trap":{"src":"assets/ba09d507820870ba.png","w":33.0,"h":20.5,"ax":16.5,"ay":20.5}};
+const IM={};for(const id in D){const im=new Image();im.src=D[id].src;IM[id]=im}
+X.has=id=>!!(D[id]&&IM[id]&&IM[id].complete&&IM[id].naturalWidth);
+X.top=id=>(D[id]?D[id].h:30)+22;
+X.name=id=>{try{return (ITEMS[id]&&ITEMS[id].n)||'เก็บของ'}catch(_){return 'เก็บของ'}};
+function spots(){const out=[];try{const A=window.CH1Q&&CH1Q.api;if(!A||typeof G==='undefined')return out;const S=A.state();if(!S||!S.q)return out;
+  for(const qid in S.q){const r=S.q[qid];if(!r||r.s!=='a')continue;const q=A.QBY[qid];if(!q||!q.objectives)continue;const o=q.objectives[r.i|0];if(!o||o.kind!=='collect'||!D[o.item])continue;
+    if(o.from==='drop')continue;if(typeof countItem==='function'&&countItem(o.item)>=(o.n||1))continue;
+    const ids=o.point?[o.point]:(o.points||[]);for(const pid of ids){const p=A.PT[pid];if(!p||p.zone!==G.zone)continue;if(r.got&&r.got[pid])continue;out.push({x:p.x,y:p.y,id:o.item})}}}catch(e){X.err=e.message}return out}
+function drawOne(c,s,t){const d=D[s.id],im=IM[s.id];if(!im||!im.complete||!im.naturalWidth)return;c.save();c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+  c.drawImage(im,s.x-d.ax,s.y-d.ay,d.w,d.h);
+  c.globalCompositeOperation='lighter';for(let i=0;i<3;i++){const ph=t*1.6+i*2.1+s.x*.01,a=.5+.5*Math.sin(ph*1.3);if(a<.35)continue;const sx=s.x+Math.cos(ph)*d.w*.42,sy=s.y-d.h*.55+Math.sin(ph*1.1)*d.h*.35,z=1.1+a*1.3;
+    c.globalAlpha=a*.85;c.fillStyle='#fff6c8';c.beginPath();c.moveTo(sx,sy-z*2);c.lineTo(sx+z*.55,sy);c.lineTo(sx,sy+z*2);c.lineTo(sx-z*.55,sy);c.closePath();c.fill()}
+  c.restore();X.draws++}
+function isHero(){try{return typeof P!=='undefined'&&P&&!P.dead}catch(_){return false}}
+try{const _d=drawPlayer;drawPlayer=function(){let L=null;try{if(isHero()){L=spots();const t=performance.now()/1000;for(const s of L)if(s.y<=P.y)drawOne(ctx,s,t)}}catch(e){X.err='pre '+e.message}
+  const r=_d.apply(this,arguments);
+  try{if(L){const t=performance.now()/1000;for(const s of L)if(s.y>P.y)drawOne(ctx,s,t)}}catch(e){X.err='post '+e.message}return r}}catch(e){X.err='hook '+e.message}
+})();
+/* r263c FACINGURL (?facingurl=off): on the web build (web_host build.ps1 turns every data: picture into assets/<hash>.png) housebuild's setFacings() only loaded facing pictures that start with 'data:', so every multi-facing housing item (8-direction decor and the fish tank) was drawn with its default picture on the web whatever way it faced. The patched check also accepts asset / image URLs. */
+
 </script>
