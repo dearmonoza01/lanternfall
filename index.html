@@ -1,4 +1,4 @@
-<script>window.__LF_BUILD='a5e3245183';try{if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){var __lfNew=null,__lfDone=false;navigator.serviceWorker.register('sw.js').then(function(r){function chk(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(x){return x.json()}).then(function(v){if(v&&v.build&&v.build!==window.__LF_BUILD){__lfNew=v.build;r.update().catch(function(){})}}).catch(function(){})}chk();setInterval(chk,600000)}).catch(function(){});navigator.serviceWorker.addEventListener('controllerchange',function(){if(__lfDone||!__lfNew)return;__lfDone=true;var title=true;try{title=!(typeof G!=='undefined'&&G&&G.state==='play')}catch(e){}if(title){location.reload();return}try{var b=document.createElement('div');b.id='lfUpd';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:2147483000;padding:9px 16px;border-radius:12px;background:rgba(30,20,8,.96);border:1px solid #ffd98a;color:#ffe9b0;font:700 14px system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5)';b.textContent='มีเวอร์ชันใหม่ของเกม · แตะเพื่อโหลดใหม่';b.onclick=function(){try{if(typeof saveGame==='function')saveGame()}catch(e){}location.reload()};document.body.appendChild(b)}catch(e){}});if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});}}catch(e){}</script>
+<script>window.__LF_BUILD='d43f3c0c34';try{if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){var __lfNew=null,__lfDone=false;navigator.serviceWorker.register('sw.js').then(function(r){function chk(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(x){return x.json()}).then(function(v){if(v&&v.build&&v.build!==window.__LF_BUILD){__lfNew=v.build;r.update().catch(function(){})}}).catch(function(){})}chk();setInterval(chk,600000)}).catch(function(){});navigator.serviceWorker.addEventListener('controllerchange',function(){if(__lfDone||!__lfNew)return;__lfDone=true;var title=true;try{title=!(typeof G!=='undefined'&&G&&G.state==='play')}catch(e){}if(title){location.reload();return}try{var b=document.createElement('div');b.id='lfUpd';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:2147483000;padding:9px 16px;border-radius:12px;background:rgba(30,20,8,.96);border:1px solid #ffd98a;color:#ffe9b0;font:700 14px system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5)';b.textContent='มีเวอร์ชันใหม่ของเกม · แตะเพื่อโหลดใหม่';b.onclick=function(){try{if(typeof saveGame==='function')saveGame()}catch(e){}location.reload()};document.body.appendChild(b)}catch(e){}});if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});}}catch(e){}</script>
 <script>/* r240 NOCANDLE240 (?nocandle=off): DeaRz 26 Nov 10:14 BKK candle shows for a moment at game start. The only candle in the game is the 🕯 button of the monk-quest GM test tray #mqGM; it was hidden by script after creation (+ REAL's 800 ms sweep), so anything that re-showed it showed it until the next sweep. Now a stylesheet from the first frame keeps it hidden unless ?gm=on. */(function(){try{var q=String(location.search);if(/[?&]nocandle=off\b/.test(q)||/[?&]gm=on\b/.test(q))return;var s=document.createElement('style');s.id='nocandle240';s.textContent='#mqGM{display:none!important}';(document.head||document.documentElement).appendChild(s);window.NOCANDLE240={on:true,ver:'r240'}}catch(e){}})();
 /* REAL v2x (2 Nov 2026): Map 10 r2 merged. Layers DeaRz has not passed yet stay in the file but start OFF:
    prologue r2, chapter 1 quests, chapter 2 quests, Map 6 ruined village. Add ?prologue=on / ?ch1quest=on / ?ch2quest=on /
@@ -5973,7 +5973,7 @@ function initAdmUI(){
    ===================================================================== */
 const SHELL_HEAD='<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n';
 const HOSTED=!!(window.claude&&typeof window.claude.use==='function');
-let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l19b: admin only with ?gm=on (v3l10) (local file / tests): developer mode
+let ADMIN=!HOSTED&&/[?&]gm=on\b/.test(location.search);      // REAL v3l19d: admin only with ?gm=on (v3l10) (local file / tests): developer mode
 function setAdmin(v){ADMIN=!!v;document.body.classList.toggle('noadmin',!ADMIN);if(!ADMIN){if(G.win==='wGM')closeWin();const d=$('#dev');if(d&&!d.hidden)toggleDev();if(G.edit)toggleEditor(false);}}
 setAdmin(ADMIN);
 (async()=>{if(!HOSTED)return;try{const u=await window.claude.use('user');setAdmin(u?await u.canEdit():false);}catch(e){setAdmin(false);}})();
@@ -44683,7 +44683,7 @@ function tick(){try{
   if(WP.edit)return;
   for(const c of C){if(c.z!==G.zone||c.off)continue;const s=c.s,k=inner(c,P.x,P.y);
     if(k>1.3)s.arm=true;   // must step off before it can be used again (after arriving on it)
-    if(s.goT>=0){const g=now-s.goT;if(g>=.5&&!s.fired){s.fired=1;
+    if(s.goT>=0){const g=now-s.goT;if(g>=(window.WLEAVE266&&WLEAVE266.on?WLEAVE266.dur:.5)&&!s.fired){s.fired=1;
         if(busy()){s.goT=-1;continue;}const z0=G.zone;const ok=c.go();WP.stats.go++;if(ok&&c.to)pend={from:c.id,to:c.to,t0:now,z0};}
       if(g>2.2){s.goT=-1;s.fired=0;}continue;}
     if(k<.45&&s.arm){s.stand+=.1;const w=why(c);
@@ -60837,7 +60837,7 @@ setInterval(()=>{try{hook();const lg=document.querySelector('#wMap .legend');if(
    * every feature keeps its own flag. Debug: window.__REAL ---- */
 (function(){'use strict';
 const Q=String(location.search),KEEP=/[?&]testlabels=on\b/.test(Q),GM=/[?&]gm=on\b/.test(Q);
-const R=window.__REAL={ver:'v3l19b',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
+const R=window.__REAL={ver:'v3l19d',base:'TEST allin_r127 on REAL v3j',stripped:0,items:0,hidden:0,err:null};
 const strip=s=>typeof s!=='string'?s:s.replace(/\s*\((?:TEST)\)/g,'').replace(/\s*·\s*TEST\b/g,'').replace(/\bTEST\s*·\s*/g,'').replace(/\s*·\s*แมพทดสอบ/g,'');
 const REN={'Test Bow':'Gale String','Test Staff':'Starlight Staff','Test Dagger':'Spirit Fang','Test Sword':'Tidecaller'};
 function zones(){try{if(typeof ZONES==='undefined')return;for(const id in ZONES){const z=ZONES[id];if(!z||z._realClean)continue;if(!/test|planned/.test(id)&&!['n','th','sub'].some(k=>/TEST/.test(String(z[k]||''))))continue;
@@ -60862,7 +60862,7 @@ console.info('[REAL] v3l6c');
 (function(){'use strict';
 if(/[?&]gm=on\b/.test(String(location.search)))return;
 try{const st=document.createElement('style');st.id='realNoDev2';st.textContent='#wpEdBtn,#wpEdPanel,#m10EdBtn,#m10EdPanel,#bowTestBtn,#stfTestBtn,#m4TestBtn,#m7TestBtn,#m8TestBtn,#holyTest,#slGmEd{display:none!important}';(document.head||document.documentElement).appendChild(st);
-if(window.__REAL)__REAL.ver='v3l19b';console.info('[REAL] v3l19b')}catch(e){}
+if(window.__REAL)__REAL.ver='v3l19d';console.info('[REAL] v3l19d')}catch(e){}
 })();
 </script>
 <script>
@@ -67998,7 +67998,7 @@ const now=()=>performance.now()/1000,cl=(v,a,b)=>Math.max(a,Math.min(b,v)),ez=t=
 function cvs(){try{return ctx.canvas}catch(_){return null}}
 /* hero hidden while he is the ball */
 try{const _d=drawPlayer;drawPlayer=function(){if(X.hide)return;return _d.apply(this,arguments)}}catch(e){X.err='dp '+e.message}
-function begin(){const c=cvs();if(!c||!c.width)return null;let s;try{X.hide=true;render()}catch(e){X.err='snap '+e.message}
+function begin(){if(window.WLEAVE266&&WLEAVE266.on){try{const p=w2s(P.x,P.y);X.hide=true;return {snap:null,sx:p[0],sy:p[1],z0:G.zone,tb:performance.now()/1000-5,stub:1}}catch(_){}}const c=cvs();if(!c||!c.width)return null;let s;try{X.hide=true;render()}catch(e){X.err='snap '+e.message}
  try{const o=document.createElement('canvas');o.width=c.width;o.height=c.height;o.getContext('2d').drawImage(c,0,0);const p=w2s(P.x,P.y);s={snap:o,sx:p[0],sy:p[1],z0:G.zone,tb:performance.now()/1000}}catch(e){X.err='copy '+e.message;s=null}
  return s}
 try{const _l=loadZone;loadZone=function(zid,arrive){let s=null;
@@ -68019,7 +68019,7 @@ function pillar(c,x,yb,w,a,t){if(w<=0||a<=0)return;c.save();c.globalCompositeOpe
  c.restore()}
 function overlay(){const s=X.seq;if(!s)return;if(!s.t0)s.t0=now();const C=X.cfg;let t=now()-s.t0;if((window.WARPWAIT259&&WARPWAIT259.on)){t=WARPWAIT259.step(s,t,C);if(t<0)return}const c=ctx,cv=cvs();if(!cv)return;const d=(typeof DPR==='number'&&DPR)||1,Wc=cv.width/d,Hc=cv.height/d;
  c.save();c.setTransform(d,0,0,d,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over';
- if(t<C.out){const u=t/C.out;/* old map still */c.drawImage(s.snap,0,0,Wc,Hc);
+ if(t<C.out){const u=t/C.out;/* old map still */if(!s.snap){c.restore();return}c.drawImage(s.snap,0,0,Wc,Hc);
   const x=s.sx,yb=s.sy,g=cl(u/.3,0,1),up=cl((u-.3)/.6,0,1),oy=yb-26-ez(up)*ez(up)*(yb+80);
   pillar(c,x,yb,(10+g*20)*(1-up*.45),g*(1-cl((u-.85)/.15,0,1)*.4),t);orb(c,x,oy,6+g*10-up*3,1);
   if(u<.18){c.save();c.globalCompositeOperation='lighter';c.globalAlpha=(1-u/.18)*.8;const fg=c.createRadialGradient(x,yb-26,0,x,yb-26,60);fg.addColorStop(0,'#fff');fg.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=fg;c.beginPath();c.arc(x,yb-26,60,0,6.2832);c.fill();c.restore()}
@@ -68118,7 +68118,7 @@ X.gift=(n,got,liked)=>{try{const L=X.lines[n.id]||['ขอบใจนะ','ข�
 /* world drawing: tags, hearts, bubbles */
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath()}
 function draw(){const A=api();if(!A||!A.NPC||typeof G==='undefined'||G.state!=='play'||typeof P==='undefined'||!P)return;const c=ctx,t=now();c.save();
- for(const id in A.NPC){const n=A.NPC[id];if(!giftable(n)||n.at.zone!==G.zone)continue;if(Math.hypot(P.x-n.at.x,P.y-n.at.y)>X.cfg.near)continue;
+ if(window.AFFMAP266&&!AFFMAP266.on){}else for(const id in A.NPC){const n=A.NPC[id];if(!giftable(n)||n.at.zone!==G.zone)continue;if(Math.hypot(P.x-n.at.x,P.y-n.at.y)>X.cfg.near)continue;
   const s='❤ '+val(id)+'/100';c.font='800 11px system-ui,"Noto Sans Thai",sans-serif';const w=c.measureText(s).width+12,x=n.at.x-w/2,y=n.at.y+X.cfg.tagDy-8;
   c.globalAlpha=.9;c.fillStyle='rgba(40,16,26,.78)';rr(c,x,y,w,16,8);c.fill();c.strokeStyle='rgba(255,150,180,.8)';c.lineWidth=1;c.stroke();c.globalAlpha=1;c.fillStyle='#ffd0de';c.textAlign='center';c.textBaseline='middle';c.fillText(s,n.at.x,y+8.5);X.stats.tags++}
  for(let i=X.fx.length-1;i>=0;i--){const f=X.fx[i],n=A.NPC[f.id],age=t-f.t0;if(!n||!n.at||n.at.zone!==G.zone){if(age>4)X.fx.splice(i,1);continue}
@@ -68371,7 +68371,7 @@ const B=window.BUILDTAG264={ver:'buildtag-r264',on:!/[?&]buildtag=off\b/.test(Q)
 if(B.on){const mk=()=>{try{let el=document.getElementById('lfBuildTag');if(!el){el=document.createElement('div');el.id='lfBuildTag';
     el.style.cssText='position:fixed;right:4px;bottom:2px;z-index:2147483000;font:10px/1.2 system-ui,sans-serif;color:#fff;opacity:.55;text-shadow:0 0 2px #000,0 0 2px #000;pointer-events:none;user-select:none;white-space:nowrap';
     document.body.appendChild(el)}
-  const v=(window.__REAL&&__REAL.ver)?'REAL '+__REAL.ver:'TEST r264b',w=window.__LF_BUILD?' · '+String(window.__LF_BUILD).slice(0,10):'';const t=v+w;if(el.textContent!==t)el.textContent=t;B.text=t}catch(_){}};
+  const v=(window.__REAL&&__REAL.ver)?'REAL '+__REAL.ver:'TEST r266c',w=window.__LF_BUILD?' · '+String(window.__LF_BUILD).slice(0,10):'';const t=v+w;if(el.textContent!==t)el.textContent=t;B.text=t}catch(_){}};
   if(document.body)mk();else addEventListener('DOMContentLoaded',mk);setInterval(mk,2000);}
 })();
 </script>
@@ -68511,4 +68511,57 @@ try{const _h=hitEnemy;hitEnemy=function(e,m,o){o=o||{};let o2=null;try{o2=cur()}
 /* ---- r265b (TEST ONLY): Thor's training weapon (TRAINWPN246) is renamed after it is made, so its ATK was not recomputed when the tier is forced to I
    (a hero at Lv20+ could get a tier II training sword shown as tier I). Now it is always recomputed at tier I. Marker only. ---- */
 window.WFIX265B={ver:'wfix-r265b'};
+</script>
+
+<script>
+/* ---- r266 AFFMAP266 (TEST ONLY). DeaRz 26 Nov 17:43 UTC (screenshot of the talk window "เรโอ ♥ 1/100" circled): "ขึ้นแค่ตรงนี้พอในแมพไม่ต้องขึ้น".
+   The affinity label "❤ points/100" under a giftable NPC's name on the map (NPCAFF254) is no longer drawn; the label in the talk / gift window stays,
+   and so do the heart pop (+N) and the thank-you bubble when a gift is given. ?afflabelmap=on brings the map label back. ---- */
+window.AFFMAP266={ver:'affmap-r266',on:/[?&]afflabelmap=on\b/.test(String(location.search))};
+</script>
+
+<script>
+/* ---- r266b WLEAVE266 (TEST ONLY). DeaRz 26 Nov 17:45 UTC on live v3l19b: "ทำไมยังเป็นวาฟส้มอยู่ล่ะ ตอนวาฟไปน่ะ วาฟกลับถูกแล้ว", 17:46 "หมายถึงว่าตอนวาฟถึงอ่ะมันผ่าน แต่ตอน
+   กำลังวาฟไปอีกแมพไม่ผ่าน". The leaving part was drawn over a still picture of the old map AFTER the map change had started; on a cold first load the page stops
+   drawing for seconds, so the last effect frame (cream fill + wide pillar) stayed on screen under LOADING. New: the leaving part plays on the LIVE old map BEFORE
+   the map change starts (the warp circle's own delay from trigger to go is stretched to the effect length, hero hidden and held): the hero becomes a ball of light,
+   a narrow pillar rises with a soft glow only at his feet; it fades out fully, the next frames are the plain map, and only then the map change starts (normal
+   LOADING screen). No still picture, no screen fill. Zone changes that do not come from a circle (yard, quest teleports) get no leaving visuals.
+   The arriving part is unchanged. Off: ?warpleave=old (r252/r259 leaving). ?warpfx=off still removes the whole effect. Debug: window.WLEAVE266 ---- */
+(function(){'use strict';
+const Q=String(location.search);
+const L=window.WLEAVE266={ver:'wleave-r266b',on:!/[?&]warpleave=old\b/.test(Q)&&!/[?&]warpfx=off\b/.test(Q),dur:1.1,fxEnd:.82,n:0,frames:0,hideNow:false,lock:null,err:null,log:[]};
+if(!L.on)return;
+const cl=(v,a,b)=>Math.max(a,Math.min(b,v)),ez=t=>t*t*(3-2*t);
+function cur(){try{const C=window.__WARP&&__WARP.circles;if(!C||typeof G==='undefined')return null;for(const c of C)if(c.z===G.zone&&!c.off&&c.s&&c.s.goT>=0&&!c.s.fired)return c}catch(_){}return null}
+L.cur=cur;
+try{const _d=drawPlayer;drawPlayer=function(){if(L.hideNow)return;return _d.apply(this,arguments)}}catch(e){L.err='dp '+e.message}
+try{const _u=update;update=function(dt){const r=_u.apply(this,arguments);try{const c=cur();if(c&&P){if(!L.lock)L.lock={x:P.x,y:P.y};P.x=L.lock.x;P.y=L.lock.y;P.vx=P.vy=0;P.dash=null}else L.lock=null}catch(_){}return r}}catch(e){L.err='up '+e.message}
+let lastAct=-9;
+function draw(c,u,x,yb,t){const a=1-cl((u-.66)/(L.fxEnd-.66),0,1);if(a<=0)return;const g=cl(u/.25,0,1),up=cl((u-.25)/.5,0,1);
+  c.save();c.globalCompositeOperation='lighter';
+  /* soft glow only at the feet */
+  c.save();c.translate(x,yb);c.scale(1,.38);const R=40+g*14,fg=c.createRadialGradient(0,0,0,0,0,R);fg.addColorStop(0,'rgba(255,248,215,'+(.5*a*g)+')');fg.addColorStop(.45,'rgba(255,228,150,'+(.22*a*g)+')');fg.addColorStop(1,'rgba(255,214,120,0)');c.fillStyle=fg;c.beginPath();c.arc(0,0,R,0,6.2832);c.fill();c.restore();
+  /* narrow pillar */
+  const w=(5+g*7)*(1-up*.3),pa=g*a*.85;if(pa>0){const pg=c.createLinearGradient(x-w,0,x+w,0);pg.addColorStop(0,'rgba(255,210,120,0)');pg.addColorStop(.5,'rgba(255,252,235,'+pa+')');pg.addColorStop(1,'rgba(255,210,120,0)');
+    const top=Math.max(-10,(yb-26)-(1-ez(up))*0-(yb+40)*ez(up));c.fillStyle=pg;c.fillRect(x-w,Math.min(top,yb-30)-(yb)*cl(up*1.4,0,1),w*2,yb-Math.min(top,yb-30)+(yb)*cl(up*1.4,0,1)-6)}
+  /* rising motes */
+  c.fillStyle='rgba(255,250,225,.9)';for(let i=0;i<8;i++){const ph=(t*1.4+i*.137)%1,px=x+Math.sin(i*12.9898)*14,py=yb-ph*Math.min(yb,260);c.globalAlpha=cl(a*g*(1-ph),0,1);c.beginPath();c.arc(px,py,1.5,0,6.2832);c.fill()}
+  /* the ball of light */
+  c.globalAlpha=a;const oy=(yb-26)-ez(up)*ez(up)*(yb+60),r=(5+g*9)*(1-up*.25);const og=c.createRadialGradient(x,oy,0,x,oy,r*2.4);og.addColorStop(0,'rgba(255,255,255,1)');og.addColorStop(.25,'rgba(255,246,200,.9)');og.addColorStop(.6,'rgba(255,211,107,.3)');og.addColorStop(1,'rgba(255,190,80,0)');c.fillStyle=og;c.beginPath();c.arc(x,oy,r*2.4,0,6.2832);c.fill();
+  c.restore()}
+try{const _r=render;render=function(){const r=_r.apply(this,arguments);try{const c=cur(),X=window.WARPFX252;
+    if(c){const g=time-c.s.goT,u=cl(g/L.dur,0,1);if(lastAct<0||time-lastAct>2)L.n++;lastAct=time;L.hideNow=true;
+      const cv=ctx.canvas,d=(typeof DPR==='number'&&DPR)||1;let p;try{p=w2s(P.x,P.y)}catch(_){p=[cv.width/d/2,cv.height/d/2]}
+      ctx.save();ctx.setTransform(d,0,0,d,0,0);if(u<L.fxEnd){draw(ctx,u/L.fxEnd*L.fxEnd,p[0],p[1],performance.now()/1000);L.frames++}ctx.restore();}
+    else if(L.hideNow){if((X&&X.seq)||time-lastAct>1.5||time<lastAct)L.hideNow=false}}catch(e){L.err='draw '+e.message}return r}}catch(e){L.err='rh '+e.message}
+})();
+</script>
+
+<script>
+/* ---- r266c (TEST ONLY). Cold-load recording of live v3l19b (fresh browser, Map 3 -> Map 4) showed where DeaRz's frozen cream screen comes from: it is the DOM light
+   #houseFx (cream glow + pillar over the whole screen) that MAPWARP213 switches on when a circle fires and only takes off after arrival (up to 5 s). The page then
+   freezes while the new map loads, so that light stays up under LOADING. With WLEAVE266 on, circles no longer switch on #houseFx (the yard door keeps its own light).
+   Off: ?warpleave=old. ---- */
+(function(){try{if(window.WLEAVE266&&WLEAVE266.on&&window.MAPWARP213){MAPWARP213.lightOn=false;WLEAVE266.houseFxOff=1}}catch(_){}})();
 </script>
