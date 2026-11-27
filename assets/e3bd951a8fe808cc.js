@@ -140,7 +140,7 @@ function resultOf(r){const ings=r.ing.map((a,i)=>({id:a[0],it:pickedFor(r,i)}));
 function maxQty(r){let n=99;r.ing.forEach((a,i)=>{const p=pickedFor(r,i);n=Math.min(n,p?Math.floor(p.q/a[1]):0)});return n===99?0:n}
 function buffText(rd,pool){const parts=[rd?rd.d:(ITEMS[r2id()]||{}).d];return parts}
 const r2id=()=>{const r=recList()[selR];return r?r.id:''};
-function drawIcons(){for(const c of win.querySelectorAll('canvas[data-i]')){try{const it=ITEMS[c.dataset.i];const g=c.getContext('2d');g.clearRect(0,0,36,36);g.save();g.scale(36/64,36/64);if(it&&it.icon)it.icon(g);g.restore()}catch(_){}}}
+function drawIcons(){for(const c of win.querySelectorAll('canvas[data-i]')){try{const it=ITEMS[c.dataset.i];const g=c.getContext('2d');g.clearRect(0,0,36,36);g.save();g.scale(36/64,36/64);if(!(window.FOODART268&&FOODART268.on&&FOODART268.paint(g,c.dataset.i,c)))if(it&&it.icon)it.icon(g);g.restore()}catch(_){}}}
 function render(){if(!open||cooking)return;const L=recList();selR=Math.max(0,Math.min(selR,L.length-1));const sel=L[selR];
  let h='<div class="pn"><div class="hd"><h3>🔥 กองไฟ · ทำอาหาร</h3><span class="tm" id="cw2t"></span><button class="x" data-a="close" aria-label="ปิด">✕</button></div><div class="pg"><i></i></div><div class="bd"><div class="col">';
  L.forEach((r,i)=>{const mk=maxQty(r),rd=recData(r),it=ITEMS[r.out]||{};h+='<div class="rw'+(i===selR?' sel':'')+(mk?'':' no')+'" data-a="rec" data-i="'+i+'"><canvas width="36" height="36" data-i="'+r.out+'"></canvas><div style="flex:1;min-width:0"><b>'+esc(it.n||r.out)+'</b><small>'+esc(rd?rd.d:(it.d||''))+'</small><small>'+(mk?'ทำได้ '+mk:'ของไม่พอ')+'</small></div></div>'});

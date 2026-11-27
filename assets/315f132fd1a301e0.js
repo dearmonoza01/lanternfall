@@ -193,7 +193,7 @@ function castAt(wx,wy){const f=FS();if(!f||f.st||(M&&(M.dry||M.st==='win'||M.st=
  if(o){const nb=f.nearPond;let ok=false;try{f.nearPond=()=>o;ok=f.cast()}finally{f.nearPond=nb}if(ok&&f.st){f.st.bob={x:tx,y:ty};return true}if(f.st)return true}
  if(f.st)return false;M={st:'cast',dry:1,t0:now(),bob:[tx,ty],P0:[P.x,P.y],msg:riverAt(tx,ty)?'ตกปลาในแม่น้ำยังไม่เปิด · ตอนนี้ตกได้ที่บ่อในลานบ้าน':null};R.stats.dry=(R.stats.dry||0)+1;try{P.face=Math.atan2(ty-P.y,tx-P.x)}catch(_){}return true}
 R.castAt=castAt;
-addEventListener('pointerdown',e=>{try{if(!R.rod||!R.hold||G.state!=='play'||G.win||e.button>0||e.target!==cv)return;const f=FS();if(f&&f.st)return;if(typeof P==='undefined'||!P||P.dead)return;
+addEventListener('pointerdown',e=>{try{if(!R.rod||!R.hold||G.state!=='play'||G.win||e.button>0||e.target!==cv)return;if(window.RODFIX268&&RODFIX268.on&&!RODFIX268.take())return;const f=FS();if(f&&f.st)return;if(typeof P==='undefined'||!P||P.dead)return;
   const [wx,wy]=s2w(e.clientX,e.clientY);try{const H=window.HOUSE;if(H&&G.zone===H.ZID){if(H.build&&H.build.on)return;const it=H.build.itemAt(wx,wy);if(it&&it.id!=='fishPond')return}}catch(_){}
   e.stopImmediatePropagation();if(e.cancelable)e.preventDefault();castAt(wx,wy)}catch(er){ERR('click',er)}},true);
 /* prompt text by the pond */
